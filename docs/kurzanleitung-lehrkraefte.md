@@ -8,7 +8,7 @@
 
 **Auf einen Blick.** Jeder Titel zeigt seinen Standort und bei ausleihbaren Materialien „verfügbar“ oder „ausgeliehen bis …“. Tests mit alter Normierung sind als „Normierung veraltet“ markiert.
 
-**Inventarnummer bekannt?** Nummer eintippen und Enter drücken. Fundus öffnet direkt das Exemplar.
+**Inventarnummer bekannt?** Nummer eintippen und Enter drücken. Fundus öffnet direkt das Exemplar. Sie steht auch unter dem QR-Code auf dem Etikett.
 
 **Passwort vergessen?** Auf der Anmeldeseite „Passwort vergessen“ wählen.
 

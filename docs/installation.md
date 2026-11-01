@@ -2,7 +2,7 @@
 
 Diese Anleitung richtet sich an Personen ohne IT-Ausbildung. Sie brauchen einen kleinen Server oder Mini-PC im Schulnetz (2 GB Arbeitsspeicher genügen) mit **Docker** oder **Podman**.
 
-> Für Phase 1 muss das Container-Image noch auf dem Server gebaut werden. Ein fertiges Image zum Herunterladen folgt; dann wird auch die Einrichtung auf NAS-Systemen (z. B. Synology Container Manager) einfacher.
+> Fundus wird als fertiges Container-Image bereitgestellt (`ghcr.io/binder-fabian/fundus`, für Intel/AMD und ARM). Solange das Projekt noch nicht veröffentlicht ist, ist das Image privat; bauen Sie es dann selbst (siehe Schritt 3).
 
 ## 1. Dateien auf den Server holen
 
@@ -36,6 +36,12 @@ docker compose up -d
 ```
 
 Mit Podman: `podman compose up -d`. Für kleine Schulen ohne eigene Datenbank gibt es eine Variante mit SQLite: `docker compose -f docker-compose.sqlite.yml up -d`.
+
+Das Image selbst bauen statt herunterladen (z. B. solange es noch privat ist):
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build
+```
 
 Prüfen, ob alles läuft:
 
@@ -73,8 +79,11 @@ Legt erfundene Titel mit Inventarnummern `DEMO-…` an.
 
 ```bash
 git pull
-docker compose up -d --build
+docker compose pull
+docker compose up -d
 ```
+
+Beim selbst gebauten Image stattdessen `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
 
 Datenbankänderungen werden beim Start automatisch übernommen. Machen Sie vorher einen Export (siehe [Admin-Handbuch](admin.md)).
 

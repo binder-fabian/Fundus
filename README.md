@@ -2,7 +2,7 @@
 
 Katalog und Ausleihe für Schulen: Bücher, Diagnostiktests, Fördermaterial und Technik an einem Ort, mit QR-Codes zum Ausleihen per Handy. Selbst gehostet, ohne Cloud-Abhängigkeit, datensparsam.
 
-> **Stand:** Phase 1 (Katalog) fertig: Katalog, Suche, Benutzer, Import und Export. Ausleihe per Scan folgt in Phase 3.
+> **Stand:** Phasen 1 und 2 fertig: Katalog, Suche, Benutzer, Import und Export, ISBN-Abruf, Massenerfassung, Nummernschema und Etiketten mit QR-Code. Ausleihe per Scan folgt in Phase 3.
 
 - Anforderungen: [SPEC.md](SPEC.md)
 - Umsetzungsplan und Entscheidungen: [PLAN.md](PLAN.md)
@@ -45,7 +45,7 @@ uv run ruff check . && uv run ruff format --check .
 E-Mails in der Entwicklung abfangen (Postfach unter <http://localhost:8025>):
 
 ```bash
-podman compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+podman compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 ```
 
 ## Lizenz

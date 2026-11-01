@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phase 1 umgesetzt**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1 und 2 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -172,15 +172,15 @@ Alle Schritte 1.1–1.8 sind umgesetzt, getestet (107 automatische Tests, je mit
 ### Bewusst offen oder vereinfacht
 
 - **Navigation auf dem Handy:** Das Menü steht oben und bricht auf zwei Zeilen um. Eine Leiste unten am Bildschirm kommt mit dem Scanner in Phase 3.
-- **Fertiges Container-Image:** Das Image wird noch auf dem Server gebaut. Ein veröffentlichtes Image (z. B. GitHub Container Registry) erleichtert die Installation auf Synology & Co.
-- **Schwelle für veraltete Tests** (`OUTDATED_NORM_YEARS`, Standard 10 Jahre) ist vorerst eine Umgebungsvariable; eine Einstellungsseite folgt mit Phase 5.
+- ~~Fertiges Container-Image~~ – erledigt in Schritt 2.7.
+- ~~Schwelle für veraltete Tests als Umgebungsvariable~~ – jetzt in den Einstellungen (Schritt 2.1).
 - **Wiederherstellen eines Titels** stellt die Förderschwerpunkte nicht mit zurück (Grenze von django-simple-history).
 - **Native Installation** (Linux/Windows) ist dokumentiert, aber noch nicht auf einem frischen System durchgespielt.
-- **Anmeldung:** keine Begrenzung von Fehlversuchen; sinnvoll vor dem Produktivbetrieb.
+- ~~Keine Begrenzung von Anmelde-Fehlversuchen~~ – erledigt in Schritt 2.7.
 
 ## 7. Phase 2 – Erfassung und Etiketten
 
-Status: **Entwurf, wartet auf Freigabe** (2. November 2026)
+Status: **umgesetzt** (2. November 2026)
 
 Ziel laut SPEC: ISBN-Abruf einzeln und gesammelt, Nummernschema, Etiketten-PDF. Wie in Phase 1 endet jeder Schritt lauffähig, mit Tests, Commit und grüner CI.
 
@@ -247,3 +247,14 @@ Ziel laut SPEC: ISBN-Abruf einzeln und gesammelt, Nummernschema, Etiketten-PDF. 
 | Coverbilder | automatisch übernehmen, nur von Open Library |
 | Inventarnummern | vorhanden als Präfix + Zahl; das Nummernschema setzt die Folge fort |
 | Extras aus Phase 1 | Anmeldeschutz und fertiges Container-Image (Schritt 2.7) |
+
+### Stand nach Phase 2 (2. November 2026)
+
+Alle Schritte 2.1–2.7 sind umgesetzt; 152 automatische Tests (SQLite und PostgreSQL), CI und Image-Build auf GitHub grün. Abnahme: Massenerfassung mit echten ISBNs (DNB und Open Library, Cover übernommen), Etiketten und Plakat als PDF geprüft, Start und ISBN-Abruf ohne Internet.
+
+Bewusst offen:
+
+- **Image öffentlich machen:** Das Image `ghcr.io/binder-fabian/fundus` ist privat, solange das Repository privat ist. Öffentlich wird es nur mit deiner ausdrücklichen Freigabe.
+- **Echter Probedruck:** Die Etiketten sind als PDF geprüft, aber noch nicht auf echten Bögen gedruckt und mit dem Handy gescannt. Das sollte vor dem Einsatz einmal je verwendetem Bogenformat passieren.
+- **ISBN per Handykamera** kommt mit dem Scanner in Phase 3.
+- **Google Books** braucht einen eigenen API-Schlüssel; ohne ihn fragt Fundus nur DNB und Open Library.
