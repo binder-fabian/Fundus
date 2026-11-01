@@ -1,10 +1,11 @@
 import json
+import tempfile
 import uuid
 
 from django import forms
 from django.conf import settings
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import redirect, render
 from django.utils.translation import gettext as _
 from django.utils.translation import gettext_lazy
@@ -13,6 +14,7 @@ from django.views.decorators.http import require_POST
 from fundus.accounts.permissions import require
 from fundus.catalog.models import Category
 from fundus.transfer import importer
+from fundus.transfer.exporter import export_filename, write_export
 from fundus.transfer.models import ImportTemplate
 
 SESSION_KEY = "catalog_import"
@@ -214,3 +216,14 @@ def report(request):
     response = HttpResponse(path.read_text(encoding="utf-8"), content_type="text/csv")
     response["Content-Disposition"] = 'attachment; filename="importbericht.csv"'
     return response
+
+
+@require("is_admin")
+def export_page(request):
+    if request.method == "POST":
+        # FileResponse schließt die Datei nach dem Senden selbst.
+        buffer = tempfile.TemporaryFile()  # noqa: SIM115
+        write_export(buffer)
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename=export_filename())
+    return render(request, "transfer/export.html")

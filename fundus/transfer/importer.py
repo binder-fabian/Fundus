@@ -69,7 +69,7 @@ ALIASES = {
     "norm_year": {"normjahr", "normierung", "normen", "norm"},
     "contents": {"inhaltsliste", "inhalt", "bestandteile", "contents"},
     "lendable": {"ausleihbar", "verleihbar", "lendable"},
-    "note": {"notiz", "bemerkung", "kommentar", "anmerkung", "note", "zustand"},
+    "note": {"notiz", "bemerkung", "kommentar", "anmerkung", "note"},
 }
 
 TRUE_VALUES = {"ja", "j", "yes", "y", "x", "1", "true", "wahr"}

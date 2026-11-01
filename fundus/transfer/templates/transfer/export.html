@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Export{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Alle Daten exportieren</h1>
+    <p>Die Daten gehören der Schule. Der Export enthält alles, was in Fundus gespeichert ist, in offenen Formaten:</p>
+    <ul>
+      <li><strong>katalog.csv</strong>: eine Zeile pro Exemplar, zum Öffnen in Excel oder zum erneuten Import</li>
+      <li><strong>csv/</strong>: eine Datei pro Tabelle, einschließlich Änderungsprotokoll</li>
+      <li><strong>fundus.json</strong>: alle Tabellen in einer Datei</li>
+      <li><strong>dateien/</strong>: hochgeladene Coverbilder</li>
+    </ul>
+    <p class="message message-warning">Der Export enthält Namen und E-Mail-Adressen von Lehrkräften sowie Ausleihen. Bitte sicher aufbewahren. Passwörter sind nicht enthalten.</p>
+    <form method="post">{% csrf_token %}
+      <button class="button button-primary">ZIP herunterladen</button>
+    </form>
+    <p class="help">Auf dem Server geht das auch mit <code>python manage.py export_all</code>.</p>
+  </div>
+{% endblock %}

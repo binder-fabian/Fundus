@@ -9,5 +9,7 @@
     <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}{% include "form_fields.html" %}
       <button class="button button-primary">Weiter</button>
     </form>
+    <h2>Export</h2>
+    <p>Alle Daten als ZIP sichern oder in ein anderes System übernehmen: <a href="{% url 'export_page' %}">Zum Export</a></p>
   </div>
 {% endblock %}
