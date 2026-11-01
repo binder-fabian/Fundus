@@ -19,6 +19,7 @@
     <div class="actions">
       <a class="button" href="{% url 'title_edit' title.pk %}">Bearbeiten</a>
       <a class="button" href="{% url 'copies_add' title.pk %}">Exemplare hinzufügen</a>
+      {% if copies %}<a class="button" href="{% url 'labels' %}?auswahl=titel&amp;titel={{ title.pk }}">Etiketten</a>{% endif %}
       <a class="button" href="{% url 'history' 'titel' title.pk %}">Änderungen</a>
     </div>
   {% endif %}

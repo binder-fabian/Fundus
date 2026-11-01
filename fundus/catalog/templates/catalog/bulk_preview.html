@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Vorschau Erfassung{% endblock %}
+{% block content %}
+  <h1>Vorschau</h1>
+  <p>{{ rows|length }} verschiedene ISBNs, zusammen {{ total }} Exemplare. Die Daten werden Zeile für Zeile abgerufen. Nicht gefundene ISBNs bleiben ausgelassen und können später von Hand angelegt werden.</p>
+  <form method="post" class="form">{% csrf_token %}
+    <div class="table-wrap">
+      <table class="table table-compact">
+        <thead><tr><th><span class="sr-only">übernehmen</span></th><th>ISBN</th><th>Titel</th><th>Quelle</th><th>Exemplare</th></tr></thead>
+        <tbody>
+          {% for isbn, count in rows %}{% include "catalog/_bulk_row.html" with loaded=False %}{% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <fieldset>
+      <legend>Für alle neuen Titel und Exemplare</legend>
+      {% include "form_fields.html" %}
+      <p class="help">Inventarnummern werden automatisch nach dem Nummernschema vergeben.</p>
+    </fieldset>
+    <div class="actions">
+      <button class="button button-primary">Übernehmen</button>
+      <a class="button" href="{% url 'bulk_start' %}">Neu beginnen</a>
+    </div>
+  </form>
+{% endblock %}

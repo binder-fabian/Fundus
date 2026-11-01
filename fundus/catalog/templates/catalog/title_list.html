@@ -3,7 +3,11 @@
 {% block content %}
   <div class="page-head">
     <h1>Katalog</h1>
-    {% if user.can_manage_catalog %}<div class="actions"><a class="button button-primary" href="{% url 'title_create' %}">Titel anlegen</a></div>{% endif %}
+    {% if user.can_manage_catalog %}<div class="actions">
+      <a class="button button-primary" href="{% url 'title_create' %}">Titel anlegen</a>
+      <a class="button" href="{% url 'bulk_start' %}">Bücher erfassen</a>
+      <a class="button" href="{% url 'labels' %}">Etiketten</a>
+    </div>{% endif %}
   </div>
   <form class="search" method="get" action="{% url 'title_list' %}" role="search"
         hx-get="{% url 'title_list' %}" hx-target="#results" hx-push-url="true"

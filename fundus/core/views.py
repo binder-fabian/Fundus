@@ -48,6 +48,7 @@ def school_settings(request):
         messages.success(request, "Einstellungen gespeichert.")
         return redirect("school_settings")
     groups = [
+        ("Schule", [form["school_name"]], ""),
         (
             "Nummernschema für neue Exemplare",
             [form["number_prefix"], form["number_digits"], form["next_number"]],

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Erfassung abgeschlossen{% endblock %}
+{% block content %}
+  <h1>Erfassung abgeschlossen</h1>
+  <p>{{ copies|length }} Exemplare angelegt: {{ new_titles|length }} neue Titel{% if extended %}, {{ extended|length }} vorhandene Titel ergänzt{% endif %}.</p>
+  {% if copies %}
+    <p class="actions">
+      <a class="button button-primary" href="{% url 'labels' %}?auswahl=neu">Etiketten drucken</a>
+      <a class="button" href="{% url 'title_list' %}">Zum Katalog</a>
+    </p>
+  {% endif %}
+  {% if new_titles %}
+    <h2>Neue Titel</h2>
+    <ul class="cards">
+      {% for t in new_titles %}
+        <li class="card">
+          <a class="card-link" href="{% url 'title_detail' t.pk %}"><span class="card-title">{{ t.title }}</span><span class="muted">{{ t.author }}</span></a>
+          {% if fetch_covers %}<span class="card-meta muted" hx-post="{% url 'fetch_cover' t.pk %}" hx-trigger="load" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>Cover wird gesucht …</span>{% endif %}
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+  {% if missing %}
+    <h2>Nicht gefunden</h2>
+    <p>Diese ISBNs bitte über „Titel anlegen“ von Hand erfassen:</p>
+    <pre>{{ missing|join:"
+" }}</pre>
+  {% endif %}
+{% endblock %}

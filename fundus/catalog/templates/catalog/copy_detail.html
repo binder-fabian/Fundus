@@ -9,12 +9,14 @@
   {% endif %}
   <dl class="facts">
     <dt>Standort</dt><dd>{{ copy.location|default:"–" }}</dd>
+    {% if user.can_manage_catalog %}<dt>Etikett</dt><dd>{% if copy.label_printed_at %}gedruckt am {{ copy.label_printed_at|date:"d.m.Y" }}{% else %}noch nicht gedruckt{% endif %}</dd>{% endif %}
     <dt>Zustand</dt><dd>{{ copy.get_condition_display }}{% if copy.incomplete %}, unvollständig{% endif %}</dd>
     {% if copy.note %}<dt>Notiz</dt><dd class="prewrap">{{ copy.note }}</dd>{% endif %}
   </dl>
   {% if user.can_manage_catalog %}
     <div class="actions">
       <a class="button" href="{% url 'copy_edit' copy.pk %}">Bearbeiten</a>
+      <a class="button" href="{% url 'labels' %}?auswahl=exemplar&amp;exemplar={{ copy.pk }}">Etikett</a>
       <a class="button" href="{% url 'history' 'exemplar' copy.pk %}">Änderungen</a>
       <a class="button" href="{% url 'copy_delete' copy.pk %}">Löschen</a>
     </div>

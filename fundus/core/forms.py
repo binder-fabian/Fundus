@@ -4,6 +4,12 @@ from fundus.core.models import SchoolSettings
 
 
 class SchoolSettingsForm(forms.ModelForm):
+    school_name = forms.CharField(
+        label="Name der Schule",
+        max_length=200,
+        help_text="Erscheint z. B. auf dem Plakat.",
+    )
+
     class Meta:
         model = SchoolSettings
         fields = [
@@ -24,3 +30,13 @@ class SchoolSettingsForm(forms.ModelForm):
         if not 1 <= digits <= 10:
             raise forms.ValidationError("Bitte 1 bis 10 Stellen wählen.")
         return digits
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["school_name"].initial = self.instance.school.name
+
+    def save(self, commit=True):
+        school = self.instance.school
+        school.name = self.cleaned_data["school_name"]
+        school.save()
+        return super().save(commit)

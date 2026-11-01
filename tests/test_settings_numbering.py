@@ -73,6 +73,7 @@ def test_settings_page_is_admin_only_and_saves(client):
     response = client.post(
         reverse("school_settings"),
         {
+            "school_name": "Musterschule",
             "number_prefix": "B-",
             "number_digits": "5",
             "next_number": "20",
@@ -87,3 +88,4 @@ def test_settings_page_is_admin_only_and_saves(client):
     assert (s.number_prefix, s.number_digits, s.next_number) == ("B-", 5, 20)
     assert s.outdated_norm_years == 8 and not s.isbn_lookup_enabled
     assert numbering.preview_next() == "B-00020"
+    assert s.school.name == "Musterschule"

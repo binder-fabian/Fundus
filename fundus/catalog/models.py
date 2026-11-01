@@ -229,6 +229,7 @@ class Copy(SchoolScopedModel):
     )
     note = models.TextField(_("Notiz"), blank=True)
     incomplete = models.BooleanField(_("unvollständig"), default=False)
+    label_printed_at = models.DateTimeField(_("Etikett gedruckt am"), null=True, blank=True)
     created_at = models.DateTimeField(_("angelegt am"), auto_now_add=True)
     updated_at = models.DateTimeField(_("geändert am"), auto_now=True)
 

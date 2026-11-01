@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Bücher erfassen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'title_list' %}">‹ Katalog</a></p>
+    <h1>Bücher erfassen</h1>
+    <p>Scannen Sie die ISBN-Strichcodes nacheinander mit dem Handscanner. Wird ein Buch mehrfach gescannt, entstehen entsprechend viele Exemplare. Im nächsten Schritt sehen Sie, was gefunden wurde, und wählen Kategorie und Standort.</p>
+    <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <div class="actions">
+        <button class="button button-primary">Weiter zur Vorschau</button>
+        <a class="button" href="{% url 'title_list' %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

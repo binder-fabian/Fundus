@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Etiketten{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'title_list' %}">‹ Katalog</a></p>
+    <h1>Etiketten drucken</h1>
+    <p>Jedes Etikett trägt einen QR-Code mit der Inventarnummer sowie Nummer und Kurztitel als Text.</p>
+    <form method="post" class="form">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="message message-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+      {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+      {% include "field.html" with field=form.auswahl %}
+      {% if form.auswahl.value == "kategorie" %}{% include "field.html" with field=form.kategorie %}{% endif %}
+      {% if form.auswahl.value == "standort" %}{% include "field.html" with field=form.standort %}{% endif %}
+      {% include "field.html" with field=form.format %}
+      {% include "field.html" with field=form.start %}
+
+      {% if copies is not None %}
+        <p class="message">{% if copies %}<strong>{{ copies|length }}</strong> Etikett{{ copies|length|pluralize:"en" }}: {{ copies.0.inventory_number }}{% if copies|length > 1 %} … {{ copies|last }}{% endif %}{% else %}Keine passenden Exemplare.{% endif %}</p>
+      {% endif %}
+
+      <div class="actions">
+        <button class="button" name="action" value="show">Auswahl prüfen</button>
+        <button class="button button-primary" name="action" value="pdf" formtarget="_blank">PDF erstellen</button>
+        <button class="button" name="action" value="mark">Als gedruckt markieren</button>
+      </div>
+      <p class="help">Nach dem Druck „Als gedruckt markieren“ wählen. Dann erscheinen diese Exemplare nicht mehr unter „noch nicht gedruckt“.</p>
+
+      <h2>Drucker ausrichten</h2>
+      <p>Die Testseite zeigt die Rahmen aller Etiketten. Auf Normalpapier drucken, auf den Etikettenbogen legen und vergleichen. Abweichungen tragen Sie unter <a href="{% url 'school_settings' %}">Einstellungen</a> als Druckversatz ein (zurzeit {{ settings_row.label_offset_x }} / {{ settings_row.label_offset_y }} mm).</p>
+      <p class="help">Wichtig: Im Druckdialog „Tatsächliche Größe“ bzw. „100 %“ wählen, nicht „An Seite anpassen“.</p>
+      <div class="actions"><button class="button" name="action" value="test" formtarget="_blank">Testseite (PDF)</button></div>
+    </form>
+
+    <h2>Plakat</h2>
+    <p>Ein A4-Plakat mit QR-Code zu Fundus, z. B. für das Lehrerzimmer: <a href="{% url 'poster' %}" target="_blank">Plakat (PDF)</a></p>
+  </div>
+{% endblock %}

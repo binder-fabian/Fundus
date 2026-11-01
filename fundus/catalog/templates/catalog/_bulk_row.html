@@ -1,0 +1,14 @@
+<tr{% if not loaded %} hx-get="{% url 'bulk_row' isbn %}" hx-trigger="load" hx-swap="outerHTML"{% endif %}>
+  <td><input type="checkbox" name="include_{{ isbn }}" value="1" aria-label="{{ isbn }} übernehmen"{% if title or result.found %} checked{% elif loaded %} disabled{% endif %}></td>
+  <td>{{ isbn }}</td>
+  <td>
+    {% if not loaded %}<span class="muted">wird abgerufen …</span>
+    {% elif title %}<a href="{% url 'title_detail' title.pk %}">{{ title.title }}</a><br><span class="muted">schon im Katalog – bekommt neue Exemplare</span>
+    {% elif result.found %}<strong>{{ result.data.title }}</strong>{% if result.data.author %}<br><span class="muted">{{ result.data.author }}</span>{% endif %}
+    {% elif result.failed %}<span class="error">Abruf nicht möglich</span>
+    {% elif result %}<span class="error">nicht gefunden</span>
+    {% else %}<span class="muted">ISBN-Abruf ist abgeschaltet</span>{% endif %}
+  </td>
+  <td>{% if loaded and result.found %}{{ result.sources|join:", " }}{% endif %}</td>
+  <td><input type="number" name="count_{{ isbn }}" value="{{ count }}" min="1" max="50" class="input-small" aria-label="Anzahl Exemplare"></td>
+</tr>

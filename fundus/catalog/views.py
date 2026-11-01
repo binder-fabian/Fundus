@@ -1,15 +1,19 @@
+import contextlib
+import io
+
+from django import forms
 from django.contrib import messages
 from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import ProtectedError
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from fundus.accounts.permissions import require
-from fundus.catalog import isbn_lookup
+from fundus.catalog import bulk, isbn_lookup
 from fundus.catalog.forms import (
     CategoryForm,
     CopiesAddForm,
@@ -17,6 +21,7 @@ from fundus.catalog.forms import (
     LocationForm,
     SupportFocusForm,
     TitleForm,
+    shrink_cover,
 )
 from fundus.catalog.history import history_entries
 from fundus.catalog.isbn import validate_isbn
@@ -340,3 +345,132 @@ def masterdata_edit(request, kind, pk=None):
         "catalog/masterdata_form.html",
         {"form": form, "kind": kind, "singular": singular, "plural": plural, "object": instance},
     )
+
+
+# Massenerfassung
+
+BULK_SESSION_KEY = "bulk_isbns"
+
+
+class BulkStartForm(forms.Form):
+    isbns = forms.CharField(
+        label=_("ISBNs"),
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 10, "autofocus": True, "autocomplete": "off"}),
+        help_text=_("Mit dem Handscanner nacheinander scannen – jede ISBN landet in einer Zeile."),
+    )
+    file = forms.FileField(
+        label=_("oder Datei mit ISBNs (CSV/TXT)"),
+        required=False,
+        widget=forms.ClearableFileInput(attrs={"accept": ".csv,.txt"}),
+    )
+
+
+class BulkCommonForm(forms.Form):
+    category = forms.ModelChoiceField(Category.objects.all(), label=_("Kategorie für neue Titel"))
+    location = forms.ModelChoiceField(
+        Location.objects.all(), required=False, label=_("Standort der neuen Exemplare")
+    )
+    lendable = forms.BooleanField(required=False, label=_("neue Titel sind ausleihbar"))
+
+
+@require("can_manage_catalog")
+def bulk_start(request):
+    form = BulkStartForm(request.POST or None, request.FILES or None)
+    if request.method == "POST" and form.is_valid():
+        text = form.cleaned_data["isbns"]
+        upload = form.cleaned_data.get("file")
+        if upload:
+            raw = upload.read(1024 * 1024)
+            text += "\n" + raw.decode("utf-8-sig", errors="replace")
+        rows, invalid = bulk.parse_isbns(text)
+        if invalid:
+            messages.warning(
+                request,
+                _("Ungültig und ignoriert: %(list)s") % {"list": ", ".join(invalid[:20])},
+            )
+        if rows:
+            request.session[BULK_SESSION_KEY] = rows
+            return redirect("bulk_preview")
+        form.add_error("isbns", _("Keine gültige ISBN gefunden."))
+    return render(request, "catalog/bulk_start.html", {"form": form})
+
+
+@require("can_manage_catalog")
+def bulk_preview(request):
+    rows = request.session.get(BULK_SESSION_KEY)
+    if not rows:
+        return redirect("bulk_start")
+    form = BulkCommonForm(request.POST or None)
+    if request.method == "POST" and form.is_valid():
+        chosen = []
+        for isbn, count in rows:
+            if request.POST.get(f"include_{isbn}"):
+                with contextlib.suppress(ValueError):
+                    count = max(1, min(50, int(request.POST.get(f"count_{isbn}", count))))
+                chosen.append((isbn, count))
+        if not chosen:
+            messages.error(request, _("Bitte mindestens eine Zeile auswählen."))
+        else:
+            new_titles, extended, copies, missing = bulk.create(
+                chosen,
+                form.cleaned_data["category"],
+                form.cleaned_data["location"],
+                form.cleaned_data["lendable"],
+            )
+            del request.session[BULK_SESSION_KEY]
+            return render(
+                request,
+                "catalog/bulk_done.html",
+                {
+                    "new_titles": new_titles,
+                    "extended": extended,
+                    "copies": copies,
+                    "missing": missing,
+                    "fetch_covers": SchoolSettings.current().isbn_lookup_enabled,
+                },
+            )
+    return render(
+        request,
+        "catalog/bulk_preview.html",
+        {
+            "rows": rows,
+            "form": form,
+            "total": sum(c for _i, c in rows),
+            "lookup_enabled": _lookup_enabled(),
+        },
+    )
+
+
+@require("can_manage_catalog")
+def bulk_row(request, isbn):
+    """Eine Vorschauzeile; wird per htmx einzeln nachgeladen."""
+    count = dict(request.session.get(BULK_SESSION_KEY) or []).get(isbn, 1)
+    title = bulk.existing_title(isbn)
+    result = None
+    if not title and _lookup_enabled():
+        result = isbn_lookup.lookup(isbn)
+    return render(
+        request,
+        "catalog/_bulk_row.html",
+        {"isbn": isbn, "count": count, "title": title, "result": result, "loaded": True},
+    )
+
+
+@require("can_manage_catalog")
+@require_POST
+def fetch_cover(request, pk):
+    """Holt nach der Massenerfassung das Cover von Open Library (einzeln per htmx)."""
+    title = get_object_or_404(Title, pk=pk)
+    status = _("kein Cover")
+    if not title.cover and title.isbn and _lookup_enabled():
+        result = isbn_lookup.lookup(title.isbn)
+        data = isbn_lookup.download_cover(result.cover_url) if result.cover_url else None
+        if data:
+            title.cover = shrink_cover(io.BytesIO(data))
+            title._change_reason = "Cover von Open Library"
+            title.save()
+            status = _("Cover übernommen")
+    elif title.cover:
+        status = _("Cover vorhanden")
+    return HttpResponse(status)
