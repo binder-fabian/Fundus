@@ -196,12 +196,14 @@ Ziel laut SPEC: ISBN-Abruf einzeln und gesammelt, Nummernschema, Etiketten-PDF. 
 - Neues Modell „Schuleinstellungen“ (eine Zeile je Schule), Seite „Einstellungen“ für Administratoren.
 - Nummernschema: Präfix, Stellenzahl, nächste Nummer (z. B. `FS-` / 4 / 101 → FS-0101). Vergabe kollisionssicher; vorhandene oder importierte Nummern werden übersprungen.
 - Beim Anlegen von Exemplaren: „nächste freie Nummern verwenden“ – nur noch die Anzahl eingeben. Eigene Nummern bleiben möglich.
+- Startwert: höchste vorhandene Nummer mit dem gewählten Präfix + 1, damit bestehende Folgen nahtlos weiterlaufen.
 - Hierher wandern auch die Schwelle für veraltete Tests (bisher Umgebungsvariable) und der Schalter für den ISBN-Abruf.
 
 ### Schritt 2.2 – ISBN-Abruf einzeln
 
 - Quellen in der Reihenfolge der SPEC: DNB → Open Library → Google Books (nur mit Schlüssel). Abruf serverseitig mit kurzer Zeitbegrenzung; das Frontend lädt nie etwas von außen.
 - Ergebnisse werden 30 Tage zwischengespeichert (keine doppelten Anfragen).
+- Cover nur von Open Library: Fundus lädt das Bild herunter und speichert es selbst, wie ein hochgeladenes Cover.
 - Beim Titel-Anlegen: ISBN eintippen oder mit dem USB-Scanner scannen → „Daten abrufen“ füllt die Felder vor; gespeichert wird erst nach Bestätigung. Die Quelle wird angezeigt.
 - Ohne Internet oder bei abgeschaltetem Abruf verschwindet der Knopf; alles andere funktioniert weiter.
 - Das Scannen der ISBN mit der Handykamera kommt mit dem Scanner in Phase 3.
@@ -232,9 +234,16 @@ Ziel laut SPEC: ISBN-Abruf einzeln und gesammelt, Nummernschema, Etiketten-PDF. 
 - Admin-Handbuch ergänzen (Nummernschema, ISBN-Abruf, Massenerfassung, Etiketten, Druck-Kalibrierung).
 - Abnahme: Massenerfassung mit echten ISBNs, Etiketten auf allen Formaten als PDF prüfen, Start ohne Internet.
 
-### Offene Fragen zu Phase 2
+### Schritt 2.7 – Anmeldeschutz und fertiges Container-Image
 
-1. Welche Etikettenbögen hat die Schule bzw. sollen gekauft werden?
-2. Coverbilder beim ISBN-Abruf automatisch übernehmen? (Open-Library-Cover sind frei nutzbar; DNB-Cover stammen vom Buchhandel und haben unklare Nutzungsrechte.)
-3. Wie sehen die vorhandenen Inventarnummern aus (für das Nummernschema)?
-4. Sollen offene Punkte aus Phase 1 mit in Phase 2: Begrenzung von Anmelde-Fehlversuchen und ein fertiges Container-Image auf GitHub?
+- **Anmeldeschutz:** Nach 5 falschen Passwörtern für dieselbe E-Mail-Adresse oder vom selben Gerät innerhalb von 15 Minuten ist die Anmeldung 15 Minuten gesperrt; die Seite sagt das verständlich. Ohne neue Abhängigkeit, Werte über Umgebungsvariablen änderbar.
+- **Container-Image:** GitHub Actions baut bei jedem Stand auf `main` ein Image für Intel/AMD und ARM (Synology, Raspberry Pi) und legt es in der GitHub Container Registry ab (`ghcr.io/binder-fabian/fundus`). `docker-compose.yml` nutzt dann dieses Image; selbst bauen bleibt möglich. Solange das Repository privat ist, ist auch das Image privat; öffentlich wird es erst nach deiner ausdrücklichen Freigabe.
+
+### Entscheidungen zu Phase 2 (2. November 2026)
+
+| Frage | Entscheidung |
+| --- | --- |
+| Etikettenbögen | alle fünf: 4732, 6021, 4780, 3651, 3474 |
+| Coverbilder | automatisch übernehmen, nur von Open Library |
+| Inventarnummern | vorhanden als Präfix + Zahl; das Nummernschema setzt die Folge fort |
+| Extras aus Phase 1 | Anmeldeschutz und fertiges Container-Image (Schritt 2.7) |
