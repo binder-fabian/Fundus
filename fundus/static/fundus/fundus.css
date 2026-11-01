@@ -292,3 +292,177 @@ input[type="checkbox"] {
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+.muted {
+  color: var(--muted);
+}
+
+.subtitle {
+  color: var(--muted);
+  margin-top: -8px;
+}
+
+.prewrap {
+  white-space: pre-wrap;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 12px 16px 0;
+  margin: 0 0 16px;
+}
+
+legend {
+  font-weight: 600;
+  padding: 0 4px;
+}
+
+.field ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.field ul label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 400;
+  min-height: 40px;
+}
+
+.button-danger {
+  color: #ffffff;
+  background: var(--error);
+  border-color: var(--error);
+}
+
+/* Karten-Listen: auf dem Handy gut antippbar */
+.cards {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.card-link {
+  display: flex;
+  flex-direction: column;
+  min-height: var(--tap);
+  justify-content: center;
+  text-decoration: none;
+  color: var(--fg);
+  flex: 1 1 240px;
+}
+
+.card-title {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.tag,
+.badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.badge-ok {
+  background: var(--ok-bg);
+  border-color: transparent;
+}
+
+.badge-busy {
+  background: var(--warn-bg);
+  border-color: transparent;
+}
+
+.title-head {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.cover {
+  width: 96px;
+  height: auto;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+}
+
+.facts {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 4px 16px;
+}
+
+.facts dt {
+  font-weight: 600;
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.pagination {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  margin-bottom: 8px;
+}
+
+.tabs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+}
+
+.tabs a[aria-current="page"] {
+  font-weight: 700;
+  color: var(--fg);
+  text-decoration: none;
+}
+
+.history {
+  list-style: none;
+  padding: 0;
+}
+
+.history-entry {
+  padding: 8px 0 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.table-compact th,
+.table-compact td {
+  padding: 4px 8px;
+  font-size: 0.95rem;
+}

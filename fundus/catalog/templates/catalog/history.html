@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Änderungen: {{ label }}{% endblock %}
+{% block content %}
+  {% if object.get_absolute_url %}<p><a href="{{ object.get_absolute_url }}">‹ {{ label }}</a></p>{% endif %}
+  <h1>Änderungen: {{ label }}</h1>
+  {% if not object %}<p class="message message-warning">Dieser Eintrag ist gelöscht. Über „Diesen Stand wiederherstellen“ lässt er sich zurückholen.</p>{% endif %}
+  <ol class="history">
+    {% for e in entries %}
+      <li class="history-entry">
+        <p><strong>{{ e.record.history_date|date:"d.m.Y H:i" }}</strong> · {{ e.type }}
+          {% if e.record.history_user %}von {{ e.record.history_user }}{% endif %}
+          {% if e.record.history_change_reason %}<br><span class="muted">{{ e.record.history_change_reason }}</span>{% endif %}
+        </p>
+        {% if e.changes %}
+          <table class="table table-compact">
+            <thead><tr><th>Feld</th><th>vorher</th><th>nachher</th></tr></thead>
+            <tbody>{% for c in e.changes %}<tr><td>{{ c.field }}</td><td class="prewrap">{{ c.old }}</td><td class="prewrap">{{ c.new }}</td></tr>{% endfor %}</tbody>
+          </table>
+        {% endif %}
+        {% if not forloop.first or not object %}{% if e.record.history_type != "-" %}
+          <form method="post" action="{% url 'history_restore' kind e.record.history_id %}">{% csrf_token %}
+            <button class="button button-small">Diesen Stand wiederherstellen</button>
+          </form>
+        {% endif %}{% endif %}
+      </li>
+    {% endfor %}
+  </ol>
+{% endblock %}

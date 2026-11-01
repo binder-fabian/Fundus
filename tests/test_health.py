@@ -16,13 +16,15 @@ def test_health_reports_database_error(client, db):
     assert response.json()["status"] == "error"
 
 
-def test_home_renders_in_german(client, db):
+def test_home_leads_to_catalog_in_german(client, db):
     from tests.factories import UserFactory
 
     client.force_login(UserFactory())
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "Willkommen bei Fundus" in response.content.decode()
+    response = client.get("/", follow=True)
+    assert response.redirect_chain[-1][0] == "/katalog/"
+    content = response.content.decode()
+    assert '<html lang="de">' in content
+    assert "Katalog" in content
 
 
 def test_stylesheet_is_found_by_collectstatic():

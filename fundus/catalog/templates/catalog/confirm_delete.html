@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Löschen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>„{{ object }}“ löschen?</h1>
+    <p>Gelöschte Einträge bleiben im Änderungsprotokoll sichtbar.</p>
+    <form method="post" class="actions">{% csrf_token %}
+      <button class="button button-danger">Endgültig löschen</button>
+      <a class="button" href="{{ cancel.get_absolute_url }}">Abbrechen</a>
+    </form>
+  </div>
+{% endblock %}

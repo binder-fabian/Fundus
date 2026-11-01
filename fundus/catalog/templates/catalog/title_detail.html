@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}{{ title.title }}{% endblock %}
+{% block content %}
+  <p><a href="{% url 'title_list' %}">‹ Katalog</a></p>
+  <div class="title-head">
+    {% if title.cover %}<img class="cover" src="{{ title.cover.url }}" alt="Cover von {{ title.title }}">{% endif %}
+    <div>
+      <h1>{{ title.title }}</h1>
+      {% if title.subtitle %}<p class="subtitle">{{ title.subtitle }}</p>{% endif %}
+      {% if title.author %}<p>{{ title.author }}</p>{% endif %}
+      <p><span class="tag">{{ title.category }}</span>
+        {% if title.lendable %}<span class="tag">ausleihbar</span>{% endif %}
+        {% if title.approval_required %}<span class="tag">freigabepflichtig</span>{% endif %}
+      </p>
+    </div>
+  </div>
+
+  {% if user.can_manage_catalog %}
+    <div class="actions">
+      <a class="button" href="{% url 'title_edit' title.pk %}">Bearbeiten</a>
+      <a class="button" href="{% url 'copies_add' title.pk %}">Exemplare hinzufügen</a>
+      <a class="button" href="{% url 'history' 'titel' title.pk %}">Änderungen</a>
+    </div>
+  {% endif %}
+
+  <dl class="facts">
+    {% if title.publisher %}<dt>Verlag</dt><dd>{{ title.publisher }}</dd>{% endif %}
+    {% if title.edition %}<dt>Auflage</dt><dd>{{ title.edition }}</dd>{% endif %}
+    {% if title.isbn %}<dt>ISBN</dt><dd>{{ title.isbn }}</dd>{% endif %}
+    {% if title.norm_year %}<dt>Normjahr</dt><dd>{{ title.norm_year }}</dd>{% endif %}
+    {% with focuses=title.support_focuses.all %}{% if focuses %}<dt>Förderschwerpunkte</dt><dd>{{ focuses|join:", " }}</dd>{% endif %}{% endwith %}
+    {% if title.responsible %}<dt>Zuständig</dt><dd>{{ title.responsible }}{% if title.deputy %} (Vertretung: {{ title.deputy }}){% endif %}</dd>{% endif %}
+    {% if title.lendable %}<dt>Ausleihfrist</dt><dd>{{ title.category.default_loan_days }} Tage</dd>{% endif %}
+  </dl>
+
+  {% if title.description %}<h2>Beschreibung</h2><p class="prewrap">{{ title.description }}</p>{% endif %}
+  {% if title.contents_items %}
+    <h2>Inhalt</h2>
+    <ul>{% for item in title.contents_items %}<li>{{ item }}</li>{% endfor %}</ul>
+  {% endif %}
+
+  <h2>Exemplare ({{ copies|length }})</h2>
+  {% if copies %}
+    <ul class="cards">
+      {% for c in copies %}
+        <li class="card">
+          <a class="card-link" href="{% url 'copy_detail' c.pk %}">
+            <span class="card-title">{{ c.inventory_number }}</span>
+            <span class="muted">{{ c.location|default:"ohne Standort" }}</span>
+          </a>
+          <span class="card-meta">
+            {% if c.incomplete %}<span class="badge badge-busy">unvollständig</span>{% endif %}
+            {% if c.condition != "good" %}<span class="badge">{{ c.get_condition_display }}</span>{% endif %}
+            {% if title.lendable %}
+              {% if c.is_lent %}<span class="badge badge-busy">ausgeliehen bis {{ c.due_date|date:"d.m.Y" }}</span>
+              {% else %}<span class="badge badge-ok">verfügbar</span>{% endif %}
+            {% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Noch keine Exemplare.</p>
+  {% endif %}
+
+  {% if user.can_manage_catalog and not copies %}
+    <p><a class="button" href="{% url 'title_delete' title.pk %}">Titel löschen</a></p>
+  {% endif %}
+{% endblock %}

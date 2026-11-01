@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}{{ copy.inventory_number }}{% endblock %}
+{% block content %}
+  <p><a href="{% url 'title_detail' copy.title.pk %}">‹ {{ copy.title.title }}</a></p>
+  <h1>{{ copy.inventory_number }}</h1>
+  <p class="subtitle">{{ copy.title.title }}</p>
+  {% if copy.title.lendable %}
+    <p>{% if copy.is_lent %}<span class="badge badge-busy">ausgeliehen bis {{ copy.due_date|date:"d.m.Y" }}</span>{% else %}<span class="badge badge-ok">verfügbar</span>{% endif %}</p>
+  {% endif %}
+  <dl class="facts">
+    <dt>Standort</dt><dd>{{ copy.location|default:"–" }}</dd>
+    <dt>Zustand</dt><dd>{{ copy.get_condition_display }}{% if copy.incomplete %}, unvollständig{% endif %}</dd>
+    {% if copy.note %}<dt>Notiz</dt><dd class="prewrap">{{ copy.note }}</dd>{% endif %}
+  </dl>
+  {% if user.can_manage_catalog %}
+    <div class="actions">
+      <a class="button" href="{% url 'copy_edit' copy.pk %}">Bearbeiten</a>
+      <a class="button" href="{% url 'history' 'exemplar' copy.pk %}">Änderungen</a>
+      <a class="button" href="{% url 'copy_delete' copy.pk %}">Löschen</a>
+    </div>
+    {% if loans %}
+      <h2>Letzte Ausleihen</h2>
+      <ul>{% for loan in loans %}<li>{{ loan.lent_at|date:"d.m.Y"|default:"–" }}: {{ loan.borrower_display }} ({{ loan.get_status_display }})</li>{% endfor %}</ul>
+    {% endif %}
+  {% endif %}
+{% endblock %}

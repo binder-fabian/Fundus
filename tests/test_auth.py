@@ -26,7 +26,7 @@ def test_login_with_email_ignores_case(client):
         reverse("login"), {"username": "Anna@Schule.de", "password": "geheim-1234"}
     )
     assert response.status_code == 302
-    assert client.get("/").status_code == 200
+    assert client.get("/katalog/").status_code == 200
 
 
 def test_wrong_password_shows_error(client):
@@ -121,7 +121,7 @@ def test_invitation_link_sets_password_and_logs_in(client):
     assert response["Location"] == "/"
     user.refresh_from_db()
     assert user.check_password("Sonnenblume-42")
-    assert client.get("/").status_code == 200
+    assert client.get("/katalog/").status_code == 200
 
     # Der Link funktioniert nur einmal.
     client.logout()

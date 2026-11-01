@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}{% if is_new %}Titel anlegen{% else %}{{ title.title }} bearbeiten{% endif %}{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>{% if is_new %}Titel anlegen{% else %}{{ title.title }} bearbeiten{% endif %}</h1>
+    <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}
+      {% include "form_fields.html" %}
+      {% if is_new %}
+        <fieldset>
+          <legend>Exemplare gleich mit anlegen (optional)</legend>
+          {% include "form_fields.html" with form=copies_form %}
+        </fieldset>
+      {% endif %}
+      <div class="actions">
+        <button class="button button-primary">Speichern</button>
+        <a class="button" href="{% if is_new %}{% url 'title_list' %}{% else %}{% url 'title_detail' title.pk %}{% endif %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

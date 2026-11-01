@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}{{ copy.inventory_number }} bearbeiten{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'copy_detail' copy.pk %}">‹ {{ copy.inventory_number }}</a></p>
+    <h1>Exemplar bearbeiten</h1>
+    <form method="post" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <div class="actions">
+        <button class="button button-primary">Speichern</button>
+        <a class="button" href="{% url 'copy_detail' copy.pk %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

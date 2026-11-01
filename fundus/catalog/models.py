@@ -4,6 +4,7 @@ from django.conf import settings
 from django.db import models
 from django.db.models import Exists, OuterRef, Q, Subquery
 from django.db.models.functions import Lower
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -145,6 +146,9 @@ class Title(SchoolScopedModel):
     def __str__(self):
         return self.title
 
+    def get_absolute_url(self):
+        return reverse("title_detail", args=[self.pk])
+
     def clean_fields(self, exclude=None):
         self.isbn = normalize_isbn(self.isbn)
         super().clean_fields(exclude=exclude)
@@ -235,6 +239,9 @@ class Copy(SchoolScopedModel):
 
     def __str__(self):
         return f"{self.inventory_number} – {self.title}"
+
+    def get_absolute_url(self):
+        return reverse("copy_detail", args=[self.pk])
 
     def clean_fields(self, exclude=None):
         self.inventory_number = self.inventory_number.strip()

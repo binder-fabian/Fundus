@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Katalog{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Katalog</h1>
+    {% if user.can_manage_catalog %}<div class="actions"><a class="button button-primary" href="{% url 'title_create' %}">Titel anlegen</a></div>{% endif %}
+  </div>
+  {% block search %}{% endblock %}
+  <div id="results">{% include "catalog/_title_results.html" %}</div>
+{% endblock %}

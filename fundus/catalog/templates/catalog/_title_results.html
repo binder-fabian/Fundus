@@ -1,0 +1,26 @@
+{% if page.paginator.count %}
+  <p class="muted">{{ page.paginator.count }} Titel</p>
+  <ul class="cards">
+    {% for t in page %}
+      <li class="card">
+        <a class="card-link" href="{% url 'title_detail' t.pk %}">
+          <span class="card-title">{{ t.title }}</span>
+          {% if t.author %}<span class="muted">{{ t.author }}</span>{% endif %}
+        </a>
+        <span class="card-meta">
+          <span class="tag">{{ t.category }}</span>
+          {% if t.lendable %}
+            {% if t.copy_count == 0 %}<span class="badge">keine Exemplare</span>
+            {% elif t.lent_count < t.copy_count %}<span class="badge badge-ok">{{ t.available_count }} von {{ t.copy_count }} verfügbar</span>
+            {% else %}<span class="badge badge-busy">alle ausgeliehen</span>{% endif %}
+          {% else %}
+            <span class="muted">{{ t.copy_count }} Exemplar{{ t.copy_count|pluralize:"e" }}</span>
+          {% endif %}
+        </span>
+      </li>
+    {% endfor %}
+  </ul>
+  {% include "pagination.html" %}
+{% else %}
+  <p>Keine Titel gefunden.</p>
+{% endif %}
