@@ -51,7 +51,7 @@ Keinen Code kopieren, solange die Lizenzfrage (s. u.) offen ist. Bei AGPL von Sn
 | Server | `gunicorn` (Linux/Container), `waitress` (Windows nativ), `whitenoise` für statische Dateien | Ein Prozess, kein separater Webserver im Container. |
 | Tests/Qualität | `pytest`, `pytest-django`, `factory_boy`, `ruff`; Tests laufen gegen SQLite **und** PostgreSQL | Spec verlangt Tests für Datenmodell, Ausleihe, Freigabe, Anonymisierung, Import. |
 | Paketverwaltung | `uv` mit `pyproject.toml` + Lockfile | Schnell, reproduzierbar. |
-| Auslieferung | Docker-Image (python-slim, Nicht-Root), `docker-compose.yml` mit PostgreSQL 17, Caddy-Beispiel für HTTPS | Siehe SPEC „Technische Anforderungen“. |
+| Auslieferung | Container-Image (python-slim, Nicht-Root), `docker-compose.yml` mit PostgreSQL 17, Caddy-Beispiel für HTTPS | Siehe SPEC „Technische Anforderungen“. Entwickelt wird mit Podman; Docker-Kompatibilität prüft die CI. |
 
 **Erwartete Last**: ca. 150–250 MB RAM für App + PostgreSQL. Ein Mini-PC oder eine Synology reicht.
 
@@ -75,13 +75,14 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 
 ### Schritt 1.1 – Projektgerüst und Betrieb
 
-- `pyproject.toml` (uv), Django-Projekt, App-Struktur (`core`, `accounts`, `catalog`, `loans`, `io`).
+- `pyproject.toml` (uv), Django-Projekt `fundus`, App-Struktur (`core`, `accounts`, `catalog`, `loans`, `io`).
 - Einstellungen nur über Umgebungsvariablen; `.env.example`; SQLite per `DATABASE_URL=sqlite:////data/db.sqlite3`, PostgreSQL als Standard.
 - `/health`-Endpunkt (prüft Datenbankverbindung).
 - `Dockerfile` (mehrstufig, Nicht-Root, Daten nur unter `/data`), Entrypoint führt Migrationen aus.
 - `docker-compose.yml` (App + PostgreSQL, benannte Volumes, Healthchecks), `docker-compose.sqlite.yml` als Variante.
 - `deploy/Caddyfile.example`.
 - ruff, pytest, Test-Matrix SQLite/PostgreSQL (lokal per Compose).
+- `LICENSE` (AGPL-3.0), `.github/workflows/ci.yml` für GitHub Actions.
 - **Fertig, wenn**: `docker compose up` liefert eine Startseite und `/health` meldet OK; Start ohne Internet klappt.
 
 ### Schritt 1.2 – Datenmodell
@@ -147,12 +148,19 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 
 **Nicht in Phase 1**: ISBN-Abruf, Nummernschema, Etiketten (Phase 2), Ausleih-Oberfläche und Scanner-PWA (Phase 3). Bis dahin werden Inventarnummern von Hand vergeben oder importiert.
 
-## 5. Offene Fragen an dich
+## 5. Entscheidungen (1. November 2026)
 
-1. **Stack**: Einverstanden mit Python/Django + htmx? (Alternativ TypeScript/Next.js, wenn du selbst lieber in TS mitliest.)
-2. **Lizenz**: AGPL-3.0 (schützt davor, dass ein Anbieter es als geschlossenen Dienst weiterverkauft – passt zur Idee „Daten gehören der Schule“) oder MIT (maximale Verbreitung)? Meine Tendenz: AGPL.
-3. **Projektname**: Arbeitstitel im Code vorerst `ausleihe`. Hast du einen Namen?
-4. **Standardfristen**: Rückgabe z. B. 14 Tage (Tests) / 28 Tage (Bücher)? Anonymisierung nach z. B. 90 Tagen? In Phase 1 brauche ich nur die Ausleihfrist je Kategorie als Feld, ein Standardwert genügt.
-5. **Vorhandene Daten**: Gibt es schon eine Microsoft List oder Excel-Datei mit Inventarnummern? Ein (anonymisierter) Beispiel-Export würde den Import-Assistenten passgenau machen.
-6. **Massenanlage Lehrkräfte** in Phase 1 einverstanden (ist wenig Mehraufwand und macht die App früh nutzbar)?
-7. **Hosting des Repos**: Nur lokal, oder später GitHub/Codeberg? (Beeinflusst, ob ich CI-Konfiguration gleich mit anlege.)
+| Frage | Entscheidung | Folge für den Plan |
+| --- | --- | --- |
+| Stack | **Django + htmx** | wie in Abschnitt 2 |
+| Lizenz | **AGPL-3.0** | `LICENSE` kommt in Schritt 1.1 dazu |
+| Projektname | **Fundus** | Python-Paket `fundus`, Image `fundus`, Titel in der Oberfläche „Fundus“ |
+| Standardfristen | **14 / 28 / 90 Tage** | Tests und Technik 14 Tage, Bücher und Material 28 Tage, Anonymisierung 90 Tage nach Rückgabe; alles änderbar |
+| Altdaten | **Microsoft List** vorhanden | Importvorlage „Microsoft-List-Export“ in Schritt 1.6; vorhandene Inventarnummern werden übernommen |
+| Massenanlage Lehrkräfte | **in Phase 1** | wie in Schritt 1.3 |
+| Hosting | **GitHub** (Codeberg scheidet nach dessen Nutzungsbedingungen aus) | CI über GitHub Actions: Tests mit SQLite und PostgreSQL, Image-Build und `docker compose up` mit Docker als Kompatibilitätstest |
+
+### Was ich noch von dir brauche
+
+- **Beispiel-Export der Microsoft List**: CSV oder Excel mit 10–20 Zeilen, Namen von Personen entfernt oder ersetzt. Am besten bis Schritt 1.6, früher hilft beim Datenmodell (Schritt 1.2).
+- **GitHub-Repository**: Konto und leeres Repository (öffentlich oder privat, deine Wahl) legst du an; danach richte ich den Remote ein. Gepusht wird erst nach deinem Okay. Bis dahin laufen die Tests lokal.
