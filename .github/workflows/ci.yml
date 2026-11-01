@@ -57,13 +57,13 @@ jobs:
           sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci/" .env
           sed -i "s/^BEHIND_HTTPS_PROXY=.*/BEHIND_HTTPS_PROXY=0/" .env
       - name: docker compose up (PostgreSQL)
-        run: docker compose up -d --build --wait --wait-timeout 180
+        run: docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build --wait --wait-timeout 180
       - run: curl -fsS http://localhost:8000/health
       - if: failure()
-        run: docker compose logs
-      - run: docker compose down -v
+        run: docker compose -f docker-compose.yml -f docker-compose.build.yml logs
+      - run: docker compose -f docker-compose.yml -f docker-compose.build.yml down -v
       - name: docker compose up (SQLite)
-        run: docker compose -f docker-compose.sqlite.yml up -d --wait --wait-timeout 120
+        run: docker compose -f docker-compose.sqlite.yml -f docker-compose.build.yml up -d --wait --wait-timeout 120
       - run: curl -fsS http://localhost:8000/health
       - if: failure()
-        run: docker compose -f docker-compose.sqlite.yml logs
+        run: docker compose -f docker-compose.sqlite.yml -f docker-compose.build.yml logs

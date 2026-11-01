@@ -1,7 +1,9 @@
 from django import forms
+from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.utils.translation import gettext_lazy as _
 
+from fundus.accounts import throttle
 from fundus.accounts.models import Role, User
 
 
@@ -10,6 +12,18 @@ class LoginForm(AuthenticationForm):
         label=_("E-Mail-Adresse"),
         widget=forms.EmailInput(attrs={"autofocus": True, "autocomplete": "email"}),
     )
+
+    def clean(self):
+        if throttle.is_locked(self.data.get("username"), self.request):
+            raise forms.ValidationError(
+                _(
+                    "Zu viele falsche Versuche. Bitte in %(m)d Minuten erneut versuchen "
+                    "oder „Passwort vergessen“ nutzen."
+                )
+                % {"m": settings.LOGIN_LOCK_MINUTES},
+                code="locked",
+            )
+        return super().clean()
 
 
 class InvitationAwarePasswordResetForm(PasswordResetForm):

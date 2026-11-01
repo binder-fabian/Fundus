@@ -130,8 +130,13 @@ EMAIL_CONFIG = env.email_url("EMAIL_URL", default="consolemail://")
 vars().update(EMAIL_CONFIG)
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="fundus@localhost")
 
+# Anmeldesperre nach zu vielen falschen Passwörtern.
+LOGIN_MAX_ATTEMPTS = env.int("LOGIN_MAX_ATTEMPTS", default=5)
+LOGIN_LOCK_MINUTES = env.int("LOGIN_LOCK_MINUTES", default=15)
+
 # Hinter einem Reverse Proxy mit HTTPS (siehe deploy/Caddyfile.example).
-if env.bool("BEHIND_HTTPS_PROXY", default=False):
+BEHIND_HTTPS_PROXY = env.bool("BEHIND_HTTPS_PROXY", default=False)
+if BEHIND_HTTPS_PROXY:
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True

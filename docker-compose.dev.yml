@@ -1,9 +1,12 @@
-# Ergänzung für die Entwicklung: fängt alle E-Mails in Mailpit ab.
-#   podman compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Ergänzung für die Entwicklung: baut aus dem Quellcode und fängt alle
+# E-Mails in Mailpit ab.
+#   podman compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
 # Postfach im Browser: http://localhost:8025
 
 services:
   app:
+    build: .
+    image: localhost/fundus:dev
     environment:
       EMAIL_URL: smtp://mailpit:1025
       SITE_URL: http://localhost:8000

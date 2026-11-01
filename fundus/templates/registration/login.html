@@ -5,7 +5,7 @@
     <h1>Anmelden</h1>
     <form method="post" class="form">
       {% csrf_token %}
-      {% if form.errors %}<div class="message message-error" role="alert"><p>E-Mail-Adresse oder Passwort stimmen nicht.</p></div>{% endif %}
+      {% if form.errors %}<div class="message message-error" role="alert"><p>{% if form.non_field_errors.as_data.0.code == "locked" %}{{ form.non_field_errors.0 }}{% else %}E-Mail-Adresse oder Passwort stimmen nicht.{% endif %}</p></div>{% endif %}
       <div class="field"><label for="id_username">E-Mail-Adresse</label>{{ form.username }}</div>
       <div class="field"><label for="id_password">Passwort</label>{{ form.password }}</div>
       <input type="hidden" name="next" value="{{ next }}">

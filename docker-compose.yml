@@ -2,13 +2,13 @@
 #   cp .env.example .env    # SECRET_KEY und POSTGRES_PASSWORD eintragen
 #   docker compose up -d    # oder: podman compose up -d
 # Für kleine Schulen ohne PostgreSQL: docker-compose.sqlite.yml
+# Selbst bauen statt fertiges Image laden: zusätzlich -f docker-compose.build.yml
 
 name: fundus
 
 services:
   app:
-    build: .
-    image: localhost/fundus:latest
+    image: ghcr.io/binder-fabian/fundus:latest
     restart: unless-stopped
     env_file: .env
     environment:

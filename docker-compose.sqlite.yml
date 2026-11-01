@@ -6,8 +6,7 @@ name: fundus
 
 services:
   app:
-    build: .
-    image: localhost/fundus:latest
+    image: ghcr.io/binder-fabian/fundus:latest
     restart: unless-stopped
     env_file: .env
     environment:

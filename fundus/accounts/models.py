@@ -94,3 +94,19 @@ class User(AbstractBaseUser, PermissionsMixin):
     def invitation_pending(self):
         """Eingeladen, aber noch kein Passwort gesetzt."""
         return not self.has_usable_password() and self.last_login is None
+
+
+class FailedLogin(models.Model):
+    """Fehlgeschlagener Anmeldeversuch, für die Sperre nach zu vielen Versuchen.
+    Einträge werden nach einem Tag gelöscht."""
+
+    username = models.CharField(max_length=254, db_index=True)
+    ip = models.GenericIPAddressField(null=True, db_index=True)
+    at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        verbose_name = _("fehlgeschlagene Anmeldung")
+        verbose_name_plural = _("fehlgeschlagene Anmeldungen")
+
+    def __str__(self):
+        return f"{self.username} ({self.at:%d.%m.%Y %H:%M})"
