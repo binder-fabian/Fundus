@@ -67,6 +67,5 @@ legt den Export unter `/data/exporte/` im Daten-Volume ab. Automatische Sicherun
 | --- | --- | --- |
 | `SESSION_DAYS` | 30 | So lange bleiben Personen angemeldet |
 | `INVITATION_TIMEOUT_DAYS` | 14 | Gültigkeit von Einladungslinks |
-| `OUTDATED_NORM_YEARS` | 10 | Tests mit älterer Normierung werden als „veraltet“ markiert |
 | `TIME_ZONE` | Europe/Berlin | Zeitzone |
 | `LOG_LEVEL` | INFO | Ausführlichkeit der Protokolle |

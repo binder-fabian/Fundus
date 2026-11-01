@@ -164,7 +164,9 @@ class Title(SchoolScopedModel):
         super().save(*args, **kwargs)
 
     def norm_is_outdated_by_setting(self):
-        return self.norm_is_outdated(settings.OUTDATED_NORM_YEARS)
+        from fundus.core.models import SchoolSettings
+
+        return self.norm_is_outdated(SchoolSettings.current().outdated_norm_years)
 
     @property
     def contents_items(self):

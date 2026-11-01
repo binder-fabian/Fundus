@@ -6,6 +6,7 @@ from django.urls import reverse
 from fundus.catalog.models import SupportFocus
 from fundus.catalog.search import search_titles
 from fundus.catalog.text import normalize
+from fundus.core.models import SchoolSettings
 from tests.factories import (
     CategoryFactory,
     CopyFactory,
@@ -85,8 +86,10 @@ def test_support_focus_filter():
     assert found(foerderschwerpunkt=focus.pk) == ["Sprachförderung"]
 
 
-def test_outdated_filter(settings):
-    settings.OUTDATED_NORM_YEARS = 10
+def test_outdated_filter():
+    school_settings = SchoolSettings.current()
+    school_settings.outdated_norm_years = 10
+    school_settings.save()
     year = datetime.date.today().year
     TitleFactory(title="Alt", norm_year=year - 15)
     TitleFactory(title="Aktuell", norm_year=year - 3)

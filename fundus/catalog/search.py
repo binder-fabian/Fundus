@@ -6,13 +6,13 @@ Umlaute sonst mit Beachtung der Groß-/Kleinschreibung.
 """
 
 from django import forms
-from django.conf import settings
 from django.db.models import Count, Exists, F, OuterRef, Q
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
 from fundus.catalog.text import normalize
+from fundus.core.models import SchoolSettings
 from fundus.loans.models import Loan
 
 
@@ -57,7 +57,7 @@ class CatalogFilterForm(forms.Form):
 
 def outdated_before_year():
     """Tests mit Normjahr vor diesem Jahr gelten als veraltet."""
-    return timezone.localdate().year - settings.OUTDATED_NORM_YEARS
+    return timezone.localdate().year - SchoolSettings.current().outdated_norm_years
 
 
 def annotated_titles():

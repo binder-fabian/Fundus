@@ -3,11 +3,13 @@ import re
 
 from django import forms
 from django.core.files.base import ContentFile
+from django.db import transaction
 from django.db.models.functions import Lower
 from django.utils.translation import gettext_lazy as _
 from PIL import Image, ImageOps
 
 from fundus.accounts.models import User
+from fundus.catalog import numbering
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
 
 COVER_MAX_SIZE = (600, 600)
@@ -88,11 +90,18 @@ class CopiesAddForm(forms.Form):
     """Mehrere Exemplare eines Titels in einem Schritt anlegen: entweder eine
     Liste von Inventarnummern oder Präfix + Startnummer + Anzahl."""
 
+    auto_count = forms.IntegerField(
+        label=_("Anzahl (Nummern automatisch)"),
+        required=False,
+        min_value=1,
+        max_value=200,
+        help_text=_("Vergibt die nächsten freien Nummern nach dem Nummernschema."),
+    )
     numbers = forms.CharField(
-        label=_("Inventarnummern"),
+        label=_("oder eigene Inventarnummern"),
         required=False,
         widget=forms.Textarea(attrs={"rows": 3, "placeholder": "FS-0101\nFS-0102"}),
-        help_text=_("Eine pro Zeile – oder unten eine Nummernfolge erzeugen lassen."),
+        help_text=_("Eine pro Zeile – oder darunter eine Nummernfolge erzeugen lassen."),
     )
     prefix = forms.CharField(label=_("Präfix"), required=False, max_length=20)
     start = forms.CharField(
@@ -110,6 +119,9 @@ class CopiesAddForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.title = title
         self.required = required
+        self.fields["auto_count"].help_text = _(
+            "Vergibt die nächsten freien Nummern nach dem Nummernschema, beginnend mit %(n)s."
+        ) % {"n": numbering.preview_next()}
 
     def clean(self):
         cleaned = super().clean()
@@ -123,6 +135,15 @@ class CopiesAddForm(forms.Form):
             width = len(start)
             prefix = cleaned.get("prefix", "").strip()
             numbers += [f"{prefix}{int(start) + i:0{width}d}" for i in range(count)]
+
+        auto_count = cleaned.get("auto_count")
+        if auto_count and numbers:
+            raise forms.ValidationError(
+                _("Entweder automatische Nummern oder eigene Nummern angeben, nicht beides.")
+            )
+        if auto_count:
+            cleaned["inventory_numbers"] = []
+            return cleaned
 
         if not numbers:
             if self.required:
@@ -154,12 +175,16 @@ class CopiesAddForm(forms.Form):
         cleaned["inventory_numbers"] = numbers
         return cleaned
 
+    @transaction.atomic
     def save(self, title):
+        numbers = list(self.cleaned_data["inventory_numbers"])
+        if self.cleaned_data.get("auto_count"):
+            numbers += numbering.allocate(self.cleaned_data["auto_count"])
         return [
             Copy.objects.create(
                 title=title, inventory_number=n, location=self.cleaned_data.get("location")
             )
-            for n in self.cleaned_data["inventory_numbers"]
+            for n in numbers
         ]
 
 

@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Einstellungen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Einstellungen</h1>
+    <form method="post" class="form">{% csrf_token %}
+      {% if form.non_field_errors %}<div class="message message-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+      {% for legend, fields, note in groups %}
+        <fieldset>
+          <legend>{{ legend }}</legend>
+          {% for field in fields %}{% include "field.html" %}{% endfor %}
+          {% if note %}<p class="help">{{ note }}</p>{% endif %}
+        </fieldset>
+      {% endfor %}
+      <div class="actions"><button class="button button-primary">Speichern</button></div>
+    </form>
+  </div>
+{% endblock %}

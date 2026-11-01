@@ -120,9 +120,6 @@ STORAGES = {
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = DEBUG
 
-# Tests mit einer Normierung, die älter ist als so viele Jahre, gelten als veraltet.
-OUTDATED_NORM_YEARS = env.int("OUTDATED_NORM_YEARS", default=10)
-
 # Öffentliche Adresse von Fundus, für Links in E-Mails.
 SITE_URL = env.str("SITE_URL", default="http://localhost:8000")
 

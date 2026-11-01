@@ -6,6 +6,7 @@ from fundus.core import views as core_views
 urlpatterns = [
     path("", core_views.home, name="home"),
     path("health", core_views.health, name="health"),
+    path("einstellungen/", core_views.school_settings, name="school_settings"),
     path("", include("fundus.accounts.urls")),
     path("", include("fundus.catalog.urls")),
     path("", include("fundus.transfer.urls")),
