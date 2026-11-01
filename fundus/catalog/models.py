@@ -269,3 +269,18 @@ class Copy(SchoolScopedModel):
         from fundus.loans.models import Loan
 
         return self.loans.filter(status=Loan.Status.LENT).first()
+
+
+class IsbnLookupCache(models.Model):
+    """Zwischenspeicher für ISBN-Abrufe, damit dieselbe ISBN nicht ständig
+    bei den externen Diensten angefragt wird."""
+
+    isbn = models.CharField(max_length=13, unique=True)
+    result = models.JSONField(default=dict)
+    fetched_at = models.DateTimeField()
+
+    class Meta:
+        verbose_name = _("ISBN-Abruf (Zwischenspeicher)")
+
+    def __str__(self):
+        return self.isbn

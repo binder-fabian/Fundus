@@ -1,4 +1,5 @@
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.core.paginator import Paginator
 from django.db import transaction
 from django.db.models import ProtectedError
@@ -8,6 +9,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
 from fundus.accounts.permissions import require
+from fundus.catalog import isbn_lookup
 from fundus.catalog.forms import (
     CategoryForm,
     CopiesAddForm,
@@ -17,8 +19,10 @@ from fundus.catalog.forms import (
     TitleForm,
 )
 from fundus.catalog.history import history_entries
+from fundus.catalog.isbn import validate_isbn
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
 from fundus.catalog.search import exact_copy, outdated_before_year, search_titles
+from fundus.core.models import SchoolSettings
 
 PAGE_SIZE = 50
 
@@ -63,11 +67,59 @@ def title_detail(request, pk):
     return render(request, "catalog/title_detail.html", {"title": title, "copies": copies})
 
 
+def _isbn_lookup_into(request, form_class, instance=None):
+    """Ruft Daten zur eingegebenen ISBN ab und zeigt das Formular vorausgefüllt
+    wieder an. Gespeichert wird erst, wenn die Person bestätigt."""
+    data = {k: v for k, v in request.POST.items() if k != "csrfmiddlewaretoken"}
+    data["support_focuses"] = request.POST.getlist("support_focuses")
+    isbn = request.POST.get("isbn", "")
+    probe = form_class(instance=instance)
+    try:
+        validate_isbn(isbn)
+    except ValidationError:
+        messages.error(request, _("Bitte zuerst eine gültige ISBN eingeben."))
+        return form_class(initial=data, instance=instance)
+
+    result = isbn_lookup.lookup(isbn)
+    filled = probe.initial_from_lookup(data, result)
+    if result.found:
+        text = _("Daten von %(src)s übernommen. Bitte prüfen und speichern.") % {
+            "src": ", ".join(result.sources)
+        }
+        if not filled:
+            text = _("Gefunden bei %(src)s; alle Felder waren schon ausgefüllt.") % {
+                "src": ", ".join(result.sources)
+            }
+        if result.cover_url:
+            text += " " + _("Ein Cover wird beim Speichern übernommen.")
+        messages.success(request, text)
+    elif result.failed and not result.sources:
+        messages.warning(
+            request, _("Abruf gerade nicht möglich (keine Verbindung?). Bitte von Hand ausfüllen.")
+        )
+    else:
+        messages.warning(request, _("Zu dieser ISBN wurden keine Daten gefunden."))
+    return form_class(initial=data, instance=instance)
+
+
+def _lookup_enabled():
+    return SchoolSettings.current().isbn_lookup_enabled
+
+
 @require("can_manage_catalog")
 def title_create(request):
-    form = TitleForm(request.POST or None, request.FILES or None)
-    copies_form = CopiesAddForm(request.POST or None, prefix="copies", required=False)
-    if request.method == "POST" and form.is_valid() and copies_form.is_valid():
+    lookup = request.method == "POST" and "lookup" in request.POST and _lookup_enabled()
+    if lookup:
+        form = _isbn_lookup_into(request, TitleForm)
+        copies_form = CopiesAddForm(
+            initial={k[7:]: v for k, v in request.POST.items() if k.startswith("copies-")},
+            prefix="copies",
+            required=False,
+        )
+    else:
+        form = TitleForm(request.POST or None, request.FILES or None)
+        copies_form = CopiesAddForm(request.POST or None, prefix="copies", required=False)
+    if request.method == "POST" and not lookup and form.is_valid() and copies_form.is_valid():
         with transaction.atomic():
             title = form.save()
             created = copies_form.save(title)
@@ -79,19 +131,32 @@ def title_create(request):
     return render(
         request,
         "catalog/title_form.html",
-        {"form": form, "copies_form": copies_form, "is_new": True},
+        {
+            "form": form,
+            "copies_form": copies_form,
+            "is_new": True,
+            "isbn_lookup": _lookup_enabled(),
+        },
     )
 
 
 @require("can_manage_catalog")
 def title_edit(request, pk):
     title = get_object_or_404(Title, pk=pk)
-    form = TitleForm(request.POST or None, request.FILES or None, instance=title)
-    if request.method == "POST" and form.is_valid():
+    lookup = request.method == "POST" and "lookup" in request.POST and _lookup_enabled()
+    if lookup:
+        form = _isbn_lookup_into(request, TitleForm, instance=title)
+    else:
+        form = TitleForm(request.POST or None, request.FILES or None, instance=title)
+    if request.method == "POST" and not lookup and form.is_valid():
         form.save()
         messages.success(request, _("Änderungen gespeichert."))
         return redirect("title_detail", pk=title.pk)
-    return render(request, "catalog/title_form.html", {"form": form, "title": title})
+    return render(
+        request,
+        "catalog/title_form.html",
+        {"form": form, "title": title, "isbn_lookup": _lookup_enabled()},
+    )
 
 
 @require("can_manage_catalog")

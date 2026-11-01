@@ -120,6 +120,9 @@ STORAGES = {
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = DEBUG
 
+# Optional: Schlüssel für Google Books als dritte Quelle beim ISBN-Abruf.
+GOOGLE_BOOKS_API_KEY = env.str("GOOGLE_BOOKS_API_KEY", default="")
+
 # Öffentliche Adresse von Fundus, für Links in E-Mails.
 SITE_URL = env.str("SITE_URL", default="http://localhost:8000")
 

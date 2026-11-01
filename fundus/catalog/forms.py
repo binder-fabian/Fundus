@@ -9,7 +9,7 @@ from django.utils.translation import gettext_lazy as _
 from PIL import Image, ImageOps
 
 from fundus.accounts.models import User
-from fundus.catalog import numbering
+from fundus.catalog import isbn_lookup, numbering
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
 
 COVER_MAX_SIZE = (600, 600)
@@ -39,14 +39,16 @@ class TitleForm(forms.ModelForm):
         queryset=User.objects.filter(is_active=True), required=False, label=_("Vertretung")
     )
 
+    cover_url = forms.CharField(required=False, widget=forms.HiddenInput)
+
     class Meta:
         model = Title
         fields = [
+            "isbn",
             "title",
             "subtitle",
             "author",
             "publisher",
-            "isbn",
             "edition",
             "category",
             "support_focuses",
@@ -83,7 +85,26 @@ class TitleForm(forms.ModelForm):
         cover = self.cleaned_data.get("cover")
         if cover and cover is not self.initial.get("cover") and hasattr(cover, "content_type"):
             self.instance.cover = shrink_cover(cover)
+        elif not self.instance.cover and self.cleaned_data.get("cover_url"):
+            data = isbn_lookup.download_cover(self.cleaned_data["cover_url"])
+            if data:
+                self.instance.cover = shrink_cover(io.BytesIO(data))
         return super().save(commit)
+
+    def initial_from_lookup(self, data, result):
+        """Füllt leere Felder mit den abgerufenen Daten (ohne zu speichern)."""
+        found = dict(result.data)
+        edition = ", ".join(v for v in (found.pop("edition", ""), found.pop("year", "")) if v)
+        if edition:
+            found["edition"] = edition
+        filled = []
+        for key, value in found.items():
+            if key in self.fields and not data.get(key):
+                data[key] = value
+                filled.append(self.fields[key].label)
+        if result.cover_url:
+            data["cover_url"] = result.cover_url
+        return filled
 
 
 class CopiesAddForm(forms.Form):

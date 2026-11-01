@@ -4,7 +4,15 @@
   <div class="narrow">
     <h1>{% if is_new %}Titel anlegen{% else %}{{ title.title }} bearbeiten{% endif %}</h1>
     <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}
-      {% include "form_fields.html" %}
+      {% if form.non_field_errors %}<div class="message message-error" role="alert">{% for e in form.non_field_errors %}<p>{{ e }}</p>{% endfor %}</div>{% endif %}
+      {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+      {% for field in form.visible_fields %}
+        {% include "field.html" %}
+        {% if field.name == "isbn" and isbn_lookup %}
+          <p><button class="button" name="lookup" value="1" formnovalidate>Daten zur ISBN abrufen</button>
+          <span class="help">ISBN tippen oder mit dem Handscanner scannen. Abgefragt werden DNB und Open Library; übermittelt wird nur die ISBN.</span></p>
+        {% endif %}
+      {% endfor %}
       {% if is_new %}
         <fieldset>
           <legend>Exemplare gleich mit anlegen (optional)</legend>
