@@ -26,3 +26,9 @@ def test_stylesheet_is_found_by_collectstatic():
     from django.contrib.staticfiles import finders
 
     assert finders.find("fundus/fundus.css")
+
+
+def test_health_answers_for_hosts_outside_allowed_hosts(client, db, settings):
+    settings.ALLOWED_HOSTS = ["fundus.meine-schule.de"]
+    assert client.get("/health", HTTP_HOST="127.0.0.1:8000").status_code == 200
+    assert client.get("/", HTTP_HOST="127.0.0.1:8000").status_code == 400
