@@ -65,7 +65,7 @@ Keinen Code kopieren, solange die Lizenzfrage (s. u.) offen ist. Bei AGPL von Sn
 - **Zuständige Person ist keine globale Rolle**, sondern ergibt sich aus der Zuordnung am Titel (`zuständig`, `vertretung`). Globale Rollen als Django-Gruppen: Administrator, Verwalter, Lehrkraft, Sekretariat.
 - **Ausleihstatus wird abgeleitet**: Ein Exemplar ist ausgeliehen, wenn es eine Ausleihe mit Status `ausgeliehen` gibt. Eine Datenbank-Bedingung erlaubt höchstens eine aktive Ausleihe je Exemplar.
 - **Ausleihe ohne Personenbezug vorbereitet**: Feld `lehrkraft` optional, alternativ `klasse_oder_raum` (Freitext). Die Datenbank prüft, dass mindestens eins gesetzt ist.
-- **Code und Bezeichner auf Englisch**, Oberfläche auf Deutsch über gettext-Übersetzungsdateien. So sind die Texte übersetzbar angelegt, wie die SPEC verlangt.
+- **Code und Bezeichner auf Englisch, Oberflächentexte auf Deutsch** und mit gettext markiert (Deutsch ist die Ausgangssprache). So sind die Texte übersetzbar angelegt, wie die SPEC verlangt, ohne dass für Deutsch Übersetzungsdateien und GNU-gettext-Werkzeuge nötig sind.
 - Suche in Phase 1 als einfache Feldsuche (`icontains` über Titel, Autor, ISBN, Inventarnummer, Beschreibung), funktioniert gleich auf beiden Datenbanken. Für Schulbestände (einige tausend Titel) reicht das; PostgreSQL-Volltext ist bei Bedarf später möglich.
 
 ## 4. Phase 1 – MVP Katalog
@@ -75,7 +75,7 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 
 ### Schritt 1.1 – Projektgerüst und Betrieb
 
-- `pyproject.toml` (uv), Django-Projekt `fundus`, App-Struktur (`core`, `accounts`, `catalog`, `loans`, `io`).
+- `pyproject.toml` (uv), Django-Projekt `fundus`, App-Struktur (`core`, `accounts`, `catalog`, `loans`, ab Schritt 1.6 `transfer` für Import/Export).
 - Einstellungen nur über Umgebungsvariablen; `.env.example`; SQLite per `DATABASE_URL=sqlite:////data/db.sqlite3`, PostgreSQL als Standard.
 - `/health`-Endpunkt (prüft Datenbankverbindung).
 - `Dockerfile` (mehrstufig, Nicht-Root, Daten nur unter `/data`), Entrypoint führt Migrationen aus.

@@ -1,0 +1,20 @@
+# Beispiel: Caddy als Reverse Proxy mit automatischem HTTPS (Let's Encrypt).
+# HTTPS ist Pflicht, damit der Kamera-Scanner im Browser funktioniert.
+#
+# In .env passend setzen:
+#   ALLOWED_HOSTS=fundus.meine-schule.de
+#   CSRF_TRUSTED_ORIGINS=https://fundus.meine-schule.de
+#   BEHIND_HTTPS_PROXY=1
+
+fundus.meine-schule.de {
+	encode gzip
+	reverse_proxy 127.0.0.1:8000
+}
+
+# Nur im Schulnetz erreichbar, ohne öffentliche Domain? Dann stellt Caddy
+# ein eigenes Zertifikat aus, dem die Geräte einmal vertrauen müssen:
+#
+# fundus.schule.local {
+# 	tls internal
+# 	reverse_proxy 127.0.0.1:8000
+# }

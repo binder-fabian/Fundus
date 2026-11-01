@@ -1,0 +1,69 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        database: [sqlite, postgres]
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_USER: fundus
+          POSTGRES_PASSWORD: fundus
+          POSTGRES_DB: fundus
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U fundus"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+      - run: uv sync --locked
+      - name: Tests (${{ matrix.database }})
+        env:
+          DATABASE_URL: ${{ matrix.database == 'postgres' && 'postgres://fundus:fundus@localhost:5432/fundus' || '' }}
+        run: |
+          if [ -z "$DATABASE_URL" ]; then unset DATABASE_URL; fi
+          uv run python manage.py makemigrations --check --dry-run --settings=fundus.test_settings
+          uv run pytest
+
+  container:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: .env für den Test anlegen
+        run: |
+          cp .env.example .env
+          sed -i "s/^SECRET_KEY=.*/SECRET_KEY=ci-$(openssl rand -hex 16)/" .env
+          sed -i "s/^POSTGRES_PASSWORD=.*/POSTGRES_PASSWORD=ci/" .env
+          sed -i "s/^BEHIND_HTTPS_PROXY=.*/BEHIND_HTTPS_PROXY=0/" .env
+      - name: docker compose up (PostgreSQL)
+        run: docker compose up -d --build --wait --wait-timeout 180
+      - run: curl -fsS http://localhost:8000/health
+      - if: failure()
+        run: docker compose logs
+      - run: docker compose down -v
+      - name: docker compose up (SQLite)
+        run: docker compose -f docker-compose.sqlite.yml up -d --wait --wait-timeout 120
+      - run: curl -fsS http://localhost:8000/health
+      - if: failure()
+        run: docker compose -f docker-compose.sqlite.yml logs
