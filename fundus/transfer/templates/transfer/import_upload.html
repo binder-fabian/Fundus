@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Bestand importieren{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Bestand importieren</h1>
+    {% include "transfer/_steps.html" with step=1 %}
+    <p>Übernehmen Sie vorhandene Listen, z. B. den Export einer Microsoft List oder eine Excel-Tabelle. Jede Zeile wird ein Exemplar; Zeilen mit gleicher ISBN oder gleichem Titel und Autor werden zu einem Titel zusammengefasst. Vorhandene Inventarnummern bleiben erhalten.</p>
+    <p class="help">Microsoft List: in der Liste „Exportieren → In CSV exportieren“ wählen.</p>
+    <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <button class="button button-primary">Weiter</button>
+    </form>
+  </div>
+{% endblock %}

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "fundus.accounts",
     "fundus.catalog",
     "fundus.loans",
+    "fundus.transfer",
 ]
 
 MIDDLEWARE = [

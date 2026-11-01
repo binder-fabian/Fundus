@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Spalten zuordnen{% endblock %}
+{% block content %}
+  <h1>Spalten zuordnen</h1>
+  {% include "transfer/_steps.html" with step=2 %}
+  <p><strong>{{ state.filename }}</strong>: {{ row_count }} Zeilen, {{ columns|length }} Spalten. Bekannte Spaltennamen sind schon zugeordnet.</p>
+
+  {% if templates %}
+    <form method="post" class="actions">{% csrf_token %}
+      <label for="apply_template">Gespeicherte Vorlage:</label>
+      <select id="apply_template" name="apply_template">{% for t in templates %}<option value="{{ t.pk }}">{{ t }}</option>{% endfor %}</select>
+      <button class="button">Anwenden</button>
+    </form>
+  {% endif %}
+
+  <form method="post" class="form">{% csrf_token %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Feld in Fundus</th><th>Spalte in der Datei</th></tr></thead>
+        <tbody>
+          {% for t in targets %}
+            <tr>
+              <td><label for="map_{{ t.key }}">{{ t.label }}{% if t.required %} *{% endif %}</label></td>
+              <td>
+                <select id="map_{{ t.key }}" name="map_{{ t.key }}">
+                  <option value="">– nicht übernehmen –</option>
+                  {% for c in columns %}<option value="{{ c.index }}"{% if c.index == t.selected %} selected{% endif %}>{{ c.name }}{% if c.samples %} (z. B. {{ c.samples.0|truncatechars:30 }}){% endif %}</option>{% endfor %}
+                </select>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <fieldset>
+      <legend>Optionen</legend>
+      <div class="field">
+        <label for="default_category">Kategorie, wenn in der Datei keine steht</label>
+        <select id="default_category" name="default_category">
+          <option value="">– keine –</option>
+          {% for c in categories %}<option value="{{ c.pk }}"{% if state.default_category == c.pk|stringformat:"s" %} selected{% endif %}>{{ c }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="field field-checkbox"><label><input type="checkbox" name="create_missing" value="1"{% if state.create_missing|default_if_none:True %} checked{% endif %}> Unbekannte Kategorien und Förderschwerpunkte neu anlegen</label></div>
+      <div class="field field-checkbox"><label><input type="checkbox" name="lendable_default" value="1"{% if state.lendable_default %} checked{% endif %}> Titel als „ausleihbar“ markieren, wenn die Datei nichts dazu sagt</label></div>
+      <div class="field">
+        <label for="save_template">Zuordnung als Vorlage speichern (optional)</label>
+        <input type="text" id="save_template" name="save_template" placeholder="z. B. Microsoft-List-Export">
+      </div>
+    </fieldset>
+    <div class="actions">
+      <button class="button button-primary">Vorschau anzeigen</button>
+      <a class="button" href="{% url 'import_upload' %}">Andere Datei</a>
+    </div>
+  </form>
+{% endblock %}

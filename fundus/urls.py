@@ -8,6 +8,7 @@ urlpatterns = [
     path("health", core_views.health, name="health"),
     path("", include("fundus.accounts.urls")),
     path("", include("fundus.catalog.urls")),
+    path("", include("fundus.transfer.urls")),
     # Coverbilder aus dem Datenverzeichnis; nur für angemeldete Personen.
     path(settings.MEDIA_URL.lstrip("/") + "<path:path>", core_views.media, name="media"),
 ]

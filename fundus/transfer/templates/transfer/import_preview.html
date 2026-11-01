@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Vorschau{% endblock %}
+{% block content %}
+  <h1>Vorschau</h1>
+  {% include "transfer/_steps.html" with step=3 %}
+  <ul class="summary">
+    <li><strong>{{ summary.copies }}</strong> Exemplare werden angelegt</li>
+    <li><strong>{{ summary.new_titles }}</strong> neue Titel{% if summary.existing_titles %}, {{ summary.existing_titles }} vorhandene Titel bekommen Exemplare dazu{% endif %}</li>
+    {% if summary.errors %}<li class="error"><strong>{{ summary.errors }}</strong> Zeilen werden übersprungen (siehe unten)</li>{% endif %}
+  </ul>
+  {% if summary.copies %}
+    <form method="post" action="{% url 'import_confirm' %}" class="actions">{% csrf_token %}
+      <button class="button button-primary">Jetzt importieren</button>
+      <a class="button" href="{% url 'import_mapping' %}">Zuordnung ändern</a>
+    </form>
+  {% else %}
+    <p><a class="button" href="{% url 'import_mapping' %}">Zuordnung ändern</a></p>
+  {% endif %}
+  <div class="table-wrap">
+    <table class="table table-compact">
+      <thead><tr><th>Zeile</th><th>Inventarnr.</th><th>Titel</th><th>Autor</th><th>Kategorie</th><th>Standort</th><th>Ergebnis</th></tr></thead>
+      <tbody>
+        {% for r in results %}
+          <tr{% if not r.ok %} class="row-error"{% endif %}>
+            <td>{{ r.line }}</td>
+            <td>{{ r.values.inventory_number }}</td>
+            <td>{{ r.values.title|truncatechars:60 }}</td>
+            <td>{{ r.values.author|truncatechars:30 }}</td>
+            <td>{{ r.values.category }}</td>
+            <td>{{ r.values.room }}{% if r.values.shelf %} · {{ r.values.shelf }}{% endif %}</td>
+            <td>
+              {% if r.ok %}{% if r.existing_title_id %}zu vorhandenem Titel{% elif r.first_line_of_title %}wie Zeile {{ r.first_line_of_title }}{% else %}neuer Titel{% endif %}{% endif %}
+              {% for e in r.errors %}<div class="error">{{ e }}</div>{% endfor %}
+              {% for w in r.warnings %}<div class="muted">{{ w }}</div>{% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+{% endblock %}

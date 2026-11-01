@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Import abgeschlossen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Import abgeschlossen</h1>
+    {% include "transfer/_steps.html" with step=4 %}
+    <p>{{ counts.copies }} Exemplare zu {{ counts.titles }} Titeln übernommen.{% if summary.errors %} {{ summary.errors }} Zeilen wurden übersprungen.{% endif %}</p>
+    <div class="actions">
+      <a class="button" href="{% url 'import_report' %}">Importbericht herunterladen (CSV)</a>
+      <a class="button button-primary" href="{% url 'title_list' %}">Zum Katalog</a>
+    </div>
+  </div>
+{% endblock %}
