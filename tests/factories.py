@@ -1,7 +1,7 @@
 import factory
 from django.utils import timezone
 
-from fundus.accounts.models import User
+from fundus.accounts.models import Role, User
 from fundus.catalog.models import Category, Copy, Location, Title
 from fundus.core.models import School, default_school_id
 from fundus.loans.models import Loan
@@ -25,6 +25,8 @@ class UserFactory(factory.django.DjangoModelFactory):
     email = factory.Sequence(lambda n: f"lehrkraft{n}@schule.de")
     first_name = "Erika"
     last_name = factory.Sequence(lambda n: f"Muster{n}")
+    role = Role.TEACHER
+    password = factory.django.Password("geheim-1234")
 
 
 class CategoryFactory(factory.django.DjangoModelFactory):

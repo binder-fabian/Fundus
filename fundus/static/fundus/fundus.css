@@ -7,6 +7,11 @@
   --accent: #0b5cad;
   --accent-fg: #ffffff;
   --border: #c8c8c8;
+  --surface: #f4f6f8;
+  --ok-bg: #e3f4e5;
+  --warn-bg: #fff4d6;
+  --error: #b00020;
+  --error-bg: #fde7ea;
   --radius: 8px;
   --tap: 48px; /* Mindesthöhe für Schaltflächen */
   font-size: 18px;
@@ -20,6 +25,11 @@
     --accent: #6cb4ff;
     --accent-fg: #0a0a0a;
     --border: #444444;
+    --surface: #1e1e1e;
+    --ok-bg: #173d1d;
+    --warn-bg: #3f3412;
+    --error: #ff8a95;
+    --error-bg: #4a1820;
   }
 }
 
@@ -48,7 +58,10 @@ a {
 
 .topbar {
   display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
   align-items: center;
+  justify-content: space-between;
   min-height: var(--tap);
   padding: 0 16px;
   border-bottom: 1px solid var(--border);
@@ -65,4 +78,217 @@ a {
   max-width: 960px;
   margin: 0 auto;
   padding: 16px;
+}
+
+.mainnav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  align-items: center;
+}
+
+.mainnav a,
+.linklike {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap);
+  color: var(--fg);
+  font: inherit;
+  text-decoration: none;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.mainnav a:hover,
+.linklike:hover {
+  text-decoration: underline;
+}
+
+.mainnav form {
+  margin: 0;
+}
+
+.narrow {
+  max-width: 480px;
+}
+
+h1 {
+  font-size: 1.6rem;
+  line-height: 1.25;
+}
+
+.page-head {
+  margin-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Formulare */
+.field {
+  margin-bottom: 16px;
+}
+
+.field label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.field-checkbox label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 400;
+  min-height: var(--tap);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="date"],
+input[type="file"],
+select,
+textarea {
+  width: 100%;
+  min-height: var(--tap);
+  padding: 8px 12px;
+  font: inherit;
+  color: var(--fg);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+input[type="checkbox"] {
+  width: 24px;
+  height: 24px;
+}
+
+.help {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin: 4px 0 0;
+}
+
+.error,
+.field-error label {
+  color: var(--error);
+}
+
+.field-error input,
+.field-error select,
+.field-error textarea {
+  border-color: var(--error);
+}
+
+/* Schaltflächen */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap);
+  padding: 0 20px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--fg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button-primary {
+  color: var(--accent-fg);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.button-block {
+  width: 100%;
+}
+
+.button-small {
+  min-height: 36px;
+  padding: 0 12px;
+  font-size: 0.9rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+/* Meldungen */
+.messages {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+}
+
+.message {
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: var(--surface);
+  margin: 0 0 8px;
+}
+
+.message p {
+  margin: 0;
+}
+
+.message-success {
+  background: var(--ok-bg);
+}
+
+.message-warning {
+  background: var(--warn-bg);
+}
+
+.message-error {
+  background: var(--error-bg);
+}
+
+/* Tabellen */
+.table-wrap {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.table form {
+  margin: 0;
+}
+
+.inactive {
+  color: var(--muted);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Einladung annehmen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    {% if validlink %}
+      <h1>Willkommen bei Fundus</h1>
+      <p>Legen Sie ein Passwort fest. Danach sind Sie direkt angemeldet.</p>
+      <form method="post" class="form">{% csrf_token %}{% include "form_fields.html" %}
+        <button class="button button-primary button-block">Passwort festlegen</button>
+      </form>
+    {% else %}
+      <h1>Einladung ungültig</h1>
+      <p>Der Link ist abgelaufen oder wurde schon benutzt. Über <a href="{% url 'password_reset' %}">„Passwort vergessen“</a> bekommen Sie einen neuen Link.</p>
+    {% endif %}
+  </div>
+{% endblock %}

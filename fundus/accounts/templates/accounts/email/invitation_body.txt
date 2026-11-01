@@ -1,0 +1,12 @@
+{% autoescape off %}Guten Tag {{ user.get_full_name|default:user.email }},
+
+{% if invited_by %}{{ invited_by.get_full_name|default:invited_by.email }} hat Sie zu Fundus eingeladen{% else %}Sie wurden zu Fundus eingeladen{% endif %}, dem Katalog und Ausleihsystem Ihrer Schule.
+
+Über diesen Link legen Sie Ihr Passwort fest:
+
+{{ link }}
+
+Der Link gilt {{ days }} Tage und funktioniert nur einmal. Danach melden Sie sich unter {{ site_url }} mit Ihrer E-Mail-Adresse {{ user.email }} an.
+
+Falls Sie diese Einladung nicht erwartet haben, können Sie diese E-Mail ignorieren.
+{% endautoescape %}

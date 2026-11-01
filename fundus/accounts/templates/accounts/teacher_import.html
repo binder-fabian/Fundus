@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Lehrkräfte importieren{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Lehrkräfte aus CSV importieren</h1>
+    <p>Die Datei braucht drei Spalten: <strong>Vorname</strong>, <strong>Nachname</strong>, <strong>E-Mail</strong>. Aus Excel speichern Sie sie mit „Speichern unter → CSV (Trennzeichen-getrennt)“. Im nächsten Schritt sehen Sie eine Vorschau; angelegt wird erst nach Ihrer Bestätigung.</p>
+    <form method="post" enctype="multipart/form-data" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <div class="actions">
+        <button class="button button-primary">Vorschau anzeigen</button>
+        <a class="button" href="{% url 'user_list' %}">Abbrechen</a>
+      </div>
+    </form>
+  </div>
+{% endblock %}

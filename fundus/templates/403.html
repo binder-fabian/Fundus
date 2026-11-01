@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %}Kein Zugriff{% endblock %}
+{% block content %}
+  <h1>Kein Zugriff</h1>
+  <p>Für diese Seite fehlen Ihrem Konto die nötigen Rechte. Wenden Sie sich an die Verwaltung von Fundus.</p>
+  <p><a href="{% url 'home' %}">Zur Startseite</a></p>
+{% endblock %}

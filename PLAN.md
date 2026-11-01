@@ -99,7 +99,7 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 
 - Benutzermodell mit E-Mail als Login (eigenes `User`-Modell von Anfang an, später nicht mehr änderbar).
 - Login, Logout, Passwort vergessen, Passwort ändern; Einladung per E-Mail mit Einmal-Link zum Setzen des Passworts.
-- Rollen als Gruppen mit festen Rechten, per Datenmigration angelegt.
+- Rollen als Feld am Benutzer (genau eine Rolle je Person) mit festen Rechten im Code statt Django-Gruppen: einfacher zu verwalten und für Personalrat/Datenschutz leichter nachvollziehbar.
 - Benutzerverwaltung für Administratoren: anlegen/einladen, Rolle ändern, deaktivieren.
 - **Massenanlage von Lehrkräften per CSV** (Name, E-Mail) mit Vorschau und Einladungsversand.
 - Management-Befehl `createadmin` für die Ersteinrichtung; Hinweis in der Oberfläche, solange nur ein Administrator existiert.

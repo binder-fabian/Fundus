@@ -1,0 +1,17 @@
+# Ergänzung für die Entwicklung: fängt alle E-Mails in Mailpit ab.
+#   podman compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# Postfach im Browser: http://localhost:8025
+
+services:
+  app:
+    environment:
+      EMAIL_URL: smtp://mailpit:1025
+      SITE_URL: http://localhost:8000
+    depends_on:
+      mailpit:
+        condition: service_started
+
+  mailpit:
+    image: docker.io/axllent/mailpit:latest
+    ports:
+      - "8025:8025"

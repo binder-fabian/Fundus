@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{% if is_new %}Person einladen{% else %}{{ edited }}{% endif %}{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>{% if is_new %}Person einladen{% else %}{{ edited }} bearbeiten{% endif %}</h1>
+    <form method="post" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <div class="actions">
+        <button class="button button-primary">{% if is_new %}Anlegen{% else %}Speichern{% endif %}</button>
+        <a class="button" href="{% url 'user_list' %}">Abbrechen</a>
+      </div>
+    </form>
+    {% if not is_new %}
+      <p class="help">Konten werden nicht gelöscht, sondern deaktiviert. So bleiben vergangene Ausleihen nachvollziehbar, bis sie nach der Löschfrist anonymisiert werden.</p>
+    {% endif %}
+  </div>
+{% endblock %}

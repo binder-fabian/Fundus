@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Vorschau Import{% endblock %}
+{% block content %}
+  <h1>Vorschau</h1>
+  <p><strong>{{ new_count }}</strong> von {{ rows|length }} Zeilen werden als Lehrkraft angelegt. Zeilen mit Hinweis werden übersprungen.</p>
+  <div class="table-wrap">
+    <table class="table">
+      <thead><tr><th>Zeile</th><th>Vorname</th><th>Nachname</th><th>E-Mail</th><th>Ergebnis</th></tr></thead>
+      <tbody>
+        {% for r in rows %}
+          <tr{% if r.status != statuses.NEW %} class="inactive"{% endif %}>
+            <td>{{ r.line }}</td><td>{{ r.first_name }}</td><td>{{ r.last_name }}</td><td>{{ r.email }}</td>
+            <td>{% if r.status == statuses.NEW %}wird angelegt{% else %}{{ r.message }}{% endif %}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% if new_count %}
+    <form method="post" action="{% url 'teacher_import_confirm' %}" class="form">{% csrf_token %}
+      <div class="field field-checkbox"><label><input type="checkbox" name="send_invitations" value="1" checked> Einladungen sofort per E-Mail schicken</label></div>
+      <div class="actions">
+        <button class="button button-primary">{{ new_count }} Lehrkräfte anlegen</button>
+        <a class="button" href="{% url 'teacher_import' %}">Andere Datei wählen</a>
+      </div>
+    </form>
+  {% else %}
+    <p><a class="button" href="{% url 'teacher_import' %}">Andere Datei wählen</a></p>
+  {% endif %}
+{% endblock %}

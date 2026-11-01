@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Anmelden{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Anmelden</h1>
+    <form method="post" class="form">
+      {% csrf_token %}
+      {% if form.errors %}<div class="message message-error" role="alert"><p>E-Mail-Adresse oder Passwort stimmen nicht.</p></div>{% endif %}
+      <div class="field"><label for="id_username">E-Mail-Adresse</label>{{ form.username }}</div>
+      <div class="field"><label for="id_password">Passwort</label>{{ form.password }}</div>
+      <input type="hidden" name="next" value="{{ next }}">
+      <button class="button button-primary button-block">Anmelden</button>
+    </form>
+    <p><a href="{% url 'password_reset' %}">Passwort vergessen oder Einladung verloren?</a></p>
+  </div>
+{% endblock %}

@@ -3,6 +3,7 @@ from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from simple_history.models import HistoricalRecords
 
 
 class UserManager(BaseUserManager):
@@ -11,7 +12,7 @@ class UserManager(BaseUserManager):
     def _create_user(self, email, password, **extra_fields):
         if not email:
             raise ValueError("E-Mail-Adresse fehlt")
-        user = self.model(email=self.normalize_email(email), **extra_fields)
+        user = self.model(email=self.normalize_email(email).lower(), **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -24,13 +25,32 @@ class UserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("role", Role.ADMIN)
         return self._create_user(email, password, **extra_fields)
+
+    def get_by_natural_key(self, username):
+        # Anmeldung unabhängig von Groß-/Kleinschreibung der E-Mail-Adresse.
+        return self.get(email__iexact=username)
+
+    def active_admins(self):
+        return self.filter(is_active=True, role=Role.ADMIN)
+
+
+class Role(models.TextChoices):
+    """Globale Rolle. „Zuständige Person“ ist keine Rolle, sondern ergibt sich
+    aus der Zuordnung am Titel."""
+
+    ADMIN = "admin", _("Administrator")
+    MANAGER = "manager", _("Verwalter")
+    TEACHER = "teacher", _("Lehrkraft")
+    SECRETARY = "secretary", _("Sekretariat")
 
 
 class User(AbstractBaseUser, PermissionsMixin):
     """Benutzerkonto einer Lehrkraft oder Verwaltungsperson; Anmeldung per E-Mail."""
 
     email = models.EmailField(_("E-Mail-Adresse"), unique=True)
+    role = models.CharField(_("Rolle"), max_length=20, choices=Role, default=Role.TEACHER)
     first_name = models.CharField(_("Vorname"), max_length=150, blank=True)
     last_name = models.CharField(_("Nachname"), max_length=150, blank=True)
     is_active = models.BooleanField(_("aktiv"), default=True)
@@ -38,6 +58,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(_("angelegt am"), default=timezone.now)
 
     objects = UserManager()
+    history = HistoricalRecords(excluded_fields=["password", "last_login"])
 
     USERNAME_FIELD = "email"
     EMAIL_FIELD = "email"
@@ -55,3 +76,21 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def get_short_name(self):
         return self.first_name or self.email
+
+    # Rechte nach Rolle. Administratoren dürfen alles, was Verwalter dürfen.
+    @property
+    def is_admin(self):
+        return self.is_active and self.role == Role.ADMIN
+
+    @property
+    def can_manage_catalog(self):
+        return self.is_active and self.role in (Role.ADMIN, Role.MANAGER)
+
+    @property
+    def can_manage_users(self):
+        return self.is_admin
+
+    @property
+    def invitation_pending(self):
+        """Eingeladen, aber noch kein Passwort gesetzt."""
+        return not self.has_usable_password() and self.last_login is None

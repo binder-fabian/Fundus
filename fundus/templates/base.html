@@ -1,16 +1,29 @@
 {% load static i18n %}<!doctype html>
-<html lang="{{ LANGUAGE_CODE|default:'de' }}">
+<html lang="de">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}Fundus{% endblock %}</title>
+  <title>{% block title %}Start{% endblock %} · Fundus</title>
   <link rel="stylesheet" href="{% static 'fundus/fundus.css' %}">
 </head>
 <body>
   <header class="topbar">
     <a class="brand" href="{% url 'home' %}">Fundus</a>
+    {% if user.is_authenticated %}
+      <nav class="mainnav" aria-label="{% translate 'Hauptmenü' %}">
+        {% block nav %}{% endblock %}
+        {% if user.can_manage_users %}<a href="{% url 'user_list' %}">{% translate "Benutzer" %}</a>{% endif %}
+        <a href="{% url 'password_change' %}" title="{{ user.email }}">{% translate "Konto" %}</a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="linklike">{% translate "Abmelden" %}</button></form>
+      </nav>
+    {% endif %}
   </header>
   <main class="content">
+    {% if messages %}
+      <ul class="messages" role="status">
+        {% for message in messages %}<li class="message message-{{ message.tags }}">{{ message }}</li>{% endfor %}
+      </ul>
+    {% endif %}
     {% block content %}{% endblock %}
   </main>
 </body>

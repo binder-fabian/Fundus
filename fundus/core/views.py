@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_not_required
 from django.db import DatabaseError, connection
 from django.http import JsonResponse
 from django.shortcuts import render
@@ -8,6 +9,7 @@ def home(request):
     return render(request, "core/home.html")
 
 
+@login_not_required
 @never_cache
 def health(request):
     """Für Healthchecks von Container und Reverse Proxy: prüft die Datenbank."""
