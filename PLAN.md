@@ -177,3 +177,64 @@ Alle Schritte 1.1–1.8 sind umgesetzt, getestet (107 automatische Tests, je mit
 - **Wiederherstellen eines Titels** stellt die Förderschwerpunkte nicht mit zurück (Grenze von django-simple-history).
 - **Native Installation** (Linux/Windows) ist dokumentiert, aber noch nicht auf einem frischen System durchgespielt.
 - **Anmeldung:** keine Begrenzung von Fehlversuchen; sinnvoll vor dem Produktivbetrieb.
+
+## 7. Phase 2 – Erfassung und Etiketten
+
+Status: **Entwurf, wartet auf Freigabe** (2. November 2026)
+
+Ziel laut SPEC: ISBN-Abruf einzeln und gesammelt, Nummernschema, Etiketten-PDF. Wie in Phase 1 endet jeder Schritt lauffähig, mit Tests, Commit und grüner CI.
+
+### Vorab geprüft
+
+- **DNB (SRU-Schnittstelle):** liefert ohne Zugangsschlüssel vollständige MARC21-Daten (Titel, Autor, Verlag, Auflage, Jahr). Die DNB-Titeldaten stehen unter CC0.
+- **Open Library:** liefert ohne Schlüssel, oft auch für deutsche Titel, teils mit Cover.
+- **Google Books:** lehnt Anfragen ohne eigenen API-Schlüssel ab (gemeinsames Kontingent erschöpft). Wird daher nur genutzt, wenn eine Schule einen Schlüssel einträgt (`GOOGLE_BOOKS_API_KEY`).
+- **Etikettenmaße** stammen aus den Vorlagen des freien Etikettenprogramms gLabels; eine Testseite mit Rahmen und ein einstellbarer Druckversatz gleichen Druckerunterschiede aus.
+
+### Schritt 2.1 – Einstellungsseite und Nummernschema
+
+- Neues Modell „Schuleinstellungen“ (eine Zeile je Schule), Seite „Einstellungen“ für Administratoren.
+- Nummernschema: Präfix, Stellenzahl, nächste Nummer (z. B. `FS-` / 4 / 101 → FS-0101). Vergabe kollisionssicher; vorhandene oder importierte Nummern werden übersprungen.
+- Beim Anlegen von Exemplaren: „nächste freie Nummern verwenden“ – nur noch die Anzahl eingeben. Eigene Nummern bleiben möglich.
+- Hierher wandern auch die Schwelle für veraltete Tests (bisher Umgebungsvariable) und der Schalter für den ISBN-Abruf.
+
+### Schritt 2.2 – ISBN-Abruf einzeln
+
+- Quellen in der Reihenfolge der SPEC: DNB → Open Library → Google Books (nur mit Schlüssel). Abruf serverseitig mit kurzer Zeitbegrenzung; das Frontend lädt nie etwas von außen.
+- Ergebnisse werden 30 Tage zwischengespeichert (keine doppelten Anfragen).
+- Beim Titel-Anlegen: ISBN eintippen oder mit dem USB-Scanner scannen → „Daten abrufen“ füllt die Felder vor; gespeichert wird erst nach Bestätigung. Die Quelle wird angezeigt.
+- Ohne Internet oder bei abgeschaltetem Abruf verschwindet der Knopf; alles andere funktioniert weiter.
+- Das Scannen der ISBN mit der Handykamera kommt mit dem Scanner in Phase 3.
+
+### Schritt 2.3 – Massenerfassung
+
+- Seite „Bücher erfassen“: ISBNs nacheinander scannen (eine pro Zeile) oder als CSV hochladen. Mehrfach gescannte ISBN = mehrere Exemplare.
+- Vorschau-Tabelle: Jede Zeile lädt ihre Daten einzeln nach (keine langen Wartezeiten), mit Status „gefunden / nicht gefunden / schon im Katalog“.
+- Für alle gemeinsam wählbar: Kategorie, Standort, ausleihbar. Inventarnummern kommen automatisch aus dem Nummernschema.
+- Übernehmen legt Titel und Exemplare an; vorhandene Titel (gleiche ISBN) bekommen nur neue Exemplare. Nicht gefundene ISBNs bleiben als Liste zum Nacharbeiten.
+
+### Schritt 2.4 – Etiketten-PDF
+
+- QR-Code enthält **nur die Inventarnummer**; darunter Inventarnummer und Kurztitel.
+- Formate (Avery Zweckform, A4): 4732 (35,6 × 16,9 mm, 80 je Blatt), 6021 (45,7 × 16,9 mm, 64), 4780 (48,5 × 25,4 mm, 40), 3651 (52,5 × 29,7 mm, 40), 3474 (70 × 37 mm, 24). Weitere lassen sich leicht ergänzen.
+- Auswahl: noch nicht gedruckte Exemplare, nach Kategorie, Standort oder Titel, einzelne Exemplare.
+- Startposition wählbar, um angebrochene Bögen weiter zu nutzen; Testseite und Druckversatz in den Einstellungen.
+- Nach dem Druck „als gedruckt markieren“, damit „noch nicht gedruckt“ stimmt.
+- Neue Abhängigkeit: `reportlab` (BSD-Lizenz, erzeugt PDF und QR-Code ohne weitere Bibliotheken).
+
+### Schritt 2.5 – Plakat mit QR-Code zur App
+
+- A4-PDF mit großem QR-Code zur Adresse von Fundus (`SITE_URL`) und drei Sätzen Anleitung, zum Aufhängen im Lehrerzimmer.
+- Nachbestellkarten für Verbrauchsmaterial folgen mit dem Verbrauchsmaterial in Phase 4.
+
+### Schritt 2.6 – Dokumentation und Abnahme
+
+- Admin-Handbuch ergänzen (Nummernschema, ISBN-Abruf, Massenerfassung, Etiketten, Druck-Kalibrierung).
+- Abnahme: Massenerfassung mit echten ISBNs, Etiketten auf allen Formaten als PDF prüfen, Start ohne Internet.
+
+### Offene Fragen zu Phase 2
+
+1. Welche Etikettenbögen hat die Schule bzw. sollen gekauft werden?
+2. Coverbilder beim ISBN-Abruf automatisch übernehmen? (Open-Library-Cover sind frei nutzbar; DNB-Cover stammen vom Buchhandel und haben unklare Nutzungsrechte.)
+3. Wie sehen die vorhandenen Inventarnummern aus (für das Nummernschema)?
+4. Sollen offene Punkte aus Phase 1 mit in Phase 2: Begrenzung von Anmelde-Fehlversuchen und ein fertiges Container-Image auf GitHub?
