@@ -10,6 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
 from fundus.catalog.isbn import normalize_isbn, validate_isbn
+from fundus.catalog.text import title_search_text
 from fundus.core.models import SchoolScopedModel
 
 
@@ -126,10 +127,12 @@ class Title(SchoolScopedModel):
         related_name="deputy_titles",
         verbose_name=_("Vertretung"),
     )
+    # Normalisierter Text für die Suche, wird beim Speichern gesetzt.
+    search_text = models.TextField(editable=False, default="")
     created_at = models.DateTimeField(_("angelegt am"), auto_now_add=True)
     updated_at = models.DateTimeField(_("geändert am"), auto_now=True)
 
-    history = HistoricalRecords(m2m_fields=[support_focuses])
+    history = HistoricalRecords(m2m_fields=[support_focuses], excluded_fields=["search_text"])
 
     class Meta:
         verbose_name = _("Titel")
@@ -155,7 +158,13 @@ class Title(SchoolScopedModel):
 
     def save(self, *args, **kwargs):
         self.isbn = normalize_isbn(self.isbn)
+        self.search_text = title_search_text(self)
+        if kwargs.get("update_fields") is not None:
+            kwargs["update_fields"] = {*kwargs["update_fields"], "search_text"}
         super().save(*args, **kwargs)
+
+    def norm_is_outdated_by_setting(self):
+        return self.norm_is_outdated(settings.OUTDATED_NORM_YEARS)
 
     @property
     def contents_items(self):

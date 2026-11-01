@@ -466,3 +466,31 @@ legend {
   padding: 4px 8px;
   font-size: 0.95rem;
 }
+
+/* Suche */
+.search {
+  margin-bottom: 16px;
+}
+
+.search-row {
+  display: flex;
+  gap: 8px;
+}
+
+.search-row input {
+  flex: 1;
+}
+
+.filters summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 0 16px;
+}

@@ -56,6 +56,7 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
     "simple_history.middleware.HistoryRequestMiddleware",
+    "fundus.core.middleware.HtmxMiddleware",
 ]
 
 ROOT_URLCONF = "fundus.urls"
@@ -117,6 +118,9 @@ STORAGES = {
 # In der Entwicklung liefert WhiteNoise direkt aus den Quellverzeichnissen aus.
 WHITENOISE_AUTOREFRESH = DEBUG
 WHITENOISE_USE_FINDERS = DEBUG
+
+# Tests mit einer Normierung, die älter ist als so viele Jahre, gelten als veraltet.
+OUTDATED_NORM_YEARS = env.int("OUTDATED_NORM_YEARS", default=10)
 
 # Öffentliche Adresse von Fundus, für Links in E-Mails.
 SITE_URL = env.str("SITE_URL", default="http://localhost:8000")

@@ -27,7 +27,7 @@
     {% if title.publisher %}<dt>Verlag</dt><dd>{{ title.publisher }}</dd>{% endif %}
     {% if title.edition %}<dt>Auflage</dt><dd>{{ title.edition }}</dd>{% endif %}
     {% if title.isbn %}<dt>ISBN</dt><dd>{{ title.isbn }}</dd>{% endif %}
-    {% if title.norm_year %}<dt>Normjahr</dt><dd>{{ title.norm_year }}</dd>{% endif %}
+    {% if title.norm_year %}<dt>Normjahr</dt><dd>{{ title.norm_year }}{% if title.norm_is_outdated_by_setting %} <span class="badge badge-busy">Normierung veraltet</span>{% endif %}</dd>{% endif %}
     {% with focuses=title.support_focuses.all %}{% if focuses %}<dt>Förderschwerpunkte</dt><dd>{{ focuses|join:", " }}</dd>{% endif %}{% endwith %}
     {% if title.responsible %}<dt>Zuständig</dt><dd>{{ title.responsible }}{% if title.deputy %} (Vertretung: {{ title.deputy }}){% endif %}</dd>{% endif %}
     {% if title.lendable %}<dt>Ausleihfrist</dt><dd>{{ title.category.default_loan_days }} Tage</dd>{% endif %}

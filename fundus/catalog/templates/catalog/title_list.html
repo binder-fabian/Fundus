@@ -5,6 +5,25 @@
     <h1>Katalog</h1>
     {% if user.can_manage_catalog %}<div class="actions"><a class="button button-primary" href="{% url 'title_create' %}">Titel anlegen</a></div>{% endif %}
   </div>
-  {% block search %}{% endblock %}
-  <div id="results">{% include "catalog/_title_results.html" %}</div>
+  <form class="search" method="get" action="{% url 'title_list' %}" role="search"
+        hx-get="{% url 'title_list' %}" hx-target="#results" hx-push-url="true"
+        hx-trigger="input changed delay:300ms from:#id_q, change">
+    <div class="search-row">
+      <label class="sr-only" for="id_q">Suche</label>
+      {{ form.q }}
+      <button class="button button-primary">Suchen</button>
+    </div>
+    <details class="filters"{% if form.kategorie.value or form.foerderschwerpunkt.value or form.standort.value or form.verfuegbarkeit.value or form.veraltet.value %} open{% endif %}>
+      <summary>Filter</summary>
+      <div class="filter-grid">
+        <div class="field"><label for="id_kategorie">Kategorie</label>{{ form.kategorie }}</div>
+        <div class="field"><label for="id_foerderschwerpunkt">Förderschwerpunkt</label>{{ form.foerderschwerpunkt }}</div>
+        <div class="field"><label for="id_standort">Standort</label>{{ form.standort }}</div>
+        <div class="field"><label for="id_verfuegbarkeit">Verfügbarkeit</label>{{ form.verfuegbarkeit }}</div>
+        <div class="field field-checkbox"><label>{{ form.veraltet }} nur veraltete Tests (Normjahr vor {{ outdated_before }})</label></div>
+      </div>
+      <p><a href="{% url 'title_list' %}">Filter zurücksetzen</a></p>
+    </details>
+  </form>
+  <div id="results" aria-live="polite">{% include "catalog/_title_results.html" %}</div>
 {% endblock %}

@@ -1,3 +1,6 @@
+{% if exact %}
+  <p class="message message-success">Exemplar gefunden: <a href="{% url 'copy_detail' exact.pk %}"><strong>{{ exact.inventory_number }}</strong> – {{ exact.title }}</a></p>
+{% endif %}
 {% if page.paginator.count %}
   <p class="muted">{{ page.paginator.count }} Titel</p>
   <ul class="cards">
@@ -9,9 +12,10 @@
         </a>
         <span class="card-meta">
           <span class="tag">{{ t.category }}</span>
+          {% if t.norm_year and t.norm_year < outdated_before %}<span class="badge badge-busy" title="Normjahr {{ t.norm_year }}">Normierung veraltet</span>{% endif %}
           {% if t.lendable %}
             {% if t.copy_count == 0 %}<span class="badge">keine Exemplare</span>
-            {% elif t.lent_count < t.copy_count %}<span class="badge badge-ok">{{ t.available_count }} von {{ t.copy_count }} verfügbar</span>
+            {% elif t.available_count > 0 %}<span class="badge badge-ok">{{ t.available_count }} von {{ t.copy_count }} verfügbar</span>
             {% else %}<span class="badge badge-busy">alle ausgeliehen</span>{% endif %}
           {% else %}
             <span class="muted">{{ t.copy_count }} Exemplar{{ t.copy_count|pluralize:"e" }}</span>
@@ -21,6 +25,8 @@
     {% endfor %}
   </ul>
   {% include "pagination.html" %}
+{% elif filtered %}
+  <p>Nichts gefunden. Andere Suchbegriffe versuchen oder <a href="{% url 'title_list' %}">Filter zurücksetzen</a>.</p>
 {% else %}
-  <p>Keine Titel gefunden.</p>
+  <p>Der Katalog ist noch leer.{% if user.can_manage_catalog %} <a href="{% url 'title_create' %}">Ersten Titel anlegen</a>{% endif %}</p>
 {% endif %}

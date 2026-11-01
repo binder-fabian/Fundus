@@ -1,7 +1,7 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db import transaction
-from django.db.models import Count, F, ProtectedError, Q
+from django.db.models import ProtectedError
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
@@ -18,25 +18,33 @@ from fundus.catalog.forms import (
 )
 from fundus.catalog.history import history_entries
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
-from fundus.loans.models import Loan
+from fundus.catalog.search import exact_copy, outdated_before_year, search_titles
 
 PAGE_SIZE = 50
 
 
 def title_list(request):
-    titles = (
-        Title.objects.select_related("category")
-        .annotate(
-            copy_count=Count("copies", distinct=True),
-            lent_count=Count(
-                "copies__loans", filter=Q(copies__loans__status=Loan.Status.LENT), distinct=True
-            ),
-        )
-        .annotate(available_count=F("copy_count") - F("lent_count"))
-        .order_by("title")
-    )
+    query = request.GET.get("q", "")
+    # Exakte Inventarnummer (z. B. per USB-Handscanner mit Enter) öffnet das Exemplar.
+    if query and not request.htmx:
+        copy = exact_copy(query)
+        if copy:
+            return redirect("copy_detail", pk=copy.pk)
+
+    form, titles = search_titles(request.GET)
     page = Paginator(titles, PAGE_SIZE).get_page(request.GET.get("seite"))
-    return render(request, "catalog/title_list.html", {"page": page})
+    params = request.GET.copy()
+    params.pop("seite", None)
+    context = {
+        "form": form,
+        "page": page,
+        "query_string": params.urlencode(),
+        "exact": exact_copy(query) if request.htmx else None,
+        "outdated_before": outdated_before_year(),
+        "filtered": any(v for k, v in request.GET.items() if k != "seite"),
+    }
+    template = "catalog/_title_results.html" if request.htmx else "catalog/title_list.html"
+    return render(request, template, context)
 
 
 def title_detail(request, pk):
