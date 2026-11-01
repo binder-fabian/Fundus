@@ -1,0 +1,17 @@
+# Fundus – Kurzanleitung für Lehrkräfte
+
+**Was ist Fundus?** Der Katalog aller Bücher, Tests, Fördermaterialien und Technik unserer Schule. Sie sehen, was es gibt, wo es steht und ob es gerade frei ist.
+
+**Anmelden.** Sie bekommen eine Einladung per E-Mail. Über den Link legen Sie Ihr Passwort fest, danach sind Sie angemeldet. Auf dem Handy bleiben Sie 30 Tage angemeldet. Tipp: Seite zum Startbildschirm hinzufügen.
+
+**Suchen.** Einfach ins Suchfeld tippen: Titel, Autor, ISBN oder Inventarnummer. Die Ergebnisse erscheinen sofort. Groß- und Kleinschreibung sowie Umlaute sind egal („mueller“ findet „Müller“). Unter „Filter“ grenzen Sie nach Kategorie, Förderschwerpunkt, Standort oder Verfügbarkeit ein.
+
+**Auf einen Blick.** Jeder Titel zeigt seinen Standort und bei ausleihbaren Materialien „verfügbar“ oder „ausgeliehen bis …“. Tests mit alter Normierung sind als „Normierung veraltet“ markiert.
+
+**Inventarnummer bekannt?** Nummer eintippen und Enter drücken. Fundus öffnet direkt das Exemplar.
+
+**Passwort vergessen?** Auf der Anmeldeseite „Passwort vergessen“ wählen.
+
+**Fehler im Katalog entdeckt?** Bitte der Person melden, die Fundus an der Schule verwaltet.
+
+*Bald:* Ausleihen und Zurückgeben per QR-Code mit der Handykamera.

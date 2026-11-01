@@ -147,3 +147,9 @@ def test_export_download_is_admin_only(client):
     assert response["Content-Disposition"].startswith('attachment; filename="fundus-export-')
     archive = zipfile.ZipFile(io.BytesIO(b"".join(response.streaming_content)))
     assert "katalog.csv" in archive.namelist()
+
+
+def test_loaddemo_creates_example_catalog():
+    call_command("loaddemo")
+    assert Copy.objects.filter(inventory_number__startswith="DEMO-").count() == 10
+    assert Title.objects.get(title="Rechentest 1 (Beispiel)").norm_year == 2009

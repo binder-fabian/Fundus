@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 1. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Entwurf, wartet auf Freigabe**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phase 1 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -164,3 +164,16 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 
 - **Beispiel-Export der Microsoft List**: CSV oder Excel mit 10–20 Zeilen, Namen von Personen entfernt oder ersetzt. Am besten bis Schritt 1.6, früher hilft beim Datenmodell (Schritt 1.2).
 - **GitHub-Repository**: Konto und leeres Repository (öffentlich oder privat, deine Wahl) legst du an; danach richte ich den Remote ein. Gepusht wird erst nach deinem Okay. Bis dahin laufen die Tests lokal.
+
+## 6. Stand nach Phase 1 (2. November 2026)
+
+Alle Schritte 1.1–1.8 sind umgesetzt, getestet (107 automatische Tests, je mit SQLite und PostgreSQL) und laufen in der CI auf GitHub, einschließlich `docker compose up` mit Docker.
+
+### Bewusst offen oder vereinfacht
+
+- **Navigation auf dem Handy:** Das Menü steht oben und bricht auf zwei Zeilen um. Eine Leiste unten am Bildschirm kommt mit dem Scanner in Phase 3.
+- **Fertiges Container-Image:** Das Image wird noch auf dem Server gebaut. Ein veröffentlichtes Image (z. B. GitHub Container Registry) erleichtert die Installation auf Synology & Co.
+- **Schwelle für veraltete Tests** (`OUTDATED_NORM_YEARS`, Standard 10 Jahre) ist vorerst eine Umgebungsvariable; eine Einstellungsseite folgt mit Phase 5.
+- **Wiederherstellen eines Titels** stellt die Förderschwerpunkte nicht mit zurück (Grenze von django-simple-history).
+- **Native Installation** (Linux/Windows) ist dokumentiert, aber noch nicht auf einem frischen System durchgespielt.
+- **Anmeldung:** keine Begrenzung von Fehlversuchen; sinnvoll vor dem Produktivbetrieb.
