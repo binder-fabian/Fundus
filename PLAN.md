@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–5 umgesetzt, Phase 6 in Umsetzung**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–6 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -456,7 +456,7 @@ Hinweise:
 
 ## 11. Phase 6 – Erweiterungen
 
-Status: **freigegeben** (2. November 2026), in Umsetzung
+Status: **umgesetzt** (2. November 2026)
 
 Ziel laut SPEC: Reservierung nach Datum/Stunde, OIDC/LDAP, Statistik, Webhooks, Mandantenfähigkeit. Umgesetzt werden in Phase 6 **Statistik, Reservierung und Anmeldung mit Schulkonto**; Webhooks und Mandantenfähigkeit bleiben für später (siehe unten).
 
@@ -531,3 +531,15 @@ Ziel laut SPEC: Reservierung nach Datum/Stunde, OIDC/LDAP, Statistik, Webhooks, 
 | Neue Konten bei Anmeldung mit Schulkonto | einstellbar, Standard: nicht anlegen |
 | Verfall nicht abgeholter Reservierungen | erst am Ende des reservierten Zeitraums |
 | Unbearbeitete Reservierungen freigabepflichtiger Titel | verfallen nie von selbst; bleiben offen, bis das Team entscheidet |
+
+### Stand nach Phase 6 (2. November 2026)
+
+Alle Schritte umgesetzt; 323 automatische Tests (SQLite und PostgreSQL). Die Anmeldung mit Schulkonto ist zusätzlich gegen echte Dienste geprüft: Keycloak 26 (OIDC mit Discovery, PKCE, signiertem ID-Token) im Browser und OpenLDAP mit StartTLS und Zertifikatsprüfung (Testumgebung in `deploy/dev-sso`).
+
+Hinweise:
+
+- Reservierungen sind Einträge im Ausleihprotokoll mit Status „reserviert“ und Zeitraum. Anonymisierung, „Meine Daten“ und Konto löschen gelten damit auch für sie.
+- Der bisherige Wunschzeitraum von Anfragen ist per Migration zum Zeitraum geworden (ganze Tage) und blockiert jetzt den Kalender, solange die Anfrage offen ist.
+- Der tägliche Lauf um 7 Uhr verschickt die Erinnerungen zu Reservierungen. Der Hinweis „noch nicht abgeholt“ kommt deshalb am Morgen nach dem ersten Tag, nicht am ersten Tag selbst.
+- `ldap3` ist seit 2021 nicht mehr erschienen, funktioniert aber; Fundus lädt es nur, wenn LDAP eingerichtet ist.
+- Nicht geprüft: Microsoft Entra und Google mit echten Konten, ein echter Schulserver (paedML, IServ, UCS@school, Active Directory), weiterhin echter Mailversand und Kamera auf echten Handys.

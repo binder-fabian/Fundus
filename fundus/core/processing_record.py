@@ -6,6 +6,7 @@ Rechtliche Angaben sind Vorschläge und von der Schule zu prüfen.
 """
 
 import io
+from urllib.parse import urlparse
 
 from django.conf import settings
 from django.utils import timezone
@@ -13,6 +14,7 @@ from docx import Document
 from docx.enum.text import WD_COLOR_INDEX
 from docx.shared import Pt
 
+from fundus.accounts import sso
 from fundus.core import backup
 from fundus.core.models import SchoolSettings
 
@@ -27,6 +29,10 @@ RELEVANT_FIELDS = {
     "isbn_lookup_enabled",
     "reminders_enabled",
     "reorder_email",
+    "reservation_reminders",
+    "sso_create_accounts",
+    "sso_domains",
+    "password_login",
 }
 
 
@@ -129,13 +135,13 @@ def processing_record_docx(config=None, now=None):
         "und Technik. Lehrkräfte sehen zentral, was es gibt, wo es steht und ob es gerade "
         "verfügbar ist. Ausleihbares Material wird per QR-Code aus- und zurückgebucht; "
         "freigabepflichtiges Material (z. B. Tests) wird über eine Anfrage an das zuständige "
-        "Team vergeben. Verbrauchsmaterial wird über Nachbestellhinweise an das Sekretariat "
-        "nachbestellt."
+        "Team vergeben. Material lässt sich für Tage oder Unterrichtsstunden reservieren. "
+        "Verbrauchsmaterial wird über Nachbestellhinweise an das Sekretariat nachbestellt."
     )
     w.para(
         "Eine Auswertung des Verhaltens oder der Leistung von Beschäftigten ist nicht Zweck "
-        "der Verarbeitung. Fundus bietet keine Auswertungen nach Personen an; Ausleihen "
-        "werden nur je Titel und Zeitraum gezählt."
+        "der Verarbeitung. Fundus bietet keine Auswertungen nach Personen an; die Statistik "
+        "zählt Ausleihen nur je Titel, Kategorie und Zeitraum."
     )
 
     w.heading("3. Rechtsgrundlage (Vorschlag, bitte prüfen)")
@@ -169,14 +175,14 @@ def processing_record_docx(config=None, now=None):
         "Beschäftigte der Schule mit einem Konto in Fundus."
     )
     loans_text = (
-        "Ausleihen werden ohne Namen erfasst, nur mit Klasse oder Raum (z. B. „3b“). "
-        "Nur bei Anfragen für freigabepflichtiges Material wird der Name gespeichert, bis "
-        "das Team das Material übergibt; dann werden Name, Nachricht und die Namen der "
-        "Bearbeitenden gelöscht."
+        "Ausleihen und Reservierungen werden ohne Namen erfasst, nur mit Klasse oder Raum "
+        "(z. B. „3b“). Nur bei Anfragen für freigabepflichtiges Material wird der Name "
+        "gespeichert, bis das Team das Material übergibt; dann werden Name, Nachricht und die "
+        "Namen der Bearbeitenden gelöscht."
         if anonymous
         else "Je Ausleihe: Exemplar, ausleihende Person, Datum, geplantes und tatsächliches "
-        "Rückgabedatum, Status; bei Anfragen zusätzlich Wunschzeitraum, Nachricht, "
-        "genehmigt/übergeben von, ggf. Ablehnungsgrund."
+        "Rückgabedatum, Status; bei Reservierungen und Anfragen zusätzlich der Zeitraum, bei "
+        "Anfragen außerdem Nachricht, genehmigt/übergeben von, ggf. Ablehnungsgrund."
     )
     w.table(
         ["Datenkategorie", "Inhalt"],
@@ -185,9 +191,10 @@ def processing_record_docx(config=None, now=None):
                 "Konto",
                 "Vorname, Nachname, dienstliche E-Mail-Adresse, Rolle, Teamzugehörigkeit, "
                 "„abwesend bis“ (freiwillig, wird nach Ablauf gelöscht), Passwort nur als "
-                "Prüfwert (Hash), Zeitpunkt der letzten Anmeldung.",
+                "Prüfwert (Hash; bei Anmeldung mit Schulkonto kein Passwort in Fundus), "
+                "Zeitpunkt der letzten Anmeldung.",
             ],
-            ["Ausleihen und Anfragen", loans_text],
+            ["Ausleihen, Reservierungen und Anfragen", loans_text],
             [
                 "Änderungsprotokoll",
                 "Wer hat wann einen Datensatz (z. B. Titel, Exemplar, Konto) geändert und was "
@@ -240,7 +247,8 @@ def processing_record_docx(config=None, now=None):
     w.heading("6. Empfänger und Übermittlungen")
     items = [
         [
-            "E-Mails (Einladungen, Anfragen, Erinnerungen, Nachbestellhinweise) gehen über ",
+            "E-Mails (Einladungen, Anfragen, Reservierungen, Erinnerungen, Nachbestellhinweise) "
+            "gehen über ",
             ("den Mailserver der Schule bzw. des Schulträgers", TODO),
             ".",
         ]
@@ -257,6 +265,23 @@ def processing_record_docx(config=None, now=None):
         )
     else:
         items.append("Der ISBN-Abruf bei externen Diensten ist abgeschaltet.")
+    if sso.oidc_enabled():
+        host = urlparse(settings.OIDC_ISSUER).hostname or "Anmeldedienst"
+        items.append(
+            [
+                f"Anmeldung mit Schulkonto über {host} (OIDC, Betreiber: ",
+                ("eintragen", TODO),
+                "): Fundus erhält von dort Name und E-Mail-Adresse; der Anmeldedienst erfährt, "
+                "dass sich die Person bei Fundus anmeldet.",
+            ]
+        )
+    if sso.ldap_enabled():
+        host = urlparse(settings.LDAP_SERVER_URI).hostname or "Schulserver"
+        items.append(
+            f"Anmeldung über den Schulserver {host} (LDAP, verschlüsselt): Fundus prüft "
+            "Benutzername und Passwort dort und liest Name und E-Mail-Adresse. Das Passwort "
+            "speichert Fundus nicht."
+        )
     items.append(
         "Der Browser lädt keine Inhalte von fremden Servern (keine externen Schriften, "
         "Skripte oder Statistikdienste)."
@@ -277,7 +302,7 @@ def processing_record_docx(config=None, now=None):
         ["Daten", "Frist"],
         [
             [
-                "Namen in abgeschlossenen Ausleihen und Anfragen",
+                "Namen in abgeschlossenen Ausleihen, Reservierungen und Anfragen",
                 f"Werden nach {_days(config.anonymize_after_days)} automatisch entfernt "
                 "(auch im Änderungsprotokoll). Titel, Exemplar und Daten bleiben für die "
                 "Statistik.",
@@ -321,6 +346,14 @@ def processing_record_docx(config=None, now=None):
             ],
             "Zugriff nur nach Anmeldung; Verbindung verschlüsselt über HTTPS.",
             "Passwörter werden nur als Prüfwert (PBKDF2-Hash) gespeichert.",
+            *(
+                [
+                    "Anmeldung mit Fundus-Passwort nur für Administratoren (Notzugang); alle "
+                    "anderen melden sich mit ihrem Schulkonto an."
+                ]
+                if sso.sso_enabled() and config.password_login == config.PasswordLogin.ADMINS
+                else []
+            ),
             f"Sperre nach {settings.LOGIN_MAX_ATTEMPTS} fehlgeschlagenen Anmeldungen für "
             f"{settings.LOGIN_LOCK_MINUTES} Minuten.",
             "Rollen- und Rechtekonzept (siehe Abschnitt 5); Lehrkräfte können Stammdaten nicht "

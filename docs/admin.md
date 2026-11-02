@@ -88,17 +88,31 @@ Wer abwesend ist, trägt unter „Konto“ ein „abwesend bis …“ ein und be
 - **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite; beim Eintippen schlägt das Feld passende Exemplare und Verbrauchsmaterial vor (Nummer oder Titel). Die Kamera braucht HTTPS.
 - **Ausleihen:** Das Rückgabedatum ist mit der Frist der Kategorie vorausgefüllt. Lehrkräfte leihen für sich selbst. Verwalter sowie die zuständige Person eines Titels können auch für andere Lehrkräfte ausbuchen.
 - **Zurückgeben:** Jede angemeldete Person kann zurückbuchen, z. B. wenn ein Exemplar im Lehrerzimmer liegen geblieben ist. Freigabepflichtige Titel bucht nur die zuständige Person (oder Vertretung bzw. Verwaltung) zurück. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
-- **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage vorliegt.
+- **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage „so bald wie möglich“ vorliegt. Steht eine Reservierung bevor, verlängert Fundus höchstens bis zum Tag davor.
 - **Wer sieht Namen?** Verwalter, Administratoren und die zuständige Person. Andere Lehrkräfte sehen nur „ausgeliehen bis …“.
 - **Freigabepflichtige Titel** fragen Lehrkräfte an (siehe nächster Abschnitt).
 
+## Reservierung
+
+Auf der Titelseite führt **„Reservieren“** zu einem Wochenkalender: Für jeden Tag und jede Unterrichtsstunde steht dort, wie viele Exemplare frei sind. Eine freie Stunde antippen trägt sie ins Formular ein.
+
+- **Ganze Tage** (von–bis) oder **einzelne Stunden** an einem Tag (z. B. 3.–4. Stunde). Bei Titeln mit mehreren Exemplaren auch mehrere auf einmal, z. B. „2 Tablet-Koffer“.
+- Fundus prüft, ob im Zeitraum genug frei ist: laufende Ausleihen bis zu ihrem Rückgabedatum, andere Reservierungen und Anfragen mit Zeitraum. Sonst nennt es den frühesten freien Beginn.
+- **Abholen:** Am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Die Reservierung wird dabei zur Ausleihe; Rückgabe ist das Ende des Zeitraums.
+- **Konflikte:** Wer ein Exemplar ausleiht, obwohl der Titel ab einem Datum ausgebucht ist, bekommt das Rückgabedatum auf den Tag davor begrenzt. Ist heute schon alles reserviert, geht Ausleihen nur noch über eine eigene Reservierung (z. B. für die Stunden davor).
+- **Verfall:** Nicht abgeholte Reservierungen bleiben bis zum Ende ihres Zeitraums bestehen. Am Vortag bekommt die Person eine Erinnerung, am Morgen nach dem ersten Tag einen Hinweis, falls sie noch nicht abgeholt hat (unter „Einstellungen → Reservierung“ abschaltbar).
+- Eigene Reservierungen stehen auf der Startseite und lassen sich dort stornieren. Verwalter können jede Reservierung stornieren.
+- Im **Modus ohne Namen** wird für Klasse oder Raum reserviert; abholen kann dann, wer beim Ausleihen dieselbe Klasse einträgt.
+
+**Stundenraster.** Unter „Einstellungen → Reservierung“ eine Zeile je Stunde, z. B. `08:00-08:45`. Die erste Zeile ist die 1. Stunde. Reservierungen speichern die Uhrzeiten; ein neues Raster (z. B. zum Halbjahr) verschiebt also keine bestehenden.
+
 ## Anfragen für freigabepflichtige Titel
 
-1. Die Lehrkraft tippt auf der Titel- oder Exemplarseite **„Anfragen“** (optional mit Wunschzeitraum und Nachricht).
-2. Alle anwesenden Mitglieder des Teams bekommen eine E-Mail und sehen die Anfrage auf ihrer Startseite. Wer zuerst **genehmigt** oder **ablehnt** (mit Begründung), erledigt sie für alle; die Lehrkraft wird per E-Mail informiert.
-3. **Übergabe:** Die Lehrkraft holt das Material ab. Jemand aus dem Team scannt den QR-Code eines freien Exemplars; dort steht „An … übergeben“. Erst jetzt gilt es als ausgeliehen. Das Rückgabedatum ist der Wunschtermin, sonst die Frist der Kategorie.
+1. Die Lehrkraft fragt auf der Titel- oder Exemplarseite an: **„So bald wie möglich“** oder **„Für einen bestimmten Zeitraum“** (Tage oder Stunden, mit Kalender wie bei der Reservierung). Ein angefragter Zeitraum ist schon während der Prüfung vorgemerkt, damit niemand dazwischenbucht.
+2. Alle anwesenden Mitglieder des Teams bekommen eine E-Mail und sehen die Anfrage auf ihrer Startseite. Wer zuerst **genehmigt** oder **ablehnt** (mit Begründung), erledigt sie für alle; die Lehrkraft wird per E-Mail informiert. Mit **„Anderer Zeitraum“** genehmigt das Team für andere Tage, z. B. wenn der gewünschte Zeitraum nicht passt oder schon vorbei ist.
+3. **Übergabe:** Die Lehrkraft holt das Material ab. Jemand aus dem Team scannt den QR-Code eines freien Exemplars; dort steht „An … übergeben“. Erst jetzt gilt es als ausgeliehen. Das Rückgabedatum ist das Ende des Zeitraums, sonst die Frist der Kategorie.
 
-Bleibt eine Anfrage 3 Tage liegen, wird das Team erinnert. Genehmigte, aber nicht abgeholte Anfragen verfallen nach 14 Tagen. Beide Werte stehen unter „Einstellungen“. Spontan geht es auch ohne Anfrage: Das Team kann direkt für jemanden ausleihen.
+Unbearbeitete Anfragen **verfallen nie von selbst**. Bleibt eine Anfrage 3 Tage liegen, wird das Team erinnert, bei Anfragen mit Zeitraum zusätzlich am Vortag des Beginns; ist der Zeitraum vorbei, steht sie als „Zeitraum vorbei“ beim Team, bis es entscheidet. Genehmigte, aber nicht abgeholte Anfragen verfallen: ohne Zeitraum nach 14 Tagen, mit Zeitraum an dessen Ende (Nachricht an Lehrkraft und Team). Die Tage stehen unter „Einstellungen“. Spontan geht es auch ohne Anfrage: Das Team kann direkt für jemanden ausleihen.
 
 ## Verbrauchsmaterial und Nachbestellungen
 
@@ -113,6 +127,10 @@ Unter „Material“ stehen Verbrauchsmaterialien wie Protokollbögen, jeweils m
 
 **Rückgabekiste:** Unter „Ausleihen → Rückgabekiste“ scannen Sie viele Exemplare nacheinander mit dem Handscanner; jedes wird sofort zurückgebucht. Mit der Kamera genügt ein Tipp zur Bestätigung. Testkoffer fragen vorher den Inhalt ab.
 
+## Statistik
+
+Unter „Statistik“ (Verwaltung und Administration): Ausleihen je Titel, Kategorie und Förderschwerpunkt für das aktuelle oder letzte Schuljahr, ein Halbjahr oder einen freien Zeitraum; dazu durchschnittliche Ausleihdauer, Titel, die im Zeitraum nicht ausgeliehen wurden, und was aus Anfragen wurde. Gezählt werden auch anonymisierte Ausleihen. Eine Auswertung nach Personen gibt es bewusst nicht. „Als Excel-Datei herunterladen“ liefert alle Tabellen in einer Datei.
+
 ## Erinnerungen per E-Mail
 
 Der Dienst `scheduler` (in `docker-compose.yml` enthalten) verschickt einmal täglich ab 7 Uhr (`REMINDER_HOUR`):
@@ -121,7 +139,7 @@ Der Dienst `scheduler` (in `docker-compose.yml` enthalten) verschickt einmal tä
 - einen Hinweis, wenn die Ausleihe 3 Tage überfällig ist,
 - nach 14 Tagen eine Sammelmail an alle Verwalter und Administratoren.
 
-Jede Nachricht geht je Ausleihe nur einmal raus; nach dem Verlängern beginnt es neu. Die Tage und das Abschalten finden Sie unter „Einstellungen“.
+Jede Nachricht geht je Ausleihe nur einmal raus; nach dem Verlängern beginnt es neu. Die Tage und das Abschalten finden Sie unter „Einstellungen“. Erinnerungen zu Reservierungen und Anfragen sind oben beschrieben.
 
 Im selben täglichen Lauf erledigt der `scheduler` auch die Datenschutz-Bereinigung und die automatische Sicherung (siehe unten). Ohne Container rufen Sie stattdessen täglich `python manage.py daily_tasks` auf (siehe [Installation ohne Container](native-install.md)); der alte Name `send_reminders` funktioniert weiter.
 
@@ -144,6 +162,47 @@ Alle Einstellungen dazu stehen unter „Einstellungen → Datenschutz“. Fundus
 **Konto löschen.** Unter „Benutzer → Person → Konto löschen …“. Möglich, sobald die Person nichts mehr ausgeliehen hat. Ihre Ausleihen werden dabei sofort anonymisiert, offene Anfragen zurückgezogen, ihr Name verschwindet aus Teams und Änderungsprotokoll. Wer nur vorübergehend weg ist, wird besser deaktiviert.
 
 **Auskunft.** Jede Person lädt unter „Konto → Meine Daten herunterladen“ alles herunter, was Fundus über sie gespeichert hat (ZIP mit CSV-Dateien).
+
+## Anmeldung mit Schulkonto
+
+Statt eines eigenen Passworts für Fundus können sich alle mit dem Konto anmelden, das die Schule schon hat. Fundus ordnet die Anmeldung über die **E-Mail-Adresse** einem Konto zu; Rollen und Teams vergeben Sie weiter in Fundus. Eingerichtet wird über Umgebungsvariablen in der `.env` (danach Fundus neu starten), die Regeln unter „Einstellungen → Anmeldung mit Schulkonto“:
+
+- **Neue Konten automatisch anlegen:** Standard aus. Dann kommt nur hinein, wer schon ein Konto in Fundus hat (z. B. aus dem Lehrkräfte-Import); andere sehen „Bitte an die Verwaltung wenden“. Eingeschaltet legt Fundus neue Personen als Lehrkraft an, optional nur für bestimmte E-Mail-Domains (wichtig bei Landesdiensten, an denen viele Schulen hängen).
+- **Anmeldung mit Fundus-Passwort:** für alle (Standard) oder nur für Administratoren. Administratoren behalten ihr Passwort immer als Notzugang, falls der Anmeldedienst ausfällt.
+
+### OIDC (Microsoft Entra, Google, Keycloak und andere)
+
+Auf der Anmeldeseite erscheint der Knopf „Mit Schulkonto anmelden“. Beim Anmeldedienst registrieren Sie Fundus als Webanwendung mit der **Weiterleitungsadresse** `https://fundus.meine-schule.de/oidc/callback/` (Ihre `SITE_URL` plus `/oidc/callback/`).
+
+| Variable | Bedeutung |
+| --- | --- |
+| `OIDC_ISSUER` | Adresse des Anmeldedienstes (siehe unten); Fundus liest daraus die übrigen Adressen |
+| `OIDC_CLIENT_ID` | Client- bzw. Anwendungs-ID; schaltet OIDC ein |
+| `OIDC_CLIENT_SECRET` | Geheimer Schlüssel der Anwendung |
+| `OIDC_BUTTON_LABEL` | Text auf dem Knopf (Standard „Mit Schulkonto anmelden“) |
+| `OIDC_SCOPES` | Standard `openid email profile` |
+
+- **Microsoft Entra ID:** App-Registrierung → Plattform „Web“ mit obiger Weiterleitungsadresse, unter „Zertifikate & Geheimnisse“ ein Geheimnis anlegen. `OIDC_ISSUER=https://login.microsoftonline.com/<Verzeichnis-ID>/v2.0`. Fehlt die E-Mail-Adresse im Token, nimmt Fundus den Anmeldenamen (UPN), sofern er wie eine E-Mail-Adresse aussieht.
+- **Google Workspace:** Google Cloud Console → OAuth-Client „Webanwendung“. `OIDC_ISSUER=https://accounts.google.com`.
+- **Keycloak** (auch hinter manchen Landesdiensten): Client mit „Client authentication“ an. `OIDC_ISSUER=https://keycloak.example.org/realms/<Realm>`.
+
+Fundus holt die Adressen des Dienstes erst bei der ersten Anmeldung. Ist der Dienst nicht erreichbar, funktioniert die Anmeldung mit Passwort weiter.
+
+### LDAP (Schulserver: paedML, IServ, UCS@school, Active Directory)
+
+Die Anmeldung läuft über das normale Formular, mit Benutzername oder E-Mail-Adresse und dem Passwort des Schulservers. Fundus sucht die Person mit einem Dienstkonto, prüft das Passwort beim Server und liest Name und E-Mail-Adresse; das Passwort speichert Fundus nicht. Die Verbindung muss verschlüsselt sein (LDAPS oder StartTLS).
+
+| Variable | Beispiel | Bedeutung |
+| --- | --- | --- |
+| `LDAP_SERVER_URI` | `ldaps://schulserver.local` | Adresse; schaltet LDAP ein |
+| `LDAP_START_TLS` | `1` | Bei `ldap://` die Verbindung per StartTLS verschlüsseln |
+| `LDAP_CA_FILE` | `/data/schulserver-ca.pem` | Zertifikat der Schul-CA, falls nicht öffentlich signiert |
+| `LDAP_BIND_DN` / `LDAP_BIND_PASSWORD` | `cn=fundus,cn=users,dc=schule,dc=local` | Dienstkonto zum Suchen (nur Lesen) |
+| `LDAP_USER_SEARCH_BASE` | `cn=users,dc=schule,dc=local` | Wo die Konten liegen |
+| `LDAP_USER_FILTER` | `(sAMAccountName={user})` | Suche; Standard sucht nach `uid`, `mail`, `sAMAccountName` und `userPrincipalName` |
+| `LDAP_ATTR_EMAIL` / `LDAP_ATTR_FIRST_NAME` / `LDAP_ATTR_LAST_NAME` | `mail` / `givenName` / `sn` | Attribute für E-Mail und Namen |
+
+Ausprobieren lässt sich beides mit der Testumgebung in `deploy/dev-sso` (Keycloak und OpenLDAP).
 
 ## Import vorhandener Listen
 
@@ -194,3 +253,4 @@ Wiederherstellen siehe [Installation](installation.md#sicherung-wiederherstellen
 | `BACKUP_DIR` | `DATA_DIR/sicherungen` | Ordner für die automatischen Sicherungen |
 | `TIME_ZONE` | Europe/Berlin | Zeitzone |
 | `LOG_LEVEL` | INFO | Ausführlichkeit der Protokolle |
+| `OIDC_*`, `LDAP_*` | leer | Anmeldung mit Schulkonto, siehe oben |

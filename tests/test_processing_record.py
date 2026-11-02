@@ -70,3 +70,23 @@ def test_download_admin_only_and_hint_after_change(client):
         reverse("school_settings"), settings_data(outdated_norm_years="9"), follow=True
     ).content.decode()
     assert "Verarbeitungsbeschreibung neu herunterladen" not in page
+
+
+def test_document_names_login_services(settings):
+    settings.OIDC_RP_CLIENT_ID = "fundus"
+    settings.OIDC_ISSUER = "https://login.example.org/schule"
+    settings.LDAP_SERVER_URI = "ldaps://schulserver.local"
+    config = SchoolSettings.current()
+    config.password_login = config.PasswordLogin.ADMINS
+    config.save()
+    text, _doc = text_of(processing_record_docx(config))
+    assert "Anmeldung mit Schulkonto über login.example.org" in text
+    assert "Schulserver schulserver.local (LDAP, verschlüsselt)" in text
+    assert "nur für Administratoren (Notzugang)" in text
+    assert "Reservierungen" in text
+
+
+def test_document_without_login_services():
+    text, _doc = text_of(processing_record_docx(SchoolSettings.current()))
+    assert "Anmeldung mit Schulkonto über" not in text
+    assert "Notzugang" not in text
