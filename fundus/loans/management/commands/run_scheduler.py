@@ -1,6 +1,7 @@
 import datetime
 import signal
 import time
+from pathlib import Path
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -28,6 +29,7 @@ class Command(BaseCommand):
         while self.running:
             close_old_connections()
             self.tick()
+            self.heartbeat()
             if options["once"]:
                 break
             for _ in range(60):
@@ -44,6 +46,10 @@ class Command(BaseCommand):
         counts = send_reminders(now.date())
         self.stdout.write(f"{now:%d.%m.%Y %H:%M} Erinnerungen verschickt: {counts}")
         return True
+
+    def heartbeat(self):
+        """Lebenszeichen für den Healthcheck des Containers."""
+        Path(settings.SCHEDULER_HEARTBEAT).touch()
 
     def _stop(self, *args):
         self.running = False

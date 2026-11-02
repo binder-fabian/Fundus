@@ -22,4 +22,4 @@
 
 **Als App aufs Handy.** Im Browser „Zum Startbildschirm hinzufügen“ wählen (iPhone: Teilen-Symbol; Android: Menü ⋮). Dann startet Fundus wie eine App.
 
-**Freigabepflichtige Tests** (z. B. teure Diagnostik) bitte bei der zuständigen Person ausleihen; sie bucht direkt für Sie aus.
+**Freigabepflichtige Tests** (z. B. teure Diagnostik) bitte bei der zuständigen Person ausleihen und auch dort zurückgeben; sie bucht für Sie aus und zurück.

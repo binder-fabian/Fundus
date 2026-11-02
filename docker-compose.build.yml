@@ -8,3 +8,4 @@ services:
 
   scheduler:
     image: localhost/fundus:latest
+    pull_policy: never

@@ -279,19 +279,17 @@ Ziel laut SPEC: Scanner-PWA, Ausleihen/Zurückgeben, Rückgabekiste-Modus, Testk
 - Kamera: `barcode-detector` (Ponyfill der BarcodeDetector-Schnittstelle) mit ZXing als WebAssembly, lokal ausgeliefert – funktioniert auch auf iPhones, die keinen eingebauten Barcode-Scanner im Browser haben. Kamera braucht HTTPS (lokal geht `localhost`).
 - Kein neuer Dienst außer dem `scheduler`, der dasselbe Image nutzt.
 
-### Vorläufige Entscheidungen – bitte prüfen
+### Entscheidungen (am 3. November 2026 durchgegangen)
 
-Diese Punkte hätte ich dir vorgelegt; über Nacht habe ich jeweils die vorsichtigere Variante umgesetzt. Alle lassen sich leicht ändern.
-
-| # | Frage | Umgesetzt (vorläufig) |
+| # | Frage | Entschieden |
 | --- | --- | --- |
-| A | Wer sieht, **bei wem** etwas ist? | Verwalter, Administratoren und die zuständige Person sehen Namen. Lehrkräfte sehen nur „ausgeliehen bis …“. Einstellbar wird das in Phase 5. |
-| B | **Freigabepflichtige** Titel vor Phase 4? | Lehrkräfte können sie nicht selbst ausleihen und sehen „Bitte an [zuständige Person] wenden“. Zuständige Person und Verwalter buchen direkt für eine Lehrkraft aus. |
-| C | Wer darf **zurückbuchen**? | Die ausleihende Lehrkraft selbst sowie Verwalter und Administratoren (Rückgabekiste). |
-| D | **Verlängern** | Durch die ausleihende Lehrkraft, beliebig oft; neues Datum = heute + Ausleihfrist der Kategorie. |
-| E | **Erinnerungen** | 1 Tag vor Ablauf an die Lehrkraft, 3 Tage nach Ablauf erneut, 14 Tage nach Ablauf zusätzlich an alle Verwalter; täglich um 7 Uhr. Tage in den Einstellungen änderbar. |
-| F | **Für andere ausleihen** | Verwalter (und zuständige Personen bei ihren Titeln) können für eine andere Lehrkraft ausbuchen; Lehrkräfte nur für sich selbst. |
-| G | **Unvollständige Testkoffer** | Bleiben ausleihbar, zeigen aber deutlich „unvollständig“ mit den fehlenden Teilen. |
+| A | Wer sieht, **bei wem** etwas ist? | Vorerst nur Verwalter, Administratoren und zuständige Person; in Phase 5 wird es eine Einstellung für die Schule. |
+| B | **Freigabepflichtige** Titel vor Phase 4? | Nur über die zuständige Person (oder Verwaltung) ausleihbar; Lehrkräfte sehen „Bitte an … wenden“. |
+| C | Wer darf **zurückbuchen**? | Freigabepflichtige Titel nur die zuständige Person (mit Vertretung und Verwaltung); alle anderen Titel jede angemeldete Person. |
+| D | **Verlängern** | Durch die ausleihende Lehrkraft, beliebig oft, solange keine Anfrage vorliegt. |
+| E | **Erinnerungen** | 1 Tag vorher, 3 Tage überfällig, nach 14 Tagen zusätzlich an die Verwaltung. |
+| F | **Für andere ausleihen** | Verwaltung und zuständige Personen; Lehrkräfte nur für sich. |
+| G | **Unvollständige Testkoffer** | Ausleihbar mit deutlichem Hinweis. |
 
 ### Stand nach Phase 3 (Nacht zum 3. November 2026)
 
@@ -300,4 +298,3 @@ Schritte 3.1–3.6 umgesetzt; 198 automatische Tests (SQLite und PostgreSQL) gr�
 Nicht geprüft und vor dem Einsatz nötig:
 
 - **Kamera auf echten Handys** (Android und iPhone) über HTTPS – im Entwicklungs-Browser ist die Kamera gesperrt.
-- **Vorläufige Entscheidungen A–G** (Tabelle oben) bestätigen oder ändern.

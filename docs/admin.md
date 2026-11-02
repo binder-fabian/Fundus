@@ -81,7 +81,7 @@ Unter „Etiketten“ gibt es ein A4-Plakat mit QR-Code zur Adresse von Fundus (
 
 - **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite. Die Kamera braucht HTTPS.
 - **Ausleihen:** Das Rückgabedatum ist mit der Frist der Kategorie vorausgefüllt. Lehrkräfte leihen für sich selbst. Verwalter sowie die zuständige Person eines Titels können auch für andere Lehrkräfte ausbuchen.
-- **Zurückgeben:** durch die ausleihende Lehrkraft oder die Verwaltung. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
+- **Zurückgeben:** Jede angemeldete Person kann zurückbuchen, z. B. wenn ein Exemplar im Lehrerzimmer liegen geblieben ist. Freigabepflichtige Titel bucht nur die zuständige Person (oder Vertretung bzw. Verwaltung) zurück. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
 - **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage vorliegt.
 - **Wer sieht Namen?** Verwalter, Administratoren und die zuständige Person. Andere Lehrkräfte sehen nur „ausgeliehen bis …“.
 - **Freigabepflichtige Titel** können Lehrkräfte noch nicht selbst ausleihen; sie wenden sich an die zuständige Person, die direkt für sie ausbucht. Der Anfrage-Ablauf folgt in Phase 4.

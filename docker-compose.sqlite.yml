@@ -32,7 +32,11 @@ services:
       MIGRATE_ON_START: "0"
     command: ["python", "manage.py", "run_scheduler"]
     healthcheck:
-      disable: true
+      test: ["CMD", "python", "-c", "import os, sys, time; sys.exit(time.time() - os.path.getmtime('/tmp/fundus-scheduler-heartbeat') > 180)"]
+      interval: 60s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
     volumes:
       - fundus-data:/data
     depends_on:

@@ -132,6 +132,7 @@ DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="fundus@localhost")
 
 # Ab dieser Stunde verschickt der Dienst „scheduler“ täglich die Erinnerungen.
 REMINDER_HOUR = env.int("REMINDER_HOUR", default=7)
+SCHEDULER_HEARTBEAT = env.str("SCHEDULER_HEARTBEAT", default="/tmp/fundus-scheduler-heartbeat")
 
 # Anmeldesperre nach zu vielen falschen Passwörtern.
 LOGIN_MAX_ATTEMPTS = env.int("LOGIN_MAX_ATTEMPTS", default=5)

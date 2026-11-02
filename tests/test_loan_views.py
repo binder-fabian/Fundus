@@ -58,12 +58,21 @@ def test_lend_return_cycle_on_copy_page(client, teacher):
     assert loan.status == Loan.Status.RETURNED
 
 
-def test_other_teacher_sees_no_name_and_cannot_return(client, teacher):
+def test_other_teacher_sees_no_name_but_can_return(client, teacher):
     copy = copy_with()
     LoanFactory(copy=copy, borrower=UserFactory(first_name="Geheim", last_name="Name"))
     page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
-    assert "Ausgeliehen bis" in page
-    assert "Geheim" not in page and "Zurückgeben" not in page
+    assert "Ausgeliehen bis" in page and "Zurückgeben" in page
+    assert "Geheim" not in page
+    client.post(reverse("give_back", args=[copy.pk]))
+    assert not Loan.objects.filter(copy=copy, status=Loan.Status.LENT).exists()
+
+
+def test_teacher_cannot_return_approval_required_title(client, teacher):
+    copy = copy_with(approval_required=True, responsible=UserFactory())
+    LoanFactory(copy=copy, borrower=teacher)
+    page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
+    assert "Zurückgeben</button>" not in page and "Zurückbuchen bitte über" in page
     client.post(reverse("give_back", args=[copy.pk]))
     assert Loan.objects.filter(copy=copy, status=Loan.Status.LENT).exists()
 

@@ -16,6 +16,9 @@
           Ausgeliehen bis <strong>{{ loan.due_date|date:"d.m.Y" }}</strong>{% if loan.is_overdue %} – <strong>überfällig</strong>{% endif %}
           {% if loan.borrower_id == user.pk %}<br>von Ihnen{% elif show_borrower %}<br>bei {{ loan.borrower_display }}{% endif %}
         </p>
+        {% if not can_return %}
+          <p class="message message-warning">Freigabepflichtig: Zurückbuchen bitte über {{ copy.title.responsible|default:copy.title.deputy|default:"die Verwaltung" }}.</p>
+        {% endif %}
         {% if can_return %}
           <form method="post" action="{% url 'give_back' copy.pk %}" class="form">{% csrf_token %}
             {% if copy.title.contents_items %}

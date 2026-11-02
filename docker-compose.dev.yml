@@ -16,6 +16,7 @@ services:
 
   scheduler:
     image: localhost/fundus:dev
+    pull_policy: never
     environment:
       EMAIL_URL: smtp://mailpit:1025
       SITE_URL: http://localhost:8000

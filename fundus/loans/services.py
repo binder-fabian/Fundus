@@ -37,7 +37,14 @@ def can_see_borrower(user, title):
 
 
 def can_return(user, loan):
-    return loan.borrower_id == user.pk or can_lend_for_others(user, loan.copy.title)
+    """Entscheidung C: Freigabepflichtige Titel bucht nur die zuständige Person
+    (bzw. Vertretung oder Verwaltung) zurück – wie bei der Übergabe. Alle anderen
+    Titel darf jede angemeldete Person zurückbuchen, z. B. wenn ein Exemplar im
+    Lehrerzimmer liegen geblieben ist."""
+    title = loan.copy.title
+    if title.approval_required:
+        return can_lend_for_others(user, title)
+    return user.is_authenticated and user.is_active
 
 
 def pending_request(copy):
@@ -102,7 +109,12 @@ def return_copy(copy, by, complete=None, missing=()):
     if loan is None:
         raise LoanError(_("Dieses Exemplar ist nicht ausgeliehen."))
     if not can_return(by, loan):
-        raise LoanError(_("Nur die ausleihende Person oder die Verwaltung kann zurückbuchen."))
+        contact = loan.copy.title.responsible or loan.copy.title.deputy
+        raise LoanError(
+            _("Freigabepflichtig: Zurückbuchen bitte über %(p)s.") % {"p": contact}
+            if contact
+            else _("Freigabepflichtig: Zurückbuchen bitte über die Verwaltung.")
+        )
 
     loan.status = Loan.Status.RETURNED
     loan.returned_at = timezone.now()

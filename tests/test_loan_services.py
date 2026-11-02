@@ -74,15 +74,25 @@ def test_due_date_in_past_rejected(teacher):
         )
 
 
-def test_return_by_borrower_or_manager_only(teacher, manager):
+def test_anyone_can_return_normal_titles(teacher, manager):
     copy = lendable_copy()
     services.lend(copy, by=teacher)
-    with pytest.raises(LoanError, match="Nur die ausleihende Person"):
-        services.return_copy(copy, by=UserFactory())
-    loan = services.return_copy(copy, by=manager)
+    loan = services.return_copy(copy, by=UserFactory())  # z. B. liegen geblieben
     assert loan.status == Loan.Status.RETURNED and loan.returned_at
     with pytest.raises(LoanError, match="nicht ausgeliehen"):
         services.return_copy(copy, by=manager)
+
+
+def test_approval_required_only_responsible_or_management_returns(teacher, manager):
+    responsible = UserFactory(first_name="Petra", last_name="Test")
+    copy = lendable_copy(approval_required=True, responsible=responsible)
+    services.lend(copy, by=responsible, borrower=teacher)
+    for person in (teacher, UserFactory()):
+        with pytest.raises(LoanError, match="Petra Test"):
+            services.return_copy(copy, by=person)
+    services.return_copy(copy, by=responsible)
+    services.lend(copy, by=responsible, borrower=teacher)
+    services.return_copy(copy, by=manager)
 
 
 def test_return_incomplete_marks_copy_and_notes_missing_parts(teacher):
