@@ -22,6 +22,10 @@
     </section>
   {% endif %}
 
+  {% if title.lendable and not title.approval_required and copies %}
+    <p><a class="button button-primary" href="{% url 'reserve' title.pk %}">Reservieren</a></p>
+  {% endif %}
+
   {% if user.can_manage_catalog %}
     <div class="actions">
       <a class="button" href="{% url 'title_edit' title.pk %}">Bearbeiten</a>

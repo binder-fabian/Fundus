@@ -182,6 +182,17 @@ def hand_over(loan, copy, by, due_date=None, label=""):
         due_date = default_due_date(copy, today)
         if loan.wished_until and loan.wished_until >= today:
             due_date = loan.wished_until
+    from fundus.loans import reservations
+
+    latest = reservations.latest_due_date(loan.title, exclude=[loan.pk])
+    if latest is not None:
+        if latest < today:
+            raise LoanError(
+                reservations.conflict_message(loan.title, exclude=[loan.pk])
+                + " "
+                + _("Zurzeit ist kein Exemplar frei.")
+            )
+        due_date = min(due_date, latest)
     now = timezone.now()
     loan.copy = copy
     loan.status = Loan.Status.LENT

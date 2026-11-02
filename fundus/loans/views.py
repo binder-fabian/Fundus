@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
@@ -12,8 +14,15 @@ from fundus.accounts.models import User
 from fundus.accounts.permissions import require
 from fundus.catalog.models import Copy, Title
 from fundus.catalog.text import normalize
-from fundus.loans import requests, services, stats
-from fundus.loans.forms import LendForm, RequestForm, contents_check
+from fundus.core.models import SchoolSettings
+from fundus.loans import requests, reservations, services, stats
+from fundus.loans.forms import (
+    LendForm,
+    RequestForm,
+    ReserveDaysForm,
+    ReserveLessonsForm,
+    contents_check,
+)
 from fundus.loans.models import Loan
 from fundus.supplies.models import Consumable, ReorderNotice
 
@@ -36,6 +45,7 @@ def home(request):
             "loans": loans,
             "my_requests": my_requests,
             "team_requests": requests_context(request.user),
+            "my_reservations": reservations.my_reservations(request.user),
             "open_reorders": ReorderNotice.objects.filter(status=ReorderNotice.Status.OPEN).count()
             if request.user.can_handle_orders
             else 0,
@@ -110,8 +120,24 @@ def copy_actions(request, copy):
         if blocked and not context.get("own_request"):
             context["request_form"] = RequestForm()
         if not blocked:
+            due = services.default_due_date(copy)
+            pickup = None
+            if not title.approval_required and not anonymous:
+                pickup = reservations.pickup_candidate(title, borrower=user)
+            if pickup:
+                due = reservations.last_day(pickup.reserved_until)
+                context["pickup"] = pickup
+            latest = reservations.latest_due_date(title, exclude=[pickup.pk] if pickup else [])
+            if latest is not None and latest < due:
+                context["reservation_note"] = reservations.conflict_message(
+                    title, exclude=[pickup.pk] if pickup else []
+                )
+                if latest >= timezone.localdate():
+                    due = latest
+                elif not pickup:
+                    context["reservation_blocked"] = True
             context["lend_form"] = LendForm(
-                initial={"due_date": services.default_due_date(copy), "borrower": user.pk},
+                initial={"due_date": due, "borrower": user.pk},
                 for_others=context["can_lend_for_others"],
                 anonymous=context["anonymous"],
             )
@@ -121,6 +147,109 @@ def copy_actions(request, copy):
             copy
         )
     return context
+
+
+def reservation_context(request, title, days_form=None, lessons_form=None):
+    config = SchoolSettings.current()
+    capacity = reservations.capacity(title)
+    anonymous = services.anonymous_mode()
+    kwargs = {"capacity": capacity, "anonymous": anonymous}
+    tomorrow = timezone.localdate() + datetime.timedelta(days=1)
+    upcoming = (
+        Loan.objects.filter(
+            title=title,
+            status__in=reservations.BLOCKING,
+            reserved_until__gt=timezone.now(),
+        )
+        .select_related("borrower")
+        .order_by("reserved_from", "pk")
+    )
+    see_names = services.can_see_borrower(request.user, title)
+    entries = reservations.collapse(upcoming)
+    for entry in entries:
+        entry.show_name = see_names or not entry.borrower_id or entry.borrower_id == request.user.pk
+        entry.can_cancel = entry.status == Loan.Status.RESERVED and reservations.can_cancel(
+            request.user, entry
+        )
+    return {
+        "title": title,
+        "capacity": capacity,
+        "anonymous": anonymous,
+        "label_suggestions": label_suggestions() if anonymous else [],
+        "days_form": days_form
+        or ReserveDaysForm(initial={"first": tomorrow, "last": tomorrow}, prefix="tage", **kwargs),
+        "lessons_form": lessons_form
+        or ReserveLessonsForm(
+            initial={"day": tomorrow}, prefix="stunden", lessons=config.lessons, **kwargs
+        ),
+        "entries": entries,
+    }
+
+
+def reserve(request, pk):
+    title = get_object_or_404(Title.objects.select_related("category"), pk=pk)
+    if not title.lendable or title.approval_required:
+        messages.error(request, _("Dieser Titel lässt sich nicht reservieren."))
+        return redirect("title_detail", pk=title.pk)
+    config = SchoolSettings.current()
+    kwargs = {"capacity": reservations.capacity(title), "anonymous": services.anonymous_mode()}
+    days_form = lessons_form = None
+    if request.method == "POST":
+        if request.POST.get("art") == "stunden":
+            form = lessons_form = ReserveLessonsForm(
+                request.POST, prefix="stunden", lessons=config.lessons, **kwargs
+            )
+        else:
+            form = days_form = ReserveDaysForm(request.POST, prefix="tage", **kwargs)
+        if form.is_valid():
+            data = form.cleaned_data
+            try:
+                if form is lessons_form:
+                    start, end, label = reservations.lessons_period(
+                        data["day"], data["first"], data["last"], config.lessons
+                    )
+                else:
+                    start, end = reservations.days_period(data["first"], data["last"])
+                    label = ""
+                created = reservations.reserve(
+                    title,
+                    request.user,
+                    start,
+                    end,
+                    quantity=data.get("quantity") or 1,
+                    label=data.get("borrower_label", ""),
+                    period_label=label,
+                )
+            except services.LoanError as error:
+                form.add_error(None, str(error))
+            else:
+                messages.success(
+                    request,
+                    _("Reserviert: %(t)s, %(p)s%(n)s.")
+                    % {
+                        "t": title.title,
+                        "p": created[0].period_display,
+                        "n": f" ({len(created)} Exemplare)" if len(created) > 1 else "",
+                    },
+                )
+                return redirect("reserve", pk=title.pk)
+    return render(
+        request,
+        "loans/reserve.html",
+        reservation_context(request, title, days_form, lessons_form),
+    )
+
+
+@require_POST
+def reservation_cancel(request, pk):
+    loan = get_object_or_404(Loan, pk=pk)
+    try:
+        reservations.cancel(loan, request.user)
+    except services.LoanError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, _("Reservierung storniert."))
+    return redirect(_safe_local_path(request.POST.get("weiter", ""), reverse("home")))
 
 
 def label_suggestions(limit=30):

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Reservieren: {{ title.title }}{% endblock %}
+{% block content %}
+  <p><a href="{% url 'title_detail' title.pk %}">‹ {{ title.title }}</a></p>
+  <h1>Reservieren</h1>
+  <p class="subtitle">{{ title.title }} · {{ capacity }} Exemplar{{ capacity|pluralize:"e" }}</p>
+  {% if not capacity %}
+    <p class="message message-warning">Von diesem Titel gibt es noch keine Exemplare.</p>
+  {% else %}
+    <div class="reserve-forms">
+      <section class="action-panel">
+        <h2>Ganze Tage</h2>
+        <form method="post" class="form">{% csrf_token %}
+          <input type="hidden" name="art" value="tage">
+          {% include "form_fields.html" with form=days_form %}
+          <button class="button button-primary">Reservieren</button>
+        </form>
+      </section>
+      <section class="action-panel">
+        <h2>Einzelne Stunden</h2>
+        <form method="post" class="form">{% csrf_token %}
+          <input type="hidden" name="art" value="stunden">
+          {% include "form_fields.html" with form=lessons_form %}
+          <button class="button button-primary">Reservieren</button>
+        </form>
+      </section>
+    </div>
+    {% if anonymous %}<datalist id="label-suggestions">{% for l in label_suggestions %}<option value="{{ l }}">{% endfor %}</datalist>{% endif %}
+    <p class="muted">Abholen: am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Nicht abgeholte Reservierungen verfallen am Ende des Zeitraums.</p>
+  {% endif %}
+
+  <h2>Reserviert</h2>
+  {% if entries %}
+    <ul class="cards">
+      {% for r in entries %}
+        <li class="card">
+          <div class="card-link">
+            <span class="card-title">{{ r.period_display }}</span>
+            <span class="muted">{% if r.show_name %}{{ r.borrower_display }}{% else %}reserviert{% endif %}{% if r.quantity > 1 %} · {{ r.quantity }} Exemplare{% endif %}</span>
+          </div>
+          <span class="card-meta">
+            <span class="badge">{{ r.get_status_display }}</span>
+            {% if r.can_cancel %}<form method="post" action="{% url 'reservation_cancel' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'reserve' title.pk %}"><button class="button button-small">Stornieren</button></form>{% endif %}
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="muted">Zurzeit keine Reservierungen.</p>
+  {% endif %}
+{% endblock %}

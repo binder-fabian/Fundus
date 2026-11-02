@@ -130,9 +130,7 @@ def user_delete(request, pk):
             "edited": user,
             "blockers": blockers,
             "loan_count": Loan.objects.filter(borrower=user, anonymized_at__isnull=True).count(),
-            "open_requests": Loan.objects.filter(
-                borrower=user, status__in=Loan.OPEN_REQUEST
-            ).count(),
+            "open_requests": Loan.objects.filter(borrower=user, status__in=Loan.OPEN).count(),
             "teams": user.teams.all(),
         },
     )

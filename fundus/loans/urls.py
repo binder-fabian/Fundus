@@ -11,6 +11,12 @@ urlpatterns = [
     path("exemplar/<int:pk>/zurueckgeben/", views.give_back, name="give_back"),
     path("ausleihe/<int:pk>/verlaengern/", views.extend, name="extend"),
     path("katalog/<int:pk>/anfragen/", views.request_create, name="request_create"),
+    path("katalog/<int:pk>/reservieren/", views.reserve, name="reserve"),
+    path(
+        "reservierung/<int:pk>/stornieren/",
+        views.reservation_cancel,
+        name="reservation_cancel",
+    ),
     path("anfrage/<int:pk>/genehmigen/", views.request_approve, name="request_approve"),
     path("anfrage/<int:pk>/ablehnen/", views.request_reject, name="request_reject"),
     path("anfrage/<int:pk>/zurueckziehen/", views.request_withdraw, name="request_withdraw"),

@@ -1,6 +1,6 @@
 from django import forms
 
-from fundus.core.models import SchoolSettings
+from fundus.core.models import SchoolSettings, parse_lesson_times
 
 
 class SchoolSettingsForm(forms.ModelForm):
@@ -24,6 +24,8 @@ class SchoolSettingsForm(forms.ModelForm):
             "escalate_days",
             "request_reminder_days",
             "request_pickup_days",
+            "lesson_times",
+            "reservation_reminders",
             "reorder_email",
             "borrower_visibility",
             "anonymous_lending",
@@ -36,6 +38,7 @@ class SchoolSettingsForm(forms.ModelForm):
         ]
         widgets = {
             "number_digits": forms.NumberInput(attrs={"min": 1, "max": 10}),
+            "lesson_times": forms.Textarea(attrs={"rows": 8, "cols": 16}),
         }
 
     def clean_number_digits(self):
@@ -43,6 +46,16 @@ class SchoolSettingsForm(forms.ModelForm):
         if not 1 <= digits <= 10:
             raise forms.ValidationError("Bitte 1 bis 10 Stellen wählen.")
         return digits
+
+    def clean_lesson_times(self):
+        text = self.cleaned_data["lesson_times"]
+        try:
+            lessons = parse_lesson_times(text)
+        except ValueError as error:
+            raise forms.ValidationError(str(error)) from None
+        if not lessons:
+            raise forms.ValidationError("Bitte mindestens eine Stunde angeben.")
+        return "\n".join(f"{start:%H:%M}-{end:%H:%M}" for _n, start, end in lessons)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

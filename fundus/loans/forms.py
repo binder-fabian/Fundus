@@ -65,3 +65,77 @@ class RequestForm(forms.Form):
         max_length=500,
         widget=forms.Textarea(attrs={"rows": 2, "placeholder": _("z. B. für welche Klasse")}),
     )
+
+
+class _ReserveForm(forms.Form):
+    quantity = forms.IntegerField(
+        label=_("Anzahl Exemplare"), min_value=1, initial=1, required=False
+    )
+    borrower_label = forms.CharField(
+        label=_("für Klasse oder Raum"),
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={"list": "label-suggestions", "autocomplete": "off", "placeholder": "z. B. 3b"}
+        ),
+    )
+
+    def __init__(self, *args, capacity=1, anonymous=False, **kwargs):
+        super().__init__(*args, **kwargs)
+        if capacity <= 1:
+            del self.fields["quantity"]
+        else:
+            self.fields["quantity"].max_value = capacity
+            self.fields["quantity"].widget.attrs["max"] = capacity
+        if not anonymous:
+            del self.fields["borrower_label"]
+
+    def _not_past(self, field):
+        day = self.cleaned_data[field]
+        if day < timezone.localdate():
+            raise forms.ValidationError(_("Das Datum liegt in der Vergangenheit."))
+        return day
+
+
+class ReserveDaysForm(_ReserveForm):
+    first = forms.DateField(
+        label=_("von"), widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
+    last = forms.DateField(
+        label=_("bis"), widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
+    field_order = ["first", "last", "quantity", "borrower_label"]
+
+    def clean_first(self):
+        return self._not_past("first")
+
+    def clean(self):
+        cleaned = super().clean()
+        first, last = cleaned.get("first"), cleaned.get("last")
+        if first and last and last < first:
+            self.add_error("last", _("„Bis“ liegt vor „von“."))
+        return cleaned
+
+
+class ReserveLessonsForm(_ReserveForm):
+    day = forms.DateField(
+        label=_("Tag"), widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
+    )
+    first = forms.TypedChoiceField(label=_("von Stunde"), coerce=int)
+    last = forms.TypedChoiceField(label=_("bis Stunde"), coerce=int)
+    field_order = ["day", "first", "last", "quantity", "borrower_label"]
+
+    def __init__(self, *args, lessons=(), **kwargs):
+        super().__init__(*args, **kwargs)
+        choices = [(n, f"{n}. ({start:%H:%M}–{end:%H:%M})") for n, start, end in lessons]
+        self.fields["first"].choices = choices
+        self.fields["last"].choices = choices
+
+    def clean_day(self):
+        return self._not_past("day")
+
+    def clean(self):
+        cleaned = super().clean()
+        first, last = cleaned.get("first"), cleaned.get("last")
+        if first and last and last < first:
+            self.add_error("last", _("Die letzte Stunde liegt vor der ersten."))
+        return cleaned

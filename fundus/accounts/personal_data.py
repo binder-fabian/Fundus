@@ -47,9 +47,7 @@ def delete_account(user, by):
     reasons = deletion_blockers(user, by)
     if reasons:
         raise AccountError(" ".join(reasons))
-    Loan.objects.filter(borrower=user, status__in=Loan.OPEN_REQUEST).update(
-        status=Loan.Status.WITHDRAWN
-    )
+    Loan.objects.filter(borrower=user, status__in=Loan.OPEN).update(status=Loan.Status.WITHDRAWN)
     privacy.anonymize_loans(Loan.objects.filter(borrower=user).values_list("pk", flat=True))
 
     # Spuren in anderen Ausleihen und im Protokoll („genehmigt von“, „übergeben von“)
@@ -127,6 +125,7 @@ def personal_data_zip(user):
             "Inventarnummer",
             "Status",
             "angefragt",
+            "reserviert für",
             "Nachricht",
             "ausgeliehen",
             "Rückgabe geplant",
@@ -139,6 +138,7 @@ def personal_data_zip(user):
                 loan.copy.inventory_number if loan.copy_id else "",
                 loan.get_status_display(),
                 _date(loan.requested_at),
+                loan.period_display,
                 loan.message,
                 _date(loan.lent_at),
                 _date(loan.due_date),
@@ -211,7 +211,8 @@ README = """Fundus – Ihre gespeicherten Daten (Stand {date})
 konto.csv                    Ihr Konto (das Passwort ist nur als Prüfwert gespeichert
                              und deshalb nicht enthalten)
 teams.csv                    Teams, in denen Sie Mitglied sind
-ausleihen_und_anfragen.csv   Ihre Ausleihen und Anfragen, soweit noch nicht anonymisiert
+ausleihen_und_anfragen.csv   Ihre Ausleihen, Anfragen und Reservierungen, soweit noch
+                             nicht anonymisiert
 fuer_andere_bearbeitet.csv   Anfragen, die Sie genehmigt oder übergeben haben
 nachbestellungen.csv         Nachbestellhinweise, die Sie gemeldet oder bearbeitet haben
 aenderungsprotokoll.csv      Änderungen, die mit Ihrem Namen protokolliert sind

@@ -753,3 +753,15 @@ details.reject[open] form {
   gap: 4px;
   flex: 1 1 140px;
 }
+
+/* Reservieren */
+.reserve-forms {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.reserve-forms .action-panel {
+  margin: 0;
+  align-content: start;
+}

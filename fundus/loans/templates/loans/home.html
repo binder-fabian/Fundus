@@ -35,6 +35,23 @@
     <p>Sie haben gerade nichts ausgeliehen.</p>
   {% endif %}
 
+  {% if my_reservations %}
+    <h2>Meine Reservierungen</h2>
+    <ul class="cards">
+      {% for r in my_reservations %}
+        <li class="card">
+          <a class="card-link" href="{% url 'reserve' r.title_id %}">
+            <span class="card-title">{{ r.title.title }}</span>
+            <span class="muted">{{ r.period_display }}{% if r.quantity > 1 %} · {{ r.quantity }} Exemplare{% endif %}</span>
+          </a>
+          <span class="card-meta">
+            <form method="post" action="{% url 'reservation_cancel' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'home' %}"><button class="button button-small">Stornieren</button></form>
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
   {% if my_requests %}
     <h2>Meine Anfragen</h2>
     <ul class="cards">

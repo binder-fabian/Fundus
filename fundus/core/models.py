@@ -41,6 +41,48 @@ class SchoolScopedModel(models.Model):
         abstract = True
 
 
+DEFAULT_LESSON_TIMES = "\n".join(
+    [
+        "08:00-08:45",
+        "08:45-09:30",
+        "09:45-10:30",
+        "10:30-11:15",
+        "11:30-12:15",
+        "12:15-13:00",
+        "13:15-14:00",
+        "14:00-14:45",
+    ]
+)
+
+
+def parse_lesson_times(text):
+    """„08:00-08:45“ je Zeile → [(1, time(8, 0), time(8, 45)), …]. Wirft ValueError."""
+    import datetime
+    import re
+
+    lessons = []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        match = re.fullmatch(r"(\d{1,2})[:.](\d{2})\s*[-–]\s*(\d{1,2})[:.](\d{2})", line)
+        if not match:
+            raise ValueError(_("Zeile „%(l)s“: bitte im Format 08:00-08:45.") % {"l": line})
+        h1, m1, h2, m2 = map(int, match.groups())
+        try:
+            start, end = datetime.time(h1, m1), datetime.time(h2, m2)
+        except ValueError:
+            raise ValueError(_("Zeile „%(l)s“: keine gültige Uhrzeit.") % {"l": line}) from None
+        if end <= start:
+            raise ValueError(_("Zeile „%(l)s“: Ende liegt vor dem Beginn.") % {"l": line})
+        if lessons and start < lessons[-1][2]:
+            raise ValueError(
+                _("Zeile „%(l)s“ beginnt vor dem Ende der vorigen Stunde.") % {"l": line}
+            )
+        lessons.append((len(lessons) + 1, start, end))
+    return lessons
+
+
 class SchoolSettings(models.Model):
     """Einstellungen, die Administratoren in der Oberfläche ändern können."""
 
@@ -95,6 +137,22 @@ class SchoolSettings(models.Model):
     )
     request_pickup_days = models.PositiveSmallIntegerField(
         _("Genehmigte Anfragen verfallen nach … Tagen ohne Abholung"), default=14
+    )
+    lesson_times = models.TextField(
+        _("Stundenraster"),
+        default=DEFAULT_LESSON_TIMES,
+        help_text=_(
+            "Eine Zeile pro Unterrichtsstunde mit Beginn und Ende, z. B. „08:00-08:45“. "
+            "Die erste Zeile ist die 1. Stunde."
+        ),
+    )
+    reservation_reminders = models.BooleanField(
+        _("Erinnerung an Reservierungen"),
+        default=True,
+        help_text=_(
+            "Am Vortag eine E-Mail an die Person, die reserviert hat, und ein Hinweis am "
+            "ersten Tag, falls noch nicht abgeholt."
+        ),
     )
     reorder_email = models.EmailField(
         _("Nachbestellhinweise zusätzlich an"),
@@ -198,6 +256,13 @@ class SchoolSettings(models.Model):
     def current(cls):
         settings, _created = cls.objects.get_or_create(school_id=default_school_id())
         return settings
+
+    @property
+    def lessons(self):
+        try:
+            return parse_lesson_times(self.lesson_times)
+        except ValueError:
+            return parse_lesson_times(DEFAULT_LESSON_TIMES)
 
     def format_number(self, number):
         return f"{self.number_prefix}{number:0{self.number_digits}d}"

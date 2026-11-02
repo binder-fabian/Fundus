@@ -84,6 +84,12 @@ def school_settings(request):
             "",
         ),
         (
+            "Reservierung",
+            [form["lesson_times"], form["reservation_reminders"]],
+            "Reservierungen speichern die Uhrzeiten. Ein geändertes Stundenraster "
+            "verschiebt deshalb keine bestehenden Reservierungen.",
+        ),
+        (
             "Verbrauchsmaterial",
             [form["reorder_email"]],
             ""

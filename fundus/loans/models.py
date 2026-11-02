@@ -16,6 +16,7 @@ class Loan(models.Model):
 
     class Status(models.TextChoices):
         REQUESTED = "requested", _("angefragt")
+        RESERVED = "reserved", _("reserviert")
         APPROVED = "approved", _("genehmigt")
         LENT = "lent", _("ausgeliehen")
         RETURNED = "returned", _("zurück")
@@ -24,6 +25,8 @@ class Loan(models.Model):
         EXPIRED = "expired", _("verfallen")
 
     OPEN_REQUEST = (Status.REQUESTED, Status.APPROVED)
+    # Noch nicht abgeschlossen und noch kein Exemplar ausgegeben.
+    OPEN = (Status.REQUESTED, Status.APPROVED, Status.RESERVED)
 
     # Eine Anfrage gilt dem Titel; das Exemplar steht erst bei der Übergabe fest.
     title = models.ForeignKey(
@@ -87,6 +90,15 @@ class Loan(models.Model):
         _("Überfällig-Hinweis verschickt am"), null=True, blank=True
     )
     escalated_at = models.DateTimeField(_("an Verwaltung gemeldet am"), null=True, blank=True)
+    # Reservierung: Zeitraum (Ende ausschließlich). Ganze Tage gehen von 0 Uhr
+    # bis 0 Uhr des Folgetags; bei Stunden steht die Bezeichnung in period_label.
+    reserved_from = models.DateTimeField(_("reserviert ab"), null=True, blank=True)
+    reserved_until = models.DateTimeField(_("reserviert bis"), null=True, blank=True)
+    period_label = models.CharField(_("Stunden"), max_length=50, blank=True)
+    # Mehrere Exemplare einer Reservierung („2 Tablet-Koffer“) teilen sich eine Kennung.
+    group = models.UUIDField(_("Reservierung"), null=True, blank=True, db_index=True)
+    start_reminded_at = models.DateTimeField(_("an den Beginn erinnert am"), null=True, blank=True)
+    missed_notice_at = models.DateTimeField(_("Hinweis „nicht abgeholt“ am"), null=True, blank=True)
     anonymized_at = models.DateTimeField(_("anonymisiert am"), null=True, blank=True)
     created_at = models.DateTimeField(_("angelegt am"), auto_now_add=True)
     updated_at = models.DateTimeField(_("geändert am"), auto_now=True)
@@ -126,6 +138,15 @@ class Loan(models.Model):
                 condition=~Q(status="returned") | Q(returned_at__isnull=False),
                 name="loan_returned_has_returned_at",
             ),
+            models.CheckConstraint(
+                condition=Q(reserved_from__isnull=True, reserved_until__isnull=True)
+                | Q(reserved_until__gt=models.F("reserved_from")),
+                name="loan_reservation_period",
+            ),
+            models.CheckConstraint(
+                condition=~Q(status="reserved") | Q(reserved_from__isnull=False),
+                name="loan_reserved_has_period",
+            ),
         ]
 
     def __str__(self):
@@ -146,6 +167,17 @@ class Loan(models.Model):
             and self.due_date is not None
             and self.due_date < timezone.localdate()
         )
+
+    @property
+    def is_reservation(self):
+        return self.reserved_from is not None
+
+    @property
+    def period_display(self):
+        """„12.11.–14.11.2026“, „12.11.2026“ oder „12.11.2026, 3.–4. Stunde“."""
+        from fundus.loans.reservations import describe_period
+
+        return describe_period(self.reserved_from, self.reserved_until, self.period_label)
 
     @property
     def borrower_display(self):

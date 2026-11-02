@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
-from fundus.catalog.models import Copy
+from fundus.catalog.models import Copy, Title
 from fundus.core.models import SchoolSettings
 from fundus.loans.models import Loan
 
@@ -93,16 +93,46 @@ def clean_label(label):
     return label[:100]
 
 
+def reservation_limit(title, due_date, exclude=(), today=None):
+    """Prüft ein Rückgabedatum gegen Reservierungen; wirft LoanError, wenn
+    dadurch eine Reservierung platzen würde."""
+    from fundus.loans import reservations
+
+    today = today or timezone.localdate()
+    latest = reservations.latest_due_date(title, exclude=exclude)
+    if latest is None or due_date <= latest:
+        return
+    reason = reservations.conflict_message(title, exclude=exclude)
+    if latest < today:
+        raise LoanError(
+            reason
+            + " "
+            + _("Zurzeit ist kein Exemplar frei. Für einzelne Stunden davor bitte reservieren.")
+        )
+    raise LoanError(
+        reason
+        + " "
+        + _("Rückgabe bitte bis spätestens %(d)s.")
+        % {"d": date_format(latest, "SHORT_DATE_FORMAT")}
+    )
+
+
 @transaction.atomic
 def lend(copy, by, borrower=None, due_date=None, label=""):
     """Leiht ein Exemplar aus – für `borrower` (Standard: `by`) oder, im Modus
-    ohne Namen, für eine Klasse bzw. einen Raum (`label`)."""
+    ohne Namen, für eine Klasse bzw. einen Raum (`label`).
+
+    Hat diese Person (bzw. Klasse) den Titel für heute reserviert, wird die
+    Reservierung damit abgeholt."""
+    from fundus.loans import reservations
+
     copy = (
         Copy.objects.select_for_update(of=("self",))
         .select_related("title__category")
         .get(pk=copy.pk)
     )
     title = copy.title
+    Title.objects.select_for_update().filter(pk=title.pk).first()
     anonymous = anonymous_mode()
     if anonymous:
         label = clean_label(label)
@@ -120,21 +150,36 @@ def lend(copy, by, borrower=None, due_date=None, label=""):
     if title.approval_required and not can_lend_for_others(by, title):
         raise LoanError(_("Freigabepflichtig: Bitte an %(p)s wenden.") % {"p": contact_for(title)})
 
+    pickup = None
+    if not title.approval_required:
+        pickup = reservations.pickup_candidate(
+            title, borrower=borrower, label=label if anonymous else ""
+        )
+
     today = timezone.localdate()
-    due_date = due_date or default_due_date(copy, today)
+    due_date = due_date or (
+        reservations.last_day(pickup.reserved_until) if pickup else default_due_date(copy, today)
+    )
     if due_date < today:
         raise LoanError(_("Das Rückgabedatum liegt in der Vergangenheit."))
+    exclude = [pickup.pk] if pickup else []
+    if pickup and pickup.period_label and due_date == reservations.last_day(pickup.reserved_until):
+        # Für Stunden abgeholt: frei sein muss nur bis zum Ende der letzten Stunde.
+        if reservations.free_count(title, timezone.now(), pickup.reserved_until, exclude) < 1:
+            raise LoanError(_("Zurzeit ist kein Exemplar frei."))
+    else:
+        reservation_limit(title, due_date, exclude, today)
 
-    loan = Loan(
-        copy=copy,
-        borrower=borrower,
-        borrower_label=label if anonymous else "",
-        status=Loan.Status.LENT,
-        lent_at=timezone.now(),
-        due_date=due_date,
-        handed_over_by=(
-            by if not anonymous and (by != borrower or title.approval_required) else None
-        ),
+    loan = pickup or Loan()
+    loan.copy = copy
+    loan.title = title
+    loan.borrower = borrower
+    loan.borrower_label = label if anonymous else ""
+    loan.status = Loan.Status.LENT
+    loan.lent_at = timezone.now()
+    loan.due_date = due_date
+    loan.handed_over_by = (
+        by if not anonymous and (by != borrower or title.approval_required) else None
     )
     try:
         with transaction.atomic():
@@ -200,6 +245,17 @@ def extend(loan, by, today=None):
         new_due = loan.due_date + datetime.timedelta(
             days=loan.copy.title.category.default_loan_days
         )
+    from fundus.loans import reservations
+
+    latest = reservations.latest_due_date(loan.title, exclude=[loan.pk])
+    if latest is not None and new_due > latest:
+        new_due = latest
+        if loan.due_date and new_due <= loan.due_date:
+            raise LoanError(
+                reservations.conflict_message(loan.title, exclude=[loan.pk])
+                + " "
+                + _("Verlängern ist deshalb nicht möglich.")
+            )
     loan.due_date = new_due
     loan.reminder_sent_at = None
     loan.overdue_notice_sent_at = None
