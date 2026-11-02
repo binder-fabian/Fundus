@@ -59,7 +59,7 @@
         <li class="card">
           <a class="card-link" href="{% url 'title_detail' r.title_id %}">
             <span class="card-title">{{ r.title.title }}</span>
-            <span class="muted">{% if r.status == "approved" %}genehmigt – bitte bei {{ r.title.team|default:"der Verwaltung" }} abholen{% else %}angefragt am {{ r.requested_at|date:"d.m.Y" }}, wartet auf {{ r.title.team|default:"die Verwaltung" }}{% endif %}</span>
+            <span class="muted">{% if r.reserved_from %}für {{ r.period_display }} · {% endif %}{% if r.status == "approved" %}genehmigt – bitte bei {{ r.title.team|default:"der Verwaltung" }} abholen{% else %}angefragt am {{ r.requested_at|date:"d.m.Y" }}, wartet auf {{ r.title.team|default:"die Verwaltung" }}{% endif %}</span>
           </a>
           <span class="card-meta">
             <span class="badge{% if r.status == 'approved' %} badge-ok{% endif %}">{{ r.get_status_display }}</span>

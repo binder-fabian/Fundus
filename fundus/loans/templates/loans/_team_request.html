@@ -1,7 +1,7 @@
 <li class="card">
   <span class="card-link">
     <span class="card-title">{{ r.title.title }}</span>
-    <span>{{ r.borrower }}{% if r.wished_from or r.wished_until %} · gewünscht {% if r.wished_from %}ab {{ r.wished_from|date:"d.m." }}{% endif %}{% if r.wished_until %} bis {{ r.wished_until|date:"d.m.Y" }}{% endif %}{% endif %}</span>
+    <span>{{ r.borrower }}{% if r.reserved_from %} · für {{ r.period_display }}{% if r.period_over %} <span class="badge badge-alert">Zeitraum vorbei</span>{% elif r.period_started %} <span class="badge badge-busy">hat begonnen</span>{% endif %}{% else %} · so bald wie möglich{% endif %}</span>
     {% if r.message %}<span class="muted">„{{ r.message }}“</span>{% endif %}
     <span class="muted">angefragt am {{ r.requested_at|date:"d.m.Y" }}{% if r.status == "approved" %} · genehmigt von {{ r.approved_by }}, wartet auf Übergabe{% endif %}</span>
   </span>
@@ -17,7 +17,18 @@
         {% endif %}
       </form>
     {% elif r.status == "requested" %}
-      <form method="post" action="{% url 'request_approve' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{{ request.get_full_path }}"><button class="button button-small button-primary">Genehmigen</button></form>
+      {% if not r.period_over %}<form method="post" action="{% url 'request_approve' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{{ request.get_full_path }}"><button class="button button-small button-primary">Genehmigen</button></form>{% endif %}
+      {% if r.reserved_from %}
+        <details class="reject"{% if r.period_over %} open{% endif %}>
+          <summary class="button button-small">Anderer Zeitraum</summary>
+          <form method="post" action="{% url 'request_approve' r.pk %}" class="period-form search-row">{% csrf_token %}
+            <input type="hidden" name="weiter" value="{{ request.get_full_path }}">
+            <label>von <input type="date" name="neu_von" required></label>
+            <label>bis <input type="date" name="neu_bis"></label>
+            <button class="button button-small button-primary">Mit diesem Zeitraum genehmigen</button>
+          </form>
+        </details>
+      {% endif %}
     {% endif %}
     {% if not copy %}
       <details class="reject">

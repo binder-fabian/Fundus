@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Reservieren: {{ title.title }}{% endblock %}
+{% block title %}{% if title.approval_required %}Anfragen{% else %}Reservieren{% endif %}: {{ title.title }}{% endblock %}
 {% block content %}
   <p><a href="{% url 'title_detail' title.pk %}">‹ {{ title.title }}</a></p>
-  <h1>Reservieren</h1>
+  <h1>{% if title.approval_required %}Für einen Zeitraum anfragen{% else %}Reservieren{% endif %}</h1>
   <p class="subtitle">{{ title.title }} · {{ capacity }} Exemplar{{ capacity|pluralize:"e" }}</p>
   {% if not capacity %}
     <p class="message message-warning">Von diesem Titel gibt es noch keine Exemplare.</p>
@@ -41,7 +41,7 @@
         <form method="post" class="form">{% csrf_token %}
           <input type="hidden" name="art" value="tage">
           {% include "form_fields.html" with form=days_form %}
-          <button class="button button-primary">Reservieren</button>
+          <button class="button button-primary">{% if title.approval_required %}Anfragen{% else %}Reservieren{% endif %}</button>
         </form>
       </section>
       <section class="action-panel" id="stunden">
@@ -49,12 +49,16 @@
         <form method="post" class="form">{% csrf_token %}
           <input type="hidden" name="art" value="stunden">
           {% include "form_fields.html" with form=lessons_form %}
-          <button class="button button-primary">Reservieren</button>
+          <button class="button button-primary">{% if title.approval_required %}Anfragen{% else %}Reservieren{% endif %}</button>
         </form>
       </section>
     </div>
     {% if anonymous %}<datalist id="label-suggestions">{% for l in label_suggestions %}<option value="{{ l }}">{% endfor %}</datalist>{% endif %}
-    <p class="muted">Abholen: am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Nicht abgeholte Reservierungen verfallen am Ende des Zeitraums.</p>
+    {% if title.approval_required %}
+      <p class="muted">Freigabepflichtig: {{ title.team|default:"Die Verwaltung" }} genehmigt die Anfrage und übergibt das Material. Der Zeitraum ist schon während der Prüfung vorgemerkt.</p>
+    {% else %}
+      <p class="muted">Abholen: am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Nicht abgeholte Reservierungen verfallen am Ende des Zeitraums.</p>
+    {% endif %}
   {% endif %}
 
   <h2>Reserviert</h2>
@@ -69,6 +73,7 @@
           <span class="card-meta">
             <span class="badge">{{ r.get_status_display }}</span>
             {% if r.can_cancel %}<form method="post" action="{% url 'reservation_cancel' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'reserve' title.pk %}"><button class="button button-small">Stornieren</button></form>{% endif %}
+            {% if r.can_withdraw %}<form method="post" action="{% url 'request_withdraw' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'reserve' title.pk %}"><button class="button button-small">Zurückziehen</button></form>{% endif %}
           </span>
         </li>
       {% endfor %}

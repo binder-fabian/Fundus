@@ -49,16 +49,6 @@ def contents_check(title, data):
 
 
 class RequestForm(forms.Form):
-    wished_from = forms.DateField(
-        label=_("gewünscht ab"),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-    )
-    wished_until = forms.DateField(
-        label=_("gewünscht bis"),
-        required=False,
-        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
-    )
     message = forms.CharField(
         label=_("Nachricht an das Team"),
         required=False,
@@ -79,8 +69,21 @@ class _ReserveForm(forms.Form):
         ),
     )
 
-    def __init__(self, *args, capacity=1, anonymous=False, **kwargs):
+    message = forms.CharField(
+        label=_("Nachricht an das Team"),
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": _("z. B. für welche Klasse")}),
+    )
+
+    def __init__(self, *args, capacity=1, anonymous=False, approval=False, **kwargs):
         super().__init__(*args, **kwargs)
+        if approval:
+            # Anfragen gelten einem Exemplar; im Modus ohne Namen trägt das Team
+            # Klasse/Raum erst bei der Übergabe ein.
+            capacity, anonymous = 1, False
+        else:
+            del self.fields["message"]
         if capacity <= 1:
             del self.fields["quantity"]
         else:
@@ -103,7 +106,7 @@ class ReserveDaysForm(_ReserveForm):
     last = forms.DateField(
         label=_("bis"), widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")
     )
-    field_order = ["first", "last", "quantity", "borrower_label"]
+    field_order = ["first", "last", "quantity", "borrower_label", "message"]
 
     def clean_first(self):
         return self._not_past("first")
@@ -122,7 +125,7 @@ class ReserveLessonsForm(_ReserveForm):
     )
     first = forms.TypedChoiceField(label=_("von Stunde"), coerce=int)
     last = forms.TypedChoiceField(label=_("bis Stunde"), coerce=int)
-    field_order = ["day", "first", "last", "quantity", "borrower_label"]
+    field_order = ["day", "first", "last", "quantity", "borrower_label", "message"]
 
     def __init__(self, *args, lessons=(), **kwargs):
         super().__init__(*args, **kwargs)

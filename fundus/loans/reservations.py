@@ -205,15 +205,12 @@ def pickup_candidate(title, borrower=None, label="", now=None):
     return None
 
 
-@transaction.atomic
-def reserve(title, by, start, end, quantity=1, label="", period_label=""):
-    title = Title.objects.select_for_update().get(pk=title.pk)
-    now = timezone.now()
+def check_period(title, start, end, quantity=1, exclude=(), whole_days=None):
+    """Prüft einen Zeitraum: liegt er nicht in der Vergangenheit und sind genug
+    Exemplare frei? Wirft LoanError mit dem frühesten freien Beginn."""
     if not title.lendable:
         raise LoanError(_("Dieser Titel ist nicht zum Ausleihen vorgesehen."))
-    if title.approval_required:
-        raise LoanError(_("Freigabepflichtige Titel bitte anfragen."))
-    if end <= now:
+    if end <= timezone.now():
         raise LoanError(_("Dieser Zeitraum liegt in der Vergangenheit."))
     if end <= start:
         raise LoanError(_("Das Ende liegt vor dem Beginn."))
@@ -222,26 +219,34 @@ def reserve(title, by, start, end, quantity=1, label="", period_label=""):
         raise LoanError(_("Bitte mindestens ein Exemplar reservieren."))
     if quantity > total:
         raise LoanError(_("Von diesem Titel gibt es nur %(n)d Exemplar(e).") % {"n": total})
+    if whole_days is None:
+        whole_days = timezone.localtime(start).time() == datetime.time.min
+    intervals = busy_intervals(title, exclude)
+    free = total - max_busy(intervals, start, end)
+    if free >= quantity:
+        return
+    hint = ""
+    alternative = next_free_start(title, start, end, quantity, intervals, whole_days)
+    if alternative:
+        local = timezone.localtime(alternative)
+        hint = " " + _("Frühestens wieder ab %(when)s.") % {
+            "when": date_format(local.date(), "SHORT_DATE_FORMAT")
+            + ("" if whole_days else f" {local:%H:%M}")
+        }
+    if free <= 0:
+        raise LoanError(_("In diesem Zeitraum ist kein Exemplar frei.") + hint)
+    raise LoanError(_("In diesem Zeitraum sind nur %(n)d Exemplar(e) frei.") % {"n": free} + hint)
+
+
+@transaction.atomic
+def reserve(title, by, start, end, quantity=1, label="", period_label=""):
+    title = Title.objects.select_for_update().get(pk=title.pk)
+    if title.approval_required:
+        raise LoanError(_("Freigabepflichtige Titel bitte anfragen."))
     anonymous = anonymous_mode()
     if anonymous:
         label = clean_label(label)
-
-    intervals = busy_intervals(title)
-    free = total - max_busy(intervals, start, end)
-    if free < quantity:
-        hint = ""
-        alternative = next_free_start(title, start, end, quantity, intervals, not period_label)
-        if alternative:
-            local = timezone.localtime(alternative)
-            hint = " " + _("Frühestens wieder ab %(when)s.") % {
-                "when": date_format(local.date(), "SHORT_DATE_FORMAT")
-                + ("" if not period_label else f" {local:%H:%M}")
-            }
-        if free <= 0:
-            raise LoanError(_("In diesem Zeitraum ist kein Exemplar frei.") + hint)
-        raise LoanError(
-            _("In diesem Zeitraum sind nur %(n)d Exemplar(e) frei.") % {"n": free} + hint
-        )
+    check_period(title, start, end, quantity, whole_days=not period_label)
 
     group = uuid.uuid4() if quantity > 1 else None
     created = []
@@ -323,7 +328,7 @@ def week_start(day):
 
 def week_grid(title, monday, lessons, now=None):
     """Belegung einer Woche: je Tag ganzer Tag und jede Unterrichtsstunde mit
-    Zahl der freien Exemplare. Samstag/Sonntag nur, wenn dort etwas belegt ist."""
+    Zahl der freien Exemplare. Samstag/Sonntag nur, wenn dort etwas reserviert ist."""
     now = now or timezone.now()
     intervals = busy_intervals(title, now=now)
     total = capacity(title)
@@ -332,7 +337,9 @@ def week_grid(title, monday, lessons, now=None):
         day = monday + datetime.timedelta(days=offset)
         start, end = day_start(day), day_end(day)
         whole = total - max_busy(intervals, start, end)
-        if offset >= 5 and whole == total:
+        if offset >= 5 and not any(
+            loan.status != Loan.Status.LENT and a < end and b > start for a, b, loan in intervals
+        ):
             continue
         cells = []
         for number, first, last in lessons:

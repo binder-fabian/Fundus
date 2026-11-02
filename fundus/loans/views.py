@@ -152,8 +152,8 @@ def copy_actions(request, copy):
 def reservation_context(request, title, days_form=None, lessons_form=None):
     config = SchoolSettings.current()
     capacity = reservations.capacity(title)
-    anonymous = services.anonymous_mode()
-    kwargs = {"capacity": capacity, "anonymous": anonymous}
+    anonymous = services.anonymous_mode() and not title.approval_required
+    kwargs = {"capacity": capacity, "anonymous": anonymous, "approval": title.approval_required}
     tomorrow = timezone.localdate() + datetime.timedelta(days=1)
     upcoming = (
         Loan.objects.filter(
@@ -184,6 +184,9 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
         entry.can_cancel = entry.status == Loan.Status.RESERVED and reservations.can_cancel(
             request.user, entry
         )
+        entry.can_withdraw = (
+            entry.status in Loan.OPEN_REQUEST and entry.borrower_id == request.user.pk
+        )
     return {
         "title": title,
         "capacity": capacity,
@@ -206,12 +209,17 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
 
 
 def reserve(request, pk):
-    title = get_object_or_404(Title.objects.select_related("category"), pk=pk)
-    if not title.lendable or title.approval_required:
+    """Reservieren – bei freigabepflichtigen Titeln als Anfrage mit Zeitraum."""
+    title = get_object_or_404(Title.objects.select_related("category", "team"), pk=pk)
+    if not title.lendable:
         messages.error(request, _("Dieser Titel lässt sich nicht reservieren."))
         return redirect("title_detail", pk=title.pk)
     config = SchoolSettings.current()
-    kwargs = {"capacity": reservations.capacity(title), "anonymous": services.anonymous_mode()}
+    kwargs = {
+        "capacity": reservations.capacity(title),
+        "anonymous": services.anonymous_mode(),
+        "approval": title.approval_required,
+    }
     days_form = lessons_form = None
     if request.method == "POST":
         if request.POST.get("art") == "stunden":
@@ -230,18 +238,38 @@ def reserve(request, pk):
                 else:
                     start, end = reservations.days_period(data["first"], data["last"])
                     label = ""
-                created = reservations.reserve(
-                    title,
-                    request.user,
-                    start,
-                    end,
-                    quantity=data.get("quantity") or 1,
-                    label=data.get("borrower_label", ""),
-                    period_label=label,
-                )
+                if title.approval_required:
+                    loan = requests.request_title(
+                        title,
+                        request.user,
+                        message=data.get("message", ""),
+                        start=start,
+                        end=end,
+                        period_label=label,
+                    )
+                else:
+                    created = reservations.reserve(
+                        title,
+                        request.user,
+                        start,
+                        end,
+                        quantity=data.get("quantity") or 1,
+                        label=data.get("borrower_label", ""),
+                        period_label=label,
+                    )
             except services.LoanError as error:
                 form.add_error(None, str(error))
             else:
+                if title.approval_required:
+                    messages.success(
+                        request,
+                        _(
+                            "Angefragt für %(p)s. %(team)s bekommt Bescheid; der Zeitraum ist "
+                            "bis zur Entscheidung vorgemerkt."
+                        )
+                        % {"p": loan.period_display, "team": services.contact_for(title)},
+                    )
+                    return redirect("reserve", pk=title.pk)
                 messages.success(
                     request,
                     _("Reserviert: %(t)s, %(p)s%(n)s.")
@@ -513,11 +541,15 @@ def requests_context(user, title=None):
         loans = loans.filter(title=title)
     elif not user.can_manage_catalog:
         loans = loans.filter(title__team__members=user)
-    return [
-        loan
-        for loan in loans.order_by("requested_at")
-        if services.can_lend_for_others(user, loan.title)
-    ]
+    now = timezone.now()
+    result = []
+    for loan in loans.order_by("requested_at"):
+        if not services.can_lend_for_others(user, loan.title):
+            continue
+        loan.period_over = bool(loan.reserved_until and loan.reserved_until <= now)
+        loan.period_started = bool(loan.reserved_from and loan.reserved_from <= now)
+        result.append(loan)
+    return result
 
 
 @require_POST
@@ -554,10 +586,20 @@ def _request_action(request, pk, action, success):
 
 @require_POST
 def request_approve(request, pk):
+    new_period = None
+    if request.POST.get("neu_von"):
+        try:
+            first = datetime.date.fromisoformat(request.POST["neu_von"])
+            last = request.POST.get("neu_bis") or request.POST["neu_von"]
+            last = datetime.date.fromisoformat(last)
+            new_period = reservations.days_period(first, last)
+        except (ValueError, services.LoanError):
+            messages.error(request, _("Bitte einen gültigen Zeitraum angeben."))
+            return redirect(request.POST.get("weiter") or "home")
     return _request_action(
         request,
         pk,
-        lambda loan: requests.approve(loan, by=request.user),
+        lambda loan: requests.approve(loan, by=request.user, new_period=new_period),
         _("Genehmigt. Die Lehrkraft wird informiert und holt das Material ab."),
     )
 

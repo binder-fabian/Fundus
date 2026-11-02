@@ -77,8 +77,6 @@ class Loan(models.Model):
         verbose_name=_("übergeben von"),
     )
     requested_at = models.DateTimeField(_("angefragt am"), null=True, blank=True)
-    wished_from = models.DateField(_("gewünscht ab"), null=True, blank=True)
-    wished_until = models.DateField(_("gewünscht bis"), null=True, blank=True)
     message = models.TextField(_("Nachricht"), blank=True)
     decided_at = models.DateTimeField(_("entschieden am"), null=True, blank=True)
     rejection_reason = models.TextField(_("Begründung der Ablehnung"), blank=True)

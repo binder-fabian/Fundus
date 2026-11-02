@@ -1,4 +1,4 @@
-{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+{% autoescape off %}Guten Tag{% if not loan.reserved_from %} {{ loan.borrower.get_full_name|default:loan.borrower.email }}{% endif %},
 
-die Genehmigung für „{{ loan.title.title }}“ ist verfallen, weil das Material nicht abgeholt wurde. Wenn Sie es noch brauchen, stellen Sie bitte eine neue Anfrage.
+{% if loan.reserved_from %}die genehmigte Anfrage von {{ loan.borrower|default:"einer Lehrkraft" }} für „{{ loan.title.title }}“ ({{ loan.period_display }}) ist verfallen, weil das Material im Zeitraum nicht abgeholt wurde.{% else %}die Genehmigung für „{{ loan.title.title }}“ ist verfallen, weil das Material nicht abgeholt wurde. Wenn Sie es noch brauchen, stellen Sie bitte eine neue Anfrage.{% endif %}
 {% endautoescape %}

@@ -1,7 +1,6 @@
 {% autoescape off %}Guten Tag,
 
-{{ loan.borrower }} möchte „{{ loan.title.title }}“ ausleihen.{% if loan.wished_from or loan.wished_until %}
-Gewünscht: {% if loan.wished_from %}ab {{ loan.wished_from|date:"d.m.Y" }}{% endif %}{% if loan.wished_until %} bis {{ loan.wished_until|date:"d.m.Y" }}{% endif %}{% endif %}{% if loan.message %}
+{{ loan.borrower }} möchte „{{ loan.title.title }}“ ausleihen{% if loan.reserved_from %}, und zwar {{ loan.period_display }}. Dieser Zeitraum ist bis zu Ihrer Entscheidung vorgemerkt{% else %}, so bald wie möglich{% endif %}.{% if loan.message %}
 
 Nachricht: {{ loan.message }}{% endif %}
 

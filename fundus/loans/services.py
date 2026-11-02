@@ -71,8 +71,11 @@ def can_extend(user, loan):
 
 
 def pending_request(copy):
-    """Liegt für den Titel dieses Exemplars eine offene Anfrage vor?"""
-    return Loan.objects.filter(title_id=copy.title_id, status__in=Loan.OPEN_REQUEST).exists()
+    """Liegt für den Titel dieses Exemplars eine offene Anfrage „so bald wie
+    möglich“ vor? (Anfragen mit Zeitraum begrenzen nur das Rückgabedatum.)"""
+    return Loan.objects.filter(
+        title_id=copy.title_id, status__in=Loan.OPEN_REQUEST, reserved_from__isnull=True
+    ).exists()
 
 
 # Vorgänge

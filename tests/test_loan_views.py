@@ -107,7 +107,7 @@ def test_teacher_cannot_smuggle_borrower(client, teacher):
 def test_approval_required_shows_contact(client, teacher):
     copy = copy_with(approval_required=True, team=team_of(UserFactory(), name="Zoras Team"))
     page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
-    assert "Zoras Team genehmigt und übergibt" in page and "Anfragen</button>" in page
+    assert "Zoras Team genehmigt und übergibt" in page and "anfragen</button>" in page
     assert "Ausleihen</button>" not in page
 
 

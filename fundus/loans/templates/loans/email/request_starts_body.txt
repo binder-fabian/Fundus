@@ -1,0 +1,7 @@
+{% autoescape off %}Guten Tag,
+
+{{ loan.borrower }} hat „{{ loan.title.title }}“ für {{ loan.period_display }} angefragt. Der Zeitraum beginnt morgen, die Anfrage ist aber noch nicht entschieden.
+
+Bitte in Fundus genehmigen, ablehnen oder einen anderen Zeitraum vorschlagen:
+{{ link }}
+{% endautoescape %}

@@ -7,7 +7,7 @@ from django.utils import timezone
 
 from fundus.accounts.models import Role
 from fundus.core.models import SchoolSettings
-from fundus.loans import requests, services
+from fundus.loans import requests, reservations, services
 from fundus.loans.models import Loan
 from fundus.loans.services import LoanError
 from tests.factories import CategoryFactory, CopyFactory, TitleFactory, UserFactory, team_of
@@ -78,10 +78,12 @@ def test_approve_and_hand_over(setup):
     assert services.can_return(ben, loan) and not services.can_return(teacher, loan)
 
 
-def test_hand_over_without_prior_approval_uses_wished_until(setup):
+def test_hand_over_without_prior_approval_uses_end_of_period(setup):
     teacher, anna, _ben, title, copy = setup
-    wish = timezone.localdate() + datetime.timedelta(days=5)
-    loan = requests.request_title(title, by=teacher, wished_until=wish)
+    today = timezone.localdate()
+    wish = today + datetime.timedelta(days=5)
+    start, end = reservations.days_period(today, wish)
+    loan = requests.request_title(title, by=teacher, start=start, end=end)
     loan = requests.hand_over(loan, copy, by=anna)
     assert loan.approved_by == anna and loan.due_date == wish
 
@@ -142,7 +144,7 @@ def test_full_flow_in_the_browser(client, setup):
     teacher, anna, _ben, title, copy = setup
     client.force_login(teacher)
     page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
-    assert "Anfragen</button>" in page
+    assert "anfragen</button>" in page
     client.post(reverse("request_create", args=[title.pk]), {"message": "3b"})
     loan = Loan.objects.get(title=title, borrower=teacher)
     home = client.get(reverse("home")).content.decode()
@@ -168,8 +170,128 @@ def test_title_page_request_box(client, setup):
     client.force_login(teacher)
     page = client.get(reverse("title_detail", args=[title.pk])).content.decode()
     assert (
-        "Freigabepflichtig." in page and "Diagnostik-Team" in page and "Anfragen</button>" in page
+        "Freigabepflichtig." in page and "Diagnostik-Team" in page and "anfragen</button>" in page
     )
     client.force_login(anna)
     page = client.get(reverse("title_detail", args=[title.pk])).content.decode()
-    assert "Anfragen</button>" not in page
+    assert "anfragen</button>" not in page
+
+
+# Anfragen mit Zeitraum (Reservierung freigabepflichtiger Titel)
+
+
+def period(first, last):
+    today = timezone.localdate()
+    return reservations.days_period(
+        today + datetime.timedelta(days=first), today + datetime.timedelta(days=last)
+    )
+
+
+def test_period_request_blocks_the_period_while_open(setup):
+    teacher, anna, _ben, title, _copy = setup
+    start, end = period(3, 4)
+    loan = requests.request_title(title, by=teacher, start=start, end=end, message="3b")
+    assert loan.status == Loan.Status.REQUESTED and loan.reserved_from == start
+    assert "Dieser Zeitraum ist bis zu Ihrer Entscheidung vorgemerkt" in mail.outbox[0].body
+    with pytest.raises(LoanError, match="kein Exemplar frei"):
+        requests.request_title(title, by=UserFactory(), start=start, end=end)
+    # weitere Zeiträume und eine Anfrage „so bald wie möglich“ gehen trotzdem
+    requests.request_title(title, by=teacher, start=period(6, 6)[0], end=period(6, 6)[1])
+    requests.request_title(title, by=teacher)
+    assert requests.period_requests(title, teacher).count() == 2
+
+
+def test_period_request_does_not_block_extending_before_it(setup):
+    teacher, anna, _ben, title, copy = setup
+    loan = requests.hand_over(requests.request_title(title, by=teacher), copy, by=anna)
+    requests.request_title(title, by=UserFactory(), start=period(40, 41)[0], end=period(40, 41)[1])
+    loan = services.extend(loan, by=teacher)
+    assert loan.due_date == timezone.localdate() + datetime.timedelta(days=28)
+
+
+def test_approve_with_other_period_and_after_period_is_over(setup):
+    teacher, anna, _ben, title, _copy = setup
+    start, end = period(2, 2)
+    loan = requests.request_title(title, by=teacher, start=start, end=end)
+    Loan.objects.filter(pk=loan.pk).update(
+        reserved_from=period(-3, -2)[0], reserved_until=period(-3, -2)[1]
+    )
+    with pytest.raises(LoanError, match="Zeitraum ist vorbei"):
+        requests.approve(loan, by=anna)
+    loan = requests.approve(loan, by=anna, new_period=period(5, 7))
+    assert loan.status == Loan.Status.APPROVED
+    assert reservations.last_day(loan.reserved_until) == (
+        timezone.localdate() + datetime.timedelta(days=7)
+    )
+    assert "anderen Zeitraum vorgeschlagen" in mail.outbox[-1].body
+
+
+def test_open_period_requests_never_expire_but_team_is_reminded(setup):
+    teacher, anna, ben, title, _copy = setup
+    old = requests.request_title(title, by=teacher, start=period(1, 1)[0], end=period(1, 1)[1])
+    Loan.objects.filter(pk=old.pk).update(
+        reserved_from=period(-5, -4)[0], reserved_until=period(-5, -4)[1]
+    )
+    tomorrow = requests.request_title(
+        title, by=UserFactory(), start=period(1, 1)[0], end=period(1, 1)[1]
+    )
+    mail.outbox.clear()
+    counts = requests.daily_request_tasks()
+    assert counts["verfallen"] == 0
+    old.refresh_from_db()
+    assert old.status == Loan.Status.REQUESTED
+    subjects = [m.subject for m in mail.outbox]
+    assert any(s.startswith("Morgen gewünscht, noch offen") for s in subjects)
+    tomorrow.refresh_from_db()
+    assert tomorrow.start_reminded_at is not None
+
+
+def test_approved_period_request_expires_at_the_end(setup):
+    teacher, anna, ben, title, _copy = setup
+    loan = requests.request_title(title, by=teacher, start=period(1, 1)[0], end=period(1, 1)[1])
+    requests.approve(loan, by=anna)
+    assert requests.daily_request_tasks()["verfallen"] == 0
+    Loan.objects.filter(pk=loan.pk).update(
+        reserved_from=period(-2, -1)[0], reserved_until=period(-2, -1)[1]
+    )
+    mail.outbox.clear()
+    assert requests.daily_request_tasks()["verfallen"] == 1
+    loan.refresh_from_db()
+    assert loan.status == Loan.Status.EXPIRED
+    assert set(mail.outbox[0].to) == {teacher.email, anna.email, ben.email}
+    assert "im Zeitraum nicht abgeholt" in mail.outbox[0].body
+
+
+def test_period_request_in_the_browser(client, setup):
+    teacher, anna, _ben, title, copy = setup
+    client.force_login(teacher)
+    page = client.get(reverse("title_detail", args=[title.pk])).content.decode()
+    assert "Für einen bestimmten Zeitraum anfragen" in page
+    url = reverse("reserve", args=[title.pk])
+    assert "Für einen Zeitraum anfragen" in client.get(url).content.decode()
+    day = (timezone.localdate() + datetime.timedelta(days=2)).isoformat()
+    response = client.post(
+        url,
+        {
+            "art": "stunden",
+            "stunden-day": day,
+            "stunden-first": 1,
+            "stunden-last": 2,
+            "stunden-message": "für die 4a",
+        },
+        follow=True,
+    )
+    content = response.content.decode()
+    assert "Angefragt für" in content and "1.–2. Stunde" in content
+    assert "Zurückziehen" in content
+    loan = Loan.objects.get(title=title)
+    assert loan.status == Loan.Status.REQUESTED and loan.message == "für die 4a"
+
+    client.force_login(anna)
+    home = client.get(reverse("home")).content.decode()
+    assert "1.–2. Stunde" in home and "Anderer Zeitraum" in home
+    first = (timezone.localdate() + datetime.timedelta(days=9)).isoformat()
+    client.post(reverse("request_approve", args=[loan.pk]), {"neu_von": first})
+    loan.refresh_from_db()
+    assert loan.status == Loan.Status.APPROVED and loan.period_label == ""
+    assert reservations.last_day(loan.reserved_until).isoformat() == first
