@@ -60,6 +60,11 @@ class Loan(models.Model):
         related_name="+",
         verbose_name=_("übergeben von"),
     )
+    reminder_sent_at = models.DateTimeField(_("Erinnerung verschickt am"), null=True, blank=True)
+    overdue_notice_sent_at = models.DateTimeField(
+        _("Überfällig-Hinweis verschickt am"), null=True, blank=True
+    )
+    escalated_at = models.DateTimeField(_("an Verwaltung gemeldet am"), null=True, blank=True)
     anonymized_at = models.DateTimeField(_("anonymisiert am"), null=True, blank=True)
     created_at = models.DateTimeField(_("angelegt am"), auto_now_add=True)
     updated_at = models.DateTimeField(_("geändert am"), auto_now=True)
@@ -99,6 +104,16 @@ class Loan(models.Model):
 
     def __str__(self):
         return f"{self.copy.inventory_number} ({self.get_status_display()})"
+
+    @property
+    def is_overdue(self):
+        from django.utils import timezone
+
+        return (
+            self.status == self.Status.LENT
+            and self.due_date is not None
+            and self.due_date < timezone.localdate()
+        )
 
     @property
     def borrower_display(self):
