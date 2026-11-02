@@ -55,6 +55,23 @@ DEFAULT_LESSON_TIMES = "\n".join(
 )
 
 
+def parse_day_month(text):
+    """„1.8.“, „01.08.“ oder „01.08“ → (Monat, Tag). Wirft ValueError."""
+    import datetime
+    import re
+
+    match = re.fullmatch(r"\s*(\d{1,2})\.(\d{1,2})\.?\s*", text or "")
+    if not match:
+        raise ValueError(_("Bitte Tag und Monat angeben, z. B. 01.08."))
+    day, month = int(match.group(1)), int(match.group(2))
+    try:
+        # 2025 ist kein Schaltjahr: der 29.02. ist als Stichtag nicht erlaubt.
+        datetime.date(2025, month, day)
+    except ValueError:
+        raise ValueError(_("Diesen Tag gibt es nicht in jedem Jahr.")) from None
+    return month, day
+
+
 def parse_lesson_times(text):
     """„08:00-08:45“ je Zeile → [(1, time(8, 0), time(8, 45)), …]. Wirft ValueError."""
     import datetime
@@ -137,6 +154,18 @@ class SchoolSettings(models.Model):
     )
     request_pickup_days = models.PositiveSmallIntegerField(
         _("Genehmigte Anfragen verfallen nach … Tagen ohne Abholung"), default=14
+    )
+    school_year_start = models.CharField(
+        _("Schuljahr beginnt am"),
+        max_length=6,
+        default="01.08.",
+        help_text=_("Tag und Monat, z. B. „01.08.“. Für die Zeiträume in der Statistik."),
+    )
+    second_half_start = models.CharField(
+        _("2. Halbjahr beginnt am"),
+        max_length=6,
+        default="01.02.",
+        help_text=_("Tag und Monat, z. B. „01.02.“ oder „15.02.“."),
     )
     lesson_times = models.TextField(
         _("Stundenraster"),
@@ -294,6 +323,14 @@ class SchoolSettings(models.Model):
             return parse_lesson_times(self.lesson_times)
         except ValueError:
             return parse_lesson_times(DEFAULT_LESSON_TIMES)
+
+    @property
+    def school_year_dates(self):
+        """(Monat, Tag) für Schuljahresbeginn und 2. Halbjahr, notfalls Standard."""
+        try:
+            return parse_day_month(self.school_year_start), parse_day_month(self.second_half_start)
+        except ValueError:
+            return (8, 1), (2, 1)
 
     def domain_allowed(self, email):
         domains = [d.strip().lower().lstrip("@") for d in self.sso_domains.split(",") if d.strip()]

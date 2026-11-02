@@ -29,33 +29,33 @@ class Period:
         return f"{self.start:%Y-%m-%d}_{self.end:%Y-%m-%d}"
 
 
-def school_year_start(day):
-    """Das Schuljahr beginnt am 1. August."""
-    year = day.year if day.month >= 8 else day.year - 1
-    return datetime.date(year, 8, 1)
+def school_year_start(day, month_day=(8, 1)):
+    """Beginn des Schuljahrs, in dem `day` liegt."""
+    month, first = month_day
+    year = day.year if (day.month, day.day) >= (month, first) else day.year - 1
+    return datetime.date(year, month, first)
 
 
-def presets(today=None):
-    """Vorgegebene Zeiträume: aktuelles und letztes Schuljahr, beide Halbjahre."""
+def presets(today=None, config=None):
+    """Vorgegebene Zeiträume: aktuelles und letztes Schuljahr, beide Halbjahre.
+    Beginn von Schuljahr und 2. Halbjahr stehen in den Einstellungen."""
+    from fundus.core.models import SchoolSettings
+
     today = today or timezone.localdate()
-    start = school_year_start(today)
+    year_md, half_md = (config or SchoolSettings.current()).school_year_dates
+    start = school_year_start(today, year_md)
     year = start.year
-    previous = datetime.date(year - 1, 8, 1)
+    next_start = datetime.date(year + 1, *year_md)
+    end = next_start - datetime.timedelta(days=1)
+    half_year = year if half_md > year_md else year + 1
+    half = datetime.date(half_year, *half_md)
+    previous = datetime.date(year - 1, *year_md)
+    one_day = datetime.timedelta(days=1)
     return {
-        "schuljahr": Period(
-            start, datetime.date(year + 1, 7, 31), _("Schuljahr %(y)s") % {"y": _sy(year)}
-        ),
-        "halbjahr1": Period(
-            start, datetime.date(year + 1, 1, 31), _("1. Halbjahr %(y)s") % {"y": _sy(year)}
-        ),
-        "halbjahr2": Period(
-            datetime.date(year + 1, 2, 1),
-            datetime.date(year + 1, 7, 31),
-            _("2. Halbjahr %(y)s") % {"y": _sy(year)},
-        ),
-        "vorjahr": Period(
-            previous, datetime.date(year, 7, 31), _("Schuljahr %(y)s") % {"y": _sy(year - 1)}
-        ),
+        "schuljahr": Period(start, end, _("Schuljahr %(y)s") % {"y": _sy(year)}),
+        "halbjahr1": Period(start, half - one_day, _("1. Halbjahr %(y)s") % {"y": _sy(year)}),
+        "halbjahr2": Period(half, end, _("2. Halbjahr %(y)s") % {"y": _sy(year)}),
+        "vorjahr": Period(previous, start - one_day, _("Schuljahr %(y)s") % {"y": _sy(year - 1)}),
     }
 
 

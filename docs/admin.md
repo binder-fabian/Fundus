@@ -100,11 +100,11 @@ Auf der Titelseite führt **„Reservieren“** zu einem Wochenkalender: Für je
 - Fundus prüft, ob im Zeitraum genug frei ist: laufende Ausleihen bis zu ihrem Rückgabedatum, andere Reservierungen und Anfragen mit Zeitraum. Sonst nennt es den frühesten freien Beginn.
 - **Abholen:** Am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Die Reservierung wird dabei zur Ausleihe; Rückgabe ist das Ende des Zeitraums.
 - **Konflikte:** Wer ein Exemplar ausleiht, obwohl der Titel ab einem Datum ausgebucht ist, bekommt das Rückgabedatum auf den Tag davor begrenzt. Ist heute schon alles reserviert, geht Ausleihen nur noch über eine eigene Reservierung (z. B. für die Stunden davor).
-- **Verfall:** Nicht abgeholte Reservierungen bleiben bis zum Ende ihres Zeitraums bestehen. Am Vortag bekommt die Person eine Erinnerung, am Morgen nach dem ersten Tag einen Hinweis, falls sie noch nicht abgeholt hat (unter „Einstellungen → Reservierung“ abschaltbar).
+- **Verfall:** Nicht abgeholte Reservierungen bleiben bis zum Ende ihres Zeitraums bestehen. Am Vortag bekommt die Person eine Erinnerung, am Morgen nach dem ersten Tag einen Hinweis, falls sie noch nicht abgeholt hat (unter „Einstellungen → Schuljahr und Reservierung“ abschaltbar).
 - Eigene Reservierungen stehen auf der Startseite und lassen sich dort stornieren. Verwalter können jede Reservierung stornieren.
 - Im **Modus ohne Namen** wird für Klasse oder Raum reserviert; abholen kann dann, wer beim Ausleihen dieselbe Klasse einträgt.
 
-**Stundenraster.** Unter „Einstellungen → Reservierung“ eine Zeile je Stunde, z. B. `08:00-08:45`. Die erste Zeile ist die 1. Stunde. Reservierungen speichern die Uhrzeiten; ein neues Raster (z. B. zum Halbjahr) verschiebt also keine bestehenden.
+**Stundenraster.** Unter „Einstellungen → Schuljahr und Reservierung“ eine Zeile je Stunde, z. B. `08:00-08:45`. Die erste Zeile ist die 1. Stunde. Reservierungen speichern die Uhrzeiten; ein neues Raster (z. B. zum Halbjahr) verschiebt also keine bestehenden.
 
 ## Anfragen für freigabepflichtige Titel
 
@@ -129,7 +129,7 @@ Unter „Material“ stehen Verbrauchsmaterialien wie Protokollbögen, jeweils m
 
 ## Statistik
 
-Unter „Statistik“ (Verwaltung und Administration): Ausleihen je Titel, Kategorie und Förderschwerpunkt für das aktuelle oder letzte Schuljahr, ein Halbjahr oder einen freien Zeitraum; dazu durchschnittliche Ausleihdauer, Titel, die im Zeitraum nicht ausgeliehen wurden, und was aus Anfragen wurde. Gezählt werden auch anonymisierte Ausleihen. Eine Auswertung nach Personen gibt es bewusst nicht. „Als Excel-Datei herunterladen“ liefert alle Tabellen in einer Datei.
+Unter „Statistik“ (Verwaltung und Administration): Ausleihen je Titel, Kategorie und Förderschwerpunkt für das aktuelle oder letzte Schuljahr, ein Halbjahr oder einen freien Zeitraum (Beginn von Schuljahr und 2. Halbjahr unter „Einstellungen → Schuljahr und Reservierung“, Standard 1. August und 1. Februar); dazu durchschnittliche Ausleihdauer, Titel, die im Zeitraum nicht ausgeliehen wurden, und was aus Anfragen wurde. Gezählt werden auch anonymisierte Ausleihen. Eine Auswertung nach Personen gibt es bewusst nicht. „Als Excel-Datei herunterladen“ liefert alle Tabellen in einer Datei.
 
 ## Erinnerungen per E-Mail
 

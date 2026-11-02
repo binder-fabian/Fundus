@@ -130,3 +130,39 @@ def test_excel_download(client):
     ]
     assert book["Titel"]["A2"].value == "Hörspiel"
     assert book["Übersicht"]["B5"].value == 1
+
+
+def test_school_year_and_half_year_are_configurable():
+    from fundus.core.models import SchoolSettings
+
+    config = SchoolSettings.current()
+    config.school_year_start = "01.09."
+    config.second_half_start = "15.02."
+    config.save()
+    options = stats.presets(datetime.date(2026, 8, 20))
+    assert options["schuljahr"].start == datetime.date(2025, 9, 1)
+    assert options["schuljahr"].end == datetime.date(2026, 8, 31)
+    assert options["halbjahr1"].end == datetime.date(2026, 2, 14)
+    assert options["halbjahr2"].start == datetime.date(2026, 2, 15)
+    assert options["vorjahr"].start == datetime.date(2024, 9, 1)
+    assert options["schuljahr"].label == "Schuljahr 2025/26"
+
+
+def test_settings_form_checks_day_and_month():
+    from fundus.core.forms import SchoolSettingsForm
+    from fundus.core.models import SchoolSettings
+    from tests.test_settings_numbering import settings_data
+
+    config = SchoolSettings.current()
+    form = SchoolSettingsForm(
+        settings_data(school_year_start="1.8", second_half_start="15.2."), instance=config
+    )
+    assert form.is_valid(), form.errors
+    form.save()
+    config.refresh_from_db()
+    assert (config.school_year_start, config.second_half_start) == ("01.08.", "15.02.")
+    for bad in ["29.02.", "31.04.", "August", ""]:
+        form = SchoolSettingsForm(settings_data(second_half_start=bad), instance=config)
+        assert not form.is_valid(), bad
+    form = SchoolSettingsForm(settings_data(second_half_start="01.08."), instance=config)
+    assert "nach dem Schuljahresbeginn" in str(form.errors)
