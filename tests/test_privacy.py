@@ -136,3 +136,31 @@ def test_settings_show_preview_and_run_now(client):
 def test_teacher_cannot_run_privacy(client):
     client.force_login(UserFactory())
     assert client.post(reverse("privacy_run_now")).status_code == 403
+
+
+def test_borrower_names_visible_to_all_only_when_configured(client):
+    borrower = UserFactory(first_name="Bea", last_name="Borg")
+    copy = CopyFactory()
+    services.lend(copy, by=borrower)
+    colleague = UserFactory()
+    client.force_login(colleague)
+    copy_page = reverse("copy_detail", args=[copy.pk])
+    title_page = reverse("title_detail", args=[copy.title_id])
+    assert "Bea Borg" not in client.get(copy_page).content.decode()
+    assert "Bea Borg" not in client.get(title_page).content.decode()
+
+    config = SchoolSettings.current()
+    config.borrower_visibility = config.Visibility.ALL
+    config.save()
+    assert "bei Bea Borg" in client.get(copy_page).content.decode()
+    assert "· Bea Borg" in client.get(title_page).content.decode()
+    assert client.get(reverse("loan_overview")).status_code == 403
+
+
+def test_team_sees_names_on_title_page_by_default(client):
+    member = UserFactory()
+    title = TitleFactory(team=team_of(member))
+    copy = CopyFactory(title=title)
+    services.lend(copy, by=UserFactory(first_name="Bea", last_name="Borg"))
+    client.force_login(member)
+    assert "· Bea Borg" in client.get(reverse("title_detail", args=[title.pk])).content.decode()

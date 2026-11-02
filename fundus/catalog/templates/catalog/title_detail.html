@@ -68,7 +68,7 @@
             {% if c.incomplete %}<span class="badge badge-busy">unvollständig</span>{% endif %}
             {% if c.condition != "good" %}<span class="badge">{{ c.get_condition_display }}</span>{% endif %}
             {% if title.lendable %}
-              {% if c.is_lent %}<span class="badge badge-busy">ausgeliehen bis {{ c.due_date|date:"d.m.Y" }}</span>
+              {% if c.is_lent %}<span class="badge badge-busy">ausgeliehen bis {{ c.due_date|date:"d.m.Y" }}{% if c.borrower_name %} · {{ c.borrower_name }}{% endif %}</span>
               {% else %}<span class="badge badge-ok">verfügbar</span>{% endif %}
             {% endif %}
           </span>

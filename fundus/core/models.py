@@ -102,6 +102,21 @@ class SchoolSettings(models.Model):
             "Z. B. sekretariat@meine-schule.de. Die Rolle „Sekretariat“ wird immer informiert."
         ),
     )
+
+    class Visibility(models.TextChoices):
+        TEAM = "team", _("nur Verwaltung und zuständiges Team")
+        ALL = "all", _("alle angemeldeten Lehrkräfte")
+
+    borrower_visibility = models.CharField(
+        _("Wer sieht, bei wem etwas ausgeliehen ist?"),
+        max_length=10,
+        choices=Visibility,
+        default=Visibility.TEAM,
+        help_text=_(
+            "„Alle“ erleichtert das direkte Nachfragen unter Kolleginnen und Kollegen. "
+            "Die Übersicht aller Ausleihen bleibt immer der Verwaltung vorbehalten."
+        ),
+    )
     anonymize_after_days = models.PositiveSmallIntegerField(
         _("Namen aus abgeschlossenen Ausleihen entfernen nach … Tagen"),
         default=365,

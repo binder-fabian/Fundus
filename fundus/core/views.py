@@ -87,7 +87,11 @@ def school_settings(request):
         ),
         (
             "Datenschutz",
-            [form["anonymize_after_days"], form["history_names_days"]],
+            [
+                form["borrower_visibility"],
+                form["anonymize_after_days"],
+                form["history_names_days"],
+            ],
             privacy_note(form.instance),
         ),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),

@@ -12,6 +12,7 @@ from django.utils.formats import date_format
 from django.utils.translation import gettext as _
 
 from fundus.catalog.models import Copy
+from fundus.core.models import SchoolSettings
 from fundus.loans.models import Loan
 
 
@@ -42,8 +43,12 @@ def can_lend_for_others(user, title):
 
 
 def can_see_borrower(user, title):
-    # Vorläufig (Entscheidung A in PLAN.md): Namen nur für Verwaltung und Zuständige.
-    return user.can_manage_catalog or is_responsible(user, title)
+    """Einstellung der Schule: Namen nur für Verwaltung und zuständiges Team
+    oder für alle angemeldeten Lehrkräfte."""
+    if user.can_manage_catalog or is_responsible(user, title):
+        return True
+    config = SchoolSettings.current()
+    return user.is_active and config.borrower_visibility == config.Visibility.ALL
 
 
 def can_return(user, loan):
