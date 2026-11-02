@@ -261,7 +261,7 @@ Bewusst offen:
 
 ## 8. Phase 3 – Ausleihe
 
-Status: **in Umsetzung auf dem Zweig `phase-3`, wartet auf Freigabe** (Nacht zum 3. November 2026). Auf ausdrücklichen Wunsch über Nacht umgesetzt; `main` bleibt bis zur Freigabe unverändert.
+Status: **umgesetzt auf dem Zweig `phase-3`, wartet auf Freigabe und Zusammenführung** (Nacht zum 3. November 2026). Auf ausdrücklichen Wunsch über Nacht umgesetzt; `main` bleibt bis zur Freigabe unverändert.
 
 Ziel laut SPEC: Scanner-PWA, Ausleihen/Zurückgeben, Rückgabekiste-Modus, Testkoffer-Inhaltslisten, E-Mail-Erinnerungen. Leitprinzip: „App öffnen, scannen, fertig“ in unter 10 Sekunden.
 
@@ -292,3 +292,12 @@ Diese Punkte hätte ich dir vorgelegt; über Nacht habe ich jeweils die vorsicht
 | E | **Erinnerungen** | 1 Tag vor Ablauf an die Lehrkraft, 3 Tage nach Ablauf erneut, 14 Tage nach Ablauf zusätzlich an alle Verwalter; täglich um 7 Uhr. Tage in den Einstellungen änderbar. |
 | F | **Für andere ausleihen** | Verwalter (und zuständige Personen bei ihren Titeln) können für eine andere Lehrkraft ausbuchen; Lehrkräfte nur für sich selbst. |
 | G | **Unvollständige Testkoffer** | Bleiben ausleihbar, zeigen aber deutlich „unvollständig“ mit den fehlenden Teilen. |
+
+### Stand nach Phase 3 (Nacht zum 3. November 2026)
+
+Schritte 3.1–3.6 umgesetzt; 198 automatische Tests (SQLite und PostgreSQL) grün. Geprüft im laufenden System: Ausleihen, „Meine Ausleihen“, Zurückgeben mit Inhaltsabfrage, Erinnerung per E-Mail (Mailpit), Scanner-Bibliothek erkennt QR-Codes (eingebauter Detektor und ZXing).
+
+Nicht geprüft und vor dem Einsatz nötig:
+
+- **Kamera auf echten Handys** (Android und iPhone) über HTTPS – im Entwicklungs-Browser ist die Kamera gesperrt.
+- **Vorläufige Entscheidungen A–G** (Tabelle oben) bestätigen oder ändern.

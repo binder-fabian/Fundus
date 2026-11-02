@@ -14,4 +14,12 @@
 
 **Fehler im Katalog entdeckt?** Bitte der Person melden, die Fundus an der Schule verwaltet.
 
-*Bald:* Ausleihen und Zurückgeben per QR-Code mit der Handykamera.
+**Ausleihen – in drei Sekunden.** Unten auf „Scannen“ tippen, den QR-Code auf dem Etikett vor die Kamera halten, „Ausleihen“ antippen. Das Rückgabedatum ist schon eingetragen; Sie können es ändern.
+
+**Zurückgeben.** Wieder scannen und „Zurückgeben“ antippen. Bei Testkoffern kurz abhaken, ob alles drin ist.
+
+**Meine Ausleihen** stehen auf der Startseite, mit „Verlängern“. Einen Tag vor Ablauf kommt eine Erinnerung per E-Mail.
+
+**Als App aufs Handy.** Im Browser „Zum Startbildschirm hinzufügen“ wählen (iPhone: Teilen-Symbol; Android: Menü ⋮). Dann startet Fundus wie eine App.
+
+**Freigabepflichtige Tests** (z. B. teure Diagnostik) bitte bei der zuständigen Person ausleihen; sie bucht direkt für Sie aus.

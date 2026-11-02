@@ -49,7 +49,7 @@ Prüfen, ob alles läuft:
 docker compose ps
 ```
 
-Beide Dienste sollten `healthy` zeigen. Fundus lauscht auf Port 8000.
+`app` und `db` sollten `healthy` zeigen, `scheduler` (verschickt die täglichen Erinnerungen) `running`. Fundus lauscht auf Port 8000.
 
 ## 4. Ersten Administrator anlegen
 
@@ -63,7 +63,7 @@ Sie werden nach einem Passwort gefragt. Alternativ mit `--invite`: Dann bekommen
 
 ## 5. HTTPS einrichten
 
-Für die Anmeldung und später für den Kamera-Scanner auf dem Handy braucht Fundus **HTTPS**. Am einfachsten geht das mit [Caddy](https://caddyserver.com/), das Zertifikate automatisch besorgt. Eine Beispielkonfiguration liegt in [`deploy/Caddyfile.example`](../deploy/Caddyfile.example). Setzen Sie danach in `.env`: `BEHIND_HTTPS_PROXY=1`.
+Für die Anmeldung und für den Kamera-Scanner auf dem Handy braucht Fundus **HTTPS** – ohne HTTPS verweigern die Browser den Zugriff auf die Kamera. Am einfachsten geht das mit [Caddy](https://caddyserver.com/), das Zertifikate automatisch besorgt. Eine Beispielkonfiguration liegt in [`deploy/Caddyfile.example`](../deploy/Caddyfile.example). Setzen Sie danach in `.env`: `BEHIND_HTTPS_PROXY=1`.
 
 Ohne öffentliche Domain (nur im Schulnetz) kann Caddy ein eigenes Zertifikat ausstellen (`tls internal`); die Geräte müssen diesem dann einmal vertrauen.
 
