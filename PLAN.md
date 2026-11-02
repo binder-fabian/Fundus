@@ -155,7 +155,7 @@ Jeder Schritt endet lauffähig (`docker compose up` startet) und mit grünen Tes
 | Stack | **Django + htmx** | wie in Abschnitt 2 |
 | Lizenz | **AGPL-3.0** | `LICENSE` kommt in Schritt 1.1 dazu |
 | Projektname | **Fundus** | Python-Paket `fundus`, Image `fundus`, Titel in der Oberfläche „Fundus“ |
-| Standardfristen | **14 / 28 / 90 Tage** | Tests und Technik 14 Tage, Bücher und Material 28 Tage, Anonymisierung 90 Tage nach Rückgabe; alles änderbar |
+| Standardfristen | **14 / 28 / 90 Tage** | Tests und Technik 14 Tage, Bücher und Material 28 Tage, Anonymisierung 90 Tage nach Rückgabe (in Phase 5 auf 1 Jahr geändert); alles änderbar |
 | Altdaten | **Microsoft List** vorhanden | Importvorlage „Microsoft-List-Export“ in Schritt 1.6; vorhandene Inventarnummern werden übernommen |
 | Massenanlage Lehrkräfte | **in Phase 1** | wie in Schritt 1.3 |
 | Hosting | **GitHub** (Codeberg scheidet nach dessen Nutzungsbedingungen aus) | CI über GitHub Actions: Tests mit SQLite und PostgreSQL, Image-Build und `docker compose up` mit Docker als Kompatibilitätstest |
@@ -375,7 +375,7 @@ Ziel laut SPEC: Anonymisierung, Sichtbarkeitsstufen, Modus ohne Namen, automatis
 
 ### Schritt 5.1 – Anonymisierung nach Löschfrist
 
-- Einstellung „Ausleihen anonymisieren nach … Tagen“ (Standard **90 Tage**, entschieden in Phase 1). Gilt für abgeschlossene Vorgänge: zurückgegeben, abgelehnt, zurückgezogen, verfallen.
+- Einstellung „Ausleihen anonymisieren nach … Tagen“ (Standard **365 Tage**; in Phase 1 waren 90 Tage vorgesehen, geändert am 2. November 2026, damit ein ganzes Schuljahr nachvollziehbar bleibt). Gilt für abgeschlossene Vorgänge: zurückgegeben, abgelehnt, zurückgezogen, verfallen.
 - Entfernt werden: Lehrkraft, Klasse/Raum, „genehmigt von“, „übergeben von“, Nachricht und Ablehnungsgrund – auch in allen Protokollzeilen dieser Ausleihe. Es bleiben Titel, Exemplar und Daten, damit die Statistik („wie oft wurde der Test ausgeliehen?“) erhalten bleibt.
 - Läuft täglich im Dienst `scheduler` mit; zusätzlich als Befehl `anonymize` für Installationen ohne Container.
 - In den Einstellungen: Anzahl der Ausleihen, die beim nächsten Lauf anonymisiert werden, und Knopf „jetzt anonymisieren“.
@@ -435,5 +435,5 @@ Ziel laut SPEC: Anonymisierung, Sichtbarkeitsstufen, Modus ohne Namen, automatis
 | „Wer hat geändert“ im Änderungsprotokoll | nach 1 Jahr entfernen (einstellbar) |
 | Konto löschen und „Meine Daten“ | beides in Phase 5 |
 | Verarbeitungsbeschreibung | Word-Datei (.docx) mit markierten Stellen zum Ergänzen |
-| Löschfrist für Ausleihen | 90 Tage nach Abschluss (aus Phase 1) |
+| Löschfrist für Ausleihen | **1 Jahr** nach Abschluss (statt 90 Tage aus Phase 1); die Verleihhistorie ohne Namen bleibt dauerhaft |
 | Sichtbarkeit der Namen | Standard wie bisher: Verwaltung und zuständiges Team; „alle Lehrkräfte“ wählbar |
