@@ -734,3 +734,22 @@ details.reject[open] form {
   gap: 6px;
   margin-top: 6px;
 }
+
+/* Statistik */
+.table .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.period-form {
+  flex-wrap: wrap;
+  align-items: end;
+  margin: 12px 0;
+}
+
+.period-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1 1 140px;
+}

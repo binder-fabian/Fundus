@@ -17,4 +17,5 @@ urlpatterns = [
     path("anfrage/<int:pk>/uebergeben/<int:copy_pk>/", views.hand_over, name="request_hand_over"),
     path("ausleihen/", views.overview, name="loan_overview"),
     path("ausleihen/rueckgabekiste/", views.return_box, name="return_box"),
+    path("statistik/", views.statistics, name="statistics"),
 ]

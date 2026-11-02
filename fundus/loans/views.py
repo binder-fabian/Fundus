@@ -1,6 +1,7 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
+from django.http import FileResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -11,7 +12,7 @@ from fundus.accounts.models import User
 from fundus.accounts.permissions import require
 from fundus.catalog.models import Copy, Title
 from fundus.catalog.text import normalize
-from fundus.loans import requests, services
+from fundus.loans import requests, services, stats
 from fundus.loans.forms import LendForm, RequestForm, contents_check
 from fundus.loans.models import Loan
 from fundus.supplies.models import Consumable, ReorderNotice
@@ -246,6 +247,30 @@ def overview(request):
                     status=Loan.Status.LENT, due_date__lt=today
                 ).count(),
             },
+        },
+    )
+
+
+@require("can_manage_catalog")
+def statistics(request):
+    key, period = stats.period_from(request.GET)
+    data = stats.compute(period)
+    if request.GET.get("format") == "xlsx":
+        return FileResponse(
+            stats.workbook(data),
+            as_attachment=True,
+            filename=f"fundus-statistik-{period.filename_part}.xlsx",
+        )
+    params = request.GET.copy()
+    params["format"] = "xlsx"
+    return render(
+        request,
+        "loans/statistics.html",
+        {
+            **data,
+            "key": key,
+            "presets": stats.presets(),
+            "download_query": params.urlencode(),
         },
     )
 

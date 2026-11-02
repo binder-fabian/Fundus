@@ -20,6 +20,7 @@
         <a href="{% url 'title_list' %}">{% translate "Katalog" %}</a>
         <a href="{% url 'consumable_list' %}">{% translate "Material" %}</a>
         {% if user.can_manage_catalog %}<a href="{% url 'loan_overview' %}">{% translate "Ausleihen" %}</a>
+        <a href="{% url 'statistics' %}">{% translate "Statistik" %}</a>
         <a href="{% url 'masterdata_list' 'kategorien' %}">{% translate "Stammdaten" %}</a>{% endif %}
         {% if user.can_manage_users %}<a href="{% url 'user_list' %}">{% translate "Benutzer" %}</a>{% endif %}
         {% if user.is_admin %}<a href="{% url 'import_upload' %}">{% translate "Import/Export" %}</a>

@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% block title %}Statistik{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Statistik</h1>
+    <div class="actions"><a class="button" href="?{{ download_query }}">Als Excel-Datei herunterladen</a></div>
+  </div>
+  <nav class="tabs" aria-label="Zeitraum">
+    {% for k, p in presets.items %}<a href="?zeitraum={{ k }}"{% if key == k %} aria-current="page"{% endif %}>{{ p.label }}</a>{% endfor %}
+  </nav>
+  <form method="get" class="search-row period-form">
+    <input type="hidden" name="zeitraum" value="frei">
+    <label>von <input type="date" name="von" value="{{ period.start|date:'Y-m-d' }}" required></label>
+    <label>bis <input type="date" name="bis" value="{{ period.end|date:'Y-m-d' }}" required></label>
+    <button class="button">Zeitraum anzeigen</button>
+  </form>
+  <p class="muted">{{ period.label }}: {{ period.start|date:"d.m.Y" }} bis {{ period.end|date:"d.m.Y" }}. Gezählt werden alle Ausleihen, auch anonymisierte. Eine Auswertung nach Personen gibt es bewusst nicht.</p>
+
+  <dl class="facts">
+    <dt>Ausleihen</dt><dd>{{ total }}</dd>
+    <dt>verschiedene Titel</dt><dd>{{ title_count }}</dd>
+    <dt>Ø Ausleihdauer</dt><dd>{% if avg_days is not None %}{{ avg_days|floatformat:1 }} Tage{% else %}–{% endif %}</dd>
+    <dt>Anfragen</dt><dd>{{ requests.total }}{% if requests.total %} (übergeben {{ requests.handed_over }}, offen {{ requests.open }}, abgelehnt {{ requests.rejected }}, zurückgezogen {{ requests.withdrawn }}, verfallen {{ requests.expired }}){% endif %}</dd>
+  </dl>
+
+  <h2>Ausleihen je Titel</h2>
+  {% if rows %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Titel</th><th>Kategorie</th><th class="num">Ausleihen</th><th class="num">Ø Tage</th><th>zuletzt</th></tr></thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td><a href="{% url 'title_detail' r.title.pk %}">{{ r.title.title|truncatechars:60 }}</a></td>
+              <td>{{ r.title.category.name }}</td>
+              <td class="num">{{ r.count }}</td>
+              <td class="num">{% if r.avg_days is not None %}{{ r.avg_days|floatformat:1 }}{% else %}–{% endif %}</td>
+              <td>{{ r.last_lent|date:"d.m.Y" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <p>In diesem Zeitraum wurde nichts ausgeliehen.</p>
+  {% endif %}
+
+  {% if per_category %}
+    <h2>Je Kategorie</h2>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Kategorie</th><th class="num">Ausleihen</th></tr></thead>
+        <tbody>{% for name, count in per_category %}<tr><td>{{ name }}</td><td class="num">{{ count }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  {% if per_focus %}
+    <h2>Je Förderschwerpunkt</h2>
+    <p class="muted">Ein Titel mit mehreren Förderschwerpunkten zählt bei jedem mit.</p>
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Förderschwerpunkt</th><th class="num">Ausleihen</th></tr></thead>
+        <tbody>{% for name, count in per_focus %}<tr><td>{{ name }}</td><td class="num">{{ count }}</td></tr>{% endfor %}</tbody>
+      </table>
+    </div>
+  {% endif %}
+
+  <h2>Im Zeitraum nicht ausgeliehen ({{ never|length }})</h2>
+  {% if never %}
+    <p class="muted">Ausleihbare Titel ohne eine einzige Ausleihe in diesem Zeitraum.</p>
+    <ul>{% for t in never %}<li><a href="{% url 'title_detail' t.pk %}">{{ t.title }}</a> <span class="muted">· {{ t.category.name }}</span></li>{% endfor %}</ul>
+  {% else %}
+    <p class="muted">Keine.</p>
+  {% endif %}
+{% endblock %}
