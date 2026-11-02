@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–4 umgesetzt**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–4 umgesetzt, Phase 5 in Planung**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -360,3 +360,80 @@ Hinweise:
 
 - Eine Ausleihe bezieht sich jetzt immer auf einen **Titel**; das Exemplar steht bei Anfragen erst mit der Übergabe fest.
 - Nicht geprüft: echter E-Mail-Versand über den Schul-Mailserver (bisher nur Mailpit) und die Kamera auf echten Handys.
+
+## 10. Phase 5 – Datenschutz und Betrieb
+
+Status: **Entwurf, Fragen beantwortet, wartet auf Freigabe** (2. November 2026)
+
+Ziel laut SPEC: Anonymisierung, Sichtbarkeitsstufen, Modus ohne Namen, automatische Sicherung, Verarbeitungsbeschreibung. Leitgedanke: Personalrat und Datenschutzbeauftragte sollen zustimmen können, ohne dass die Schule etwas programmieren oder selbst formulieren muss.
+
+### Vorab geprüft
+
+- Schon vorhanden: Feld „Klasse oder Raum“ und Zeitpunkt „anonymisiert am“ an der Ausleihe, Sperre fehlgeschlagener Anmeldungen (Einträge werden nach einem Tag gelöscht), keine externen Ressourcen im Browser, Cover werden auf dem Server gespeichert.
+- **Lücke:** Das Änderungsprotokoll speichert jede Fassung einer Ausleihe mit Namen. Eine Anonymisierung muss diese Protokollzeilen mit bereinigen, sonst stehen die Namen dort weiter.
+- **Lücke:** Konten lassen sich nur deaktivieren, nicht löschen, solange Ausleihen auf sie verweisen.
+
+### Schritt 5.1 – Anonymisierung nach Löschfrist
+
+- Einstellung „Ausleihen anonymisieren nach … Tagen“ (Standard **90 Tage**, entschieden in Phase 1). Gilt für abgeschlossene Vorgänge: zurückgegeben, abgelehnt, zurückgezogen, verfallen.
+- Entfernt werden: Lehrkraft, Klasse/Raum, „genehmigt von“, „übergeben von“, Nachricht und Ablehnungsgrund – auch in allen Protokollzeilen dieser Ausleihe. Es bleiben Titel, Exemplar und Daten, damit die Statistik („wie oft wurde der Test ausgeliehen?“) erhalten bleibt.
+- Läuft täglich im Dienst `scheduler` mit; zusätzlich als Befehl `anonymize` für Installationen ohne Container.
+- In den Einstellungen: Anzahl der Ausleihen, die beim nächsten Lauf anonymisiert werden, und Knopf „jetzt anonymisieren“.
+
+### Schritt 5.2 – Sichtbarkeit der Namen
+
+- Einstellung „Wer sieht, bei wem etwas ausgeliehen ist?“: **nur Verwaltung und zuständiges Team** (Standard, wie bisher) oder **alle angemeldeten Lehrkräfte** (damit man direkt nachfragen kann).
+- Gilt für Exemplarseite, Titelseite und Scan-Ergebnis. Die Übersicht „Ausleihen“ bleibt der Verwaltung vorbehalten.
+
+### Schritt 5.3 – Modus ohne Personenbezug
+
+- Einstellung „Ausleihen ohne Namen (nur Klasse oder Raum)“ – für die Zeit bis zur Zustimmung des Personalrats.
+- Beim Ausleihen wird statt der Person **Klasse oder Raum** erfasst (Freitext mit Vorschlägen aus früheren Einträgen, z. B. „3b“, „Raum 104“). Ausleihen dauert dadurch einen Tipp länger.
+- Folgen, die die Oberfläche deutlich sagt: keine „Meine Ausleihen“, keine Erinnerungs-E-Mails an Lehrkräfte; Überfälliges sieht die Verwaltung in der Übersicht. **Anfragen** laufen in diesem Modus wie bisher mit Namen und E-Mail (die anfragende Person braucht die Antwort). Bei der Übergabe trägt das Team Klasse oder Raum ein; Name, Nachricht und „genehmigt von“ werden dabei sofort gelöscht, auch im Protokoll. Die Ausleihe selbst ist damit ohne Personenbezug.
+- Umschalten wirkt nur auf neue Ausleihen; bestehende bleiben, wie sie sind.
+
+### Schritt 5.4 – Konten löschen und „Meine Daten“
+
+- Administratoren können ein Konto **löschen** (z. B. wenn eine Lehrkraft die Schule verlässt), sobald sie nichts mehr ausgeliehen hat. Ihre abgeschlossenen Ausleihen werden dabei sofort anonymisiert, ihr Name verschwindet aus dem Änderungsprotokoll.
+- Unter „Konto“ kann jede Person **„Meine Daten herunterladen“**: alles, was Fundus über sie gespeichert hat (Auskunft nach Art. 15 DSGVO), als CSV in einer ZIP-Datei.
+
+### Schritt 5.5 – Automatische Sicherung
+
+- Der Dienst `scheduler` legt nach Zeitplan eine Sicherung als ZIP in ein eingebundenes Verzeichnis (`BACKUP_DIR`, Standard `DATA_DIR/sicherungen`). Inhalt: vollständiger Datenbankauszug (unabhängig von SQLite oder PostgreSQL), hochgeladene Bilder und zusätzlich der lesbare Export aus Phase 1.
+- **Passwörter** sind als Hashwerte enthalten, damit sich nach einer Wiederherstellung alle wieder anmelden können. Die Sicherungen gehören deshalb in ein geschütztes Verzeichnis (steht in der Anleitung).
+- Häufigkeit und Anzahl aufbewahrter Sicherungen in den Einstellungen (Standard: **täglich, 14 aufbewahren**); ältere werden automatisch gelöscht. Wichtig für den Datenschutz: Namen stehen bis zum Ende der Aufbewahrung auch in den Sicherungen. Das nennt die Verarbeitungsbeschreibung.
+- Wiederherstellung über die Kommandozeile: `python manage.py restore_backup <datei.zip>` in eine leere Datenbank; prüft vorher die Programmversion. Damit geht auch der **Umzug von SQLite nach PostgreSQL**.
+- In den Einstellungen: Zeitpunkt der letzten Sicherung und eine Warnung, wenn sie fehlgeschlagen oder älter als geplant ist. Knopf „jetzt sichern“.
+- Dokumentiert in der Installationsanleitung, mit Hinweis, die Sicherungen zusätzlich außerhalb des Servers aufzubewahren (z. B. NAS).
+
+### Schritt 5.6 – Änderungsprotokoll begrenzen
+
+- Das Protokoll zeigt, **wer** einen Titel, ein Exemplar oder ein Konto wann geändert hat. Auch das ist ein Personenbezug (Verhaltens- und Leistungskontrolle ist ein Personalratsthema).
+- Einstellung „Im Änderungsprotokoll den Namen entfernen nach …“ (Standard: **1 Jahr**). Was geändert wurde, bleibt; nur „wer“ wird entfernt.
+
+### Schritt 5.7 – Verarbeitungsbeschreibung
+
+- Fundus erzeugt aus den **aktuellen Einstellungen** eine Kurzbeschreibung der Verarbeitung: welche Daten, Zweck, Rechtsgrundlage (als Vorschlag zum Prüfen), wer worauf zugreift, Fristen, Empfänger (ISBN-Abruf: nur die ISBN geht an DNB, Open Library, ggf. Google), Sicherungen, technische Maßnahmen (HTTPS, Passwort-Hashing, Anmeldesperre, keine Cookies außer der Anmeldung, kein Tracking).
+- Als Vorlage für Datenschutzbeauftragte und Personalrat, mit gelb markierten Stellen, die die Schule selbst ergänzt (Verantwortlicher, Serverstandort, Datenschutzbeauftragte). Format: **Word-Datei** (.docx, auch mit LibreOffice zu öffnen), erzeugt mit der Bibliothek python-docx (MIT-Lizenz).
+- Ändert jemand eine datenschutzrelevante Einstellung, erinnert ein Hinweis daran, die Beschreibung neu zu erzeugen.
+
+### Schritt 5.8 – Dokumentation und Abnahme
+
+- Admin-Handbuch: Abschnitt „Datenschutz“ mit allen Einstellungen und Empfehlungen; Installationsanleitung: Sicherung und Wiederherstellung; Kurzanleitung für Lehrkräfte: Hinweis zum Modus ohne Namen.
+- Tests für Anonymisierung (inkl. Protokollzeilen), Sichtbarkeit, Modus ohne Namen, Sicherung und Wiederherstellung (SQLite und PostgreSQL).
+
+### Reihenfolge
+
+5.1 und 5.6 zuerst (gemeinsame Bereinigungslogik für Protokollzeilen), dann 5.4, 5.2, 5.3, 5.5, 5.7, 5.8.
+
+### Entscheidungen zu Phase 5 (2. November 2026)
+
+| Frage | Entscheidung |
+| --- | --- |
+| Anfragen im Modus ohne Namen | Name nur bis zur Übergabe; dann Klasse/Raum, Name und Nachricht werden gelöscht |
+| Automatische Sicherung | täglich, 14 Sicherungen aufbewahren (einstellbar) |
+| „Wer hat geändert“ im Änderungsprotokoll | nach 1 Jahr entfernen (einstellbar) |
+| Konto löschen und „Meine Daten“ | beides in Phase 5 |
+| Verarbeitungsbeschreibung | Word-Datei (.docx) mit markierten Stellen zum Ergänzen |
+| Löschfrist für Ausleihen | 90 Tage nach Abschluss (aus Phase 1) |
+| Sichtbarkeit der Namen | Standard wie bisher: Verwaltung und zuständiges Team; „alle Lehrkräfte“ wählbar |
