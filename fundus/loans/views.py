@@ -14,6 +14,7 @@ from fundus.catalog.text import normalize
 from fundus.loans import requests, services
 from fundus.loans.forms import LendForm, RequestForm, contents_check
 from fundus.loans.models import Loan
+from fundus.supplies.models import Consumable, ReorderNotice
 
 
 def home(request):
@@ -34,6 +35,9 @@ def home(request):
             "loans": loans,
             "my_requests": my_requests,
             "team_requests": requests_context(request.user),
+            "open_reorders": ReorderNotice.objects.filter(status=ReorderNotice.Status.OPEN).count()
+            if request.user.can_handle_orders
+            else 0,
             "today": timezone.localdate(),
         },
     )
@@ -45,6 +49,9 @@ def scan(request, number=None):
     copy = Copy.objects.filter(inventory_number__iexact=number).first() if number else None
     if copy:
         return redirect("copy_detail", pk=copy.pk)
+    item = Consumable.objects.filter(code__iexact=number).first() if number else None
+    if item:
+        return redirect("consumable_detail", pk=item.pk)
     if number:
         messages.error(request, _("Keine Inventarnummer „%(n)s“ gefunden.") % {"n": number})
     return redirect(request.GET.get("zurueck") or "home")

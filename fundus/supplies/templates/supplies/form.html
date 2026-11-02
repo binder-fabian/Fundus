@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}{% if item %}{{ item.name }}{% else %}Material anlegen{% endif %}{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'consumable_list' %}">‹ Verbrauchsmaterial</a></p>
+    <h1>{% if item %}{{ item.name }} bearbeiten{% else %}Material anlegen{% endif %}</h1>
+    <form method="post" class="form">{% csrf_token %}{% include "form_fields.html" %}
+      <div class="actions">
+        <button class="button button-primary">Speichern</button>
+        <a class="button" href="{% if item %}{% url 'consumable_detail' item.pk %}{% else %}{% url 'consumable_list' %}{% endif %}">Abbrechen</a>
+        {% if item %}<button class="button button-danger" name="delete" value="1" formnovalidate>Löschen</button>{% endif %}
+      </div>
+    </form>
+  </div>
+{% endblock %}

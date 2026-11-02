@@ -1,0 +1,12 @@
+{% autoescape off %}Guten Tag,
+
+bitte „{{ item.name }}“ ({{ item.code }}) nachbestellen.
+Anlass: {{ notice.get_reason_display }}{% if notice.created_by %}, gemeldet von {{ notice.created_by }}{% endif %}.{% if item.track_stock %}
+Aktueller Bestand: {{ item.stock }} {{ item.unit }} (Mindestmenge {{ item.min_stock }}).{% endif %}{% if item.order_info %}
+
+Bestellhinweis:
+{{ item.order_info }}{% endif %}
+
+Nach der Bestellung bitte in Fundus abhaken:
+{{ link }}
+{% endautoescape %}

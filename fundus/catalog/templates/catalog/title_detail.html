@@ -47,6 +47,14 @@
     <ul>{% for item in title.contents_items %}<li>{{ item }}</li>{% endfor %}</ul>
   {% endif %}
 
+  {% with items=title.consumables.all %}
+    {% if items or user.can_manage_catalog %}
+      <h2>Verbrauchsmaterial</h2>
+      {% if items %}<ul>{% for item in items %}<li><a href="{% url 'consumable_detail' item.pk %}">{{ item.name }}</a>{% if item.track_stock %} – {{ item.stock }} {{ item.unit }}{% endif %}</li>{% endfor %}</ul>{% endif %}
+      {% if user.can_manage_catalog %}<p><a href="{% url 'consumable_create' %}?titel={{ title.pk }}">Verbrauchsmaterial zu diesem Titel anlegen</a></p>{% endif %}
+    {% endif %}
+  {% endwith %}
+
   <h2>Exemplare ({{ copies|length }})</h2>
   {% if copies %}
     <ul class="cards">

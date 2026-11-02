@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Nachbestellungen{% endblock %}
+{% block content %}
+  <p><a href="{% url 'consumable_list' %}">‹ Verbrauchsmaterial</a></p>
+  <h1>Nachbestellungen</h1>
+  <nav class="tabs" aria-label="Ansicht">
+    <a href="?"{% if not show_done %} aria-current="page"{% endif %}>Offen</a>
+    <a href="?erledigt=1"{% if show_done %} aria-current="page"{% endif %}>Erledigt</a>
+  </nav>
+  <ul class="cards">
+    {% for n in notices %}
+      <li class="card">
+        <a class="card-link" href="{% url 'consumable_detail' n.consumable.pk %}">
+          <span class="card-title">{{ n.consumable.name }}</span>
+          <span class="muted">{{ n.consumable.code }} · {{ n.get_reason_display }}{% if n.created_by %} von {{ n.created_by }}{% endif %}, {{ n.created_at|date:"d.m.Y" }}</span>
+          {% if n.consumable.order_info %}<span class="prewrap">{{ n.consumable.order_info }}</span>{% endif %}
+        </a>
+        <span class="card-meta">
+          <span class="badge{% if n.status == 'open' %} badge-busy{% endif %}">{{ n.get_status_display }}{% if n.handled_by %} ({{ n.handled_by }}){% endif %}</span>
+          {% if n.status == "open" %}
+            <form method="post" action="{% url 'notice_action' n.pk 'bestellt' %}">{% csrf_token %}<button class="button button-small button-primary">Bestellt</button></form>
+          {% endif %}
+          {% if n.status == "open" or n.status == "ordered" %}
+            <form method="post" action="{% url 'notice_action' n.pk 'geliefert' %}" class="search-row">{% csrf_token %}
+              {% if n.consumable.track_stock %}<label class="sr-only" for="qty-{{ n.pk }}">gelieferte Menge</label><input id="qty-{{ n.pk }}" type="number" name="quantity" min="1" placeholder="Menge" class="input-small">{% endif %}
+              <button class="button button-small">Geliefert</button>
+            </form>
+            <form method="post" action="{% url 'notice_action' n.pk 'verwerfen' %}">{% csrf_token %}<button class="button button-small">Verwerfen</button></form>
+          {% endif %}
+        </span>
+      </li>
+    {% empty %}
+      <li>{% if show_done %}Noch nichts erledigt.{% else %}Keine offenen Nachbestellungen.{% endif %}</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

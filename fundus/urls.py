@@ -16,6 +16,7 @@ urlpatterns = [
     path("", include("fundus.catalog.urls")),
     path("", include("fundus.transfer.urls")),
     path("", include("fundus.loans.urls")),
+    path("", include("fundus.supplies.urls")),
     # Coverbilder aus dem Datenverzeichnis; nur für angemeldete Personen.
     path(settings.MEDIA_URL.lstrip("/") + "<path:path>", core_views.media, name="media"),
 ]

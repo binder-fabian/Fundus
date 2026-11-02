@@ -259,6 +259,10 @@ HISTORY_MODELS = {
 
 
 def _history_model(kind):
+    if kind == "material":
+        from fundus.supplies.models import Consumable
+
+        return Consumable
     try:
         return HISTORY_MODELS[kind]
     except KeyError:

@@ -19,6 +19,7 @@ from fundus.accounts.models import User
 from fundus.catalog.models import Category, Copy, Location, SupportFocus, Team, Title
 from fundus.core.models import School
 from fundus.loans.models import Loan
+from fundus.supplies.models import Consumable, ReorderNotice
 from fundus.transfer.models import ImportTemplate
 
 EXPORT_VERSION = 1
@@ -35,6 +36,8 @@ TABLES = {
     "titel_foerderschwerpunkte": Title.support_focuses.through,
     "exemplare": Copy,
     "ausleihen": Loan,
+    "verbrauchsmaterial": Consumable,
+    "nachbestellungen": ReorderNotice,
     "benutzer": User,
     "importvorlagen": ImportTemplate,
 }
@@ -46,6 +49,7 @@ HISTORY = {
     "protokoll_standorte": Location,
     "protokoll_teams": Team,
     "protokoll_ausleihen": Loan,
+    "protokoll_verbrauchsmaterial": Consumable,
     "protokoll_benutzer": User,
 }
 NEVER_EXPORT = {"password", "search_text"}

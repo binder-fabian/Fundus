@@ -182,3 +182,53 @@ def poster_pdf(url, school_name=""):
     c.showPage()
     c.save()
     return buffer.getvalue()
+
+
+def reorder_cards_pdf(items):
+    """Nachbestellkarten im Format A6, vier je A4-Blatt (mit Schnittlinien).
+
+    Der QR-Code enthält nur die Kennung des Materials (z. B. NB-0001)."""
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=A4)
+    c.setTitle("Fundus – Nachbestellkarten")
+    w, h = PAGE_W / 2, PAGE_H / 2
+    slots = [(0, h), (w, h), (0, 0), (w, 0)]
+    for index, item in enumerate(items):
+        if index and index % 4 == 0:
+            c.showPage()
+        if index % 4 == 0:
+            c.setDash(3, 3)
+            c.setLineWidth(0.3)
+            c.line(w, 0, w, PAGE_H)
+            c.line(0, h, PAGE_W, h)
+            c.setDash()
+        x, y = slots[index % 4]
+        pad = 10 * mm
+        c.setFont("Helvetica-Bold", 16)
+        c.drawString(x + pad, y + h - pad - 6 * mm, "Nachbestellkarte")
+        c.setFont("Helvetica", 9)
+        c.drawString(
+            x + pad,
+            y + h - pad - 12 * mm,
+            "Diese Karte erreicht? Bitte scannen – dann wird nachbestellt.",
+        )
+        size = 55 * mm
+        draw_qr(c, item.code, x + (w - size) / 2, y + h - pad - 18 * mm - size, size)
+        c.setFont("Helvetica-Bold", 13)
+        cursor = y + h - pad - 26 * mm - size
+        for line in _fit_lines(item.name, "Helvetica-Bold", 13, w - 2 * pad, 2):
+            c.drawCentredString(x + w / 2, cursor, line)
+            cursor -= 16
+        c.setFont("Helvetica", 10)
+        c.drawCentredString(x + w / 2, cursor, item.code)
+        cursor -= 18
+        if item.order_info:
+            c.setFont("Helvetica", 8)
+            for line in _fit_lines(
+                item.order_info.replace("\n", " · "), "Helvetica", 8, w - 2 * pad, 3
+            ):
+                c.drawString(x + pad, cursor, line)
+                cursor -= 10
+    c.showPage()
+    c.save()
+    return buffer.getvalue()

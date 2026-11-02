@@ -95,6 +95,13 @@ class SchoolSettings(models.Model):
     request_pickup_days = models.PositiveSmallIntegerField(
         _("Genehmigte Anfragen verfallen nach … Tagen ohne Abholung"), default=14
     )
+    reorder_email = models.EmailField(
+        _("Nachbestellhinweise zusätzlich an"),
+        blank=True,
+        help_text=_(
+            "Z. B. sekretariat@meine-schule.de. Die Rolle „Sekretariat“ wird immer informiert."
+        ),
+    )
     last_reminder_run = models.DateField(
         _("Erinnerungen zuletzt verschickt am"), null=True, blank=True
     )

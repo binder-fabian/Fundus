@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Verbrauchsmaterial{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Verbrauchsmaterial</h1>
+    <div class="actions">
+      {% if user.can_handle_orders %}<a class="button" href="{% url 'reorder_list' %}">Nachbestellungen</a>{% endif %}
+      {% if user.can_manage_catalog %}<a class="button" href="{% url 'reorder_cards' %}">Nachbestellkarten</a><a class="button button-primary" href="{% url 'consumable_create' %}">Material anlegen</a>{% endif %}
+    </div>
+  </div>
+  <form method="get" class="search-row">
+    <label class="sr-only" for="q">Suche</label>
+    <input id="q" type="search" name="q" value="{{ query }}" placeholder="Bezeichnung oder Kennung">
+    <button class="button">Suchen</button>
+  </form>
+  <ul class="cards">
+    {% for item in items %}
+      <li class="card">
+        <a class="card-link" href="{% url 'consumable_detail' item.pk %}">
+          <span class="card-title">{{ item.name }}</span>
+          <span class="muted">{{ item.code }}{% if item.title %} · zu {{ item.title }}{% endif %}{% if item.location %} · {{ item.location }}{% endif %}</span>
+        </a>
+        <span class="card-meta">
+          {% if item.track_stock %}<span class="badge{% if item.below_minimum %} badge-busy{% endif %}">{{ item.stock }} {{ item.unit }}</span>{% endif %}
+          {% if item.open_notice %}<span class="badge badge-busy">{{ item.open_notice.get_status_display }}</span>{% endif %}
+        </span>
+      </li>
+    {% empty %}
+      <li>Noch kein Verbrauchsmaterial erfasst.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

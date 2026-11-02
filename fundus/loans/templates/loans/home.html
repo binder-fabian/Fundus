@@ -3,6 +3,10 @@
 {% block content %}
   {% include "loans/_scan_box.html" %}
 
+  {% if open_reorders %}
+    <p class="message message-warning"><a href="{% url 'reorder_list' %}"><strong>{{ open_reorders }}</strong> offene Nachbestellung{{ open_reorders|pluralize:"en" }}</a></p>
+  {% endif %}
+
   {% if team_requests %}
     <h1>Anfragen an mein Team</h1>
     <p class="muted">Zur Übergabe den QR-Code eines freien Exemplars scannen – dort steht dann „An … übergeben“.</p>

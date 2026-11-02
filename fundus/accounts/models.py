@@ -97,6 +97,11 @@ class User(AbstractBaseUser, PermissionsMixin):
         return self.is_admin
 
     @property
+    def can_handle_orders(self):
+        """Nachbestellhinweise sehen und abhaken: Sekretariat und Verwaltung."""
+        return self.is_active and self.role in (Role.SECRETARY, Role.MANAGER, Role.ADMIN)
+
+    @property
     def invitation_pending(self):
         """Eingeladen, aber noch kein Passwort gesetzt."""
         return not self.has_usable_password() and self.last_login is None

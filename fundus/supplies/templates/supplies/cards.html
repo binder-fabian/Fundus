@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Nachbestellkarten{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'consumable_list' %}">‹ Verbrauchsmaterial</a></p>
+    <h1>Nachbestellkarten</h1>
+    <p>Karten im Format A6, vier je A4-Blatt. Legen Sie die Karte in den Stapel an die Stelle, ab der nachbestellt werden soll. Wer sie erreicht, scannt sie – das Sekretariat bekommt Bescheid.</p>
+    <form method="post" class="form" target="_blank">{% csrf_token %}{% include "form_fields.html" %}
+      <button class="button button-primary">PDF erstellen</button>
+    </form>
+  </div>
+{% endblock %}

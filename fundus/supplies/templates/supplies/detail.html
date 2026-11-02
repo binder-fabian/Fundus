@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}{{ item.name }}{% endblock %}
+{% block content %}
+  <p><a href="{% url 'consumable_list' %}">‹ Verbrauchsmaterial</a></p>
+  <h1>{{ item.name }}</h1>
+  <p class="subtitle">{{ item.code }}{% if item.location %} · {{ item.location }}{% endif %}</p>
+
+  <section class="action-panel">
+    {% if notice %}
+      <p class="status status-busy">Nachbestellung {{ notice.get_status_display }} (gemeldet am {{ notice.created_at|date:"d.m.Y" }})</p>
+    {% else %}
+      <form method="post" action="{% url 'consumable_reorder' item.pk %}">{% csrf_token %}
+        <button class="button button-primary button-big">Nachbestellen</button>
+      </form>
+    {% endif %}
+    {% if item.track_stock %}
+      <p>Bestand: <strong>{{ item.stock }} {{ item.unit }}</strong> · Mindestmenge {{ item.min_stock }}</p>
+      <form method="post" action="{% url 'consumable_take' item.pk %}" class="search-row">{% csrf_token %}
+        <label class="sr-only" for="take-qty">Menge</label>
+        <input id="take-qty" type="number" name="quantity" value="1" min="1" class="input-small">
+        <button class="button">Entnehmen</button>
+      </form>
+      {% if user.can_manage_catalog %}
+        <form method="post" action="{% url 'consumable_restock' item.pk %}" class="search-row">{% csrf_token %}
+          <label class="sr-only" for="restock-qty">Menge</label>
+          <input id="restock-qty" type="number" name="quantity" value="1" min="1" class="input-small">
+          <button class="button">Auffüllen</button>
+        </form>
+      {% endif %}
+    {% endif %}
+  </section>
+
+  <dl class="facts">
+    {% if item.title %}<dt>Gehört zu</dt><dd><a href="{% url 'title_detail' item.title.pk %}">{{ item.title }}</a></dd>{% endif %}
+    {% if item.order_info %}<dt>Bestellhinweis</dt><dd class="prewrap">{{ item.order_info }}</dd>{% endif %}
+    {% if item.note %}<dt>Notiz</dt><dd class="prewrap">{{ item.note }}</dd>{% endif %}
+  </dl>
+  {% if user.can_manage_catalog %}
+    <div class="actions">
+      <a class="button" href="{% url 'consumable_edit' item.pk %}">Bearbeiten</a>
+      <a class="button" href="{% url 'reorder_cards' %}?material={{ item.pk }}">Nachbestellkarte</a>
+      <a class="button" href="{% url 'history' 'material' item.pk %}">Änderungen</a>
+    </div>
+  {% endif %}
+  {% if history %}
+    <h2>Nachbestellungen</h2>
+    <ul>{% for n in history %}<li>{{ n.created_at|date:"d.m.Y" }}: {{ n.get_reason_display }} – {{ n.get_status_display }}{% if n.handled_by %} ({{ n.handled_by }}){% endif %}</li>{% endfor %}</ul>
+  {% endif %}
+{% endblock %}
