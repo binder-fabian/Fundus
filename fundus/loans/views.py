@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 
 from fundus.accounts.models import User
 from fundus.accounts.permissions import require
-from fundus.catalog.models import Copy
+from fundus.catalog.models import Copy, Title
 from fundus.catalog.text import normalize
 from fundus.loans import services
 from fundus.loans.forms import LendForm, contents_check
@@ -160,6 +160,7 @@ def overview(request):
             "teacher": teacher,
             "teachers": User.objects.filter(loans__status=Loan.Status.LENT).distinct(),
             "incomplete": Copy.objects.filter(incomplete=True).select_related("title"),
+            "without_team": Title.objects.filter(approval_required=True, team__isnull=True),
             "today": today,
             "query_string": params.urlencode(),
             "counts": {

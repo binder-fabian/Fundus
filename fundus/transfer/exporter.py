@@ -16,7 +16,7 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.utils import timezone
 
 from fundus.accounts.models import User
-from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
+from fundus.catalog.models import Category, Copy, Location, SupportFocus, Team, Title
 from fundus.core.models import School
 from fundus.loans.models import Loan
 from fundus.transfer.models import ImportTemplate
@@ -29,6 +29,8 @@ TABLES = {
     "kategorien": Category,
     "foerderschwerpunkte": SupportFocus,
     "standorte": Location,
+    "teams": Team,
+    "team_mitglieder": Team.members.through,
     "titel": Title,
     "titel_foerderschwerpunkte": Title.support_focuses.through,
     "exemplare": Copy,
@@ -42,6 +44,7 @@ HISTORY = {
     "protokoll_kategorien": Category,
     "protokoll_foerderschwerpunkte": SupportFocus,
     "protokoll_standorte": Location,
+    "protokoll_teams": Team,
     "protokoll_ausleihen": Loan,
     "protokoll_benutzer": User,
 }

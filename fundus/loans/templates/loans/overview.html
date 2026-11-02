@@ -41,6 +41,12 @@
     <p>Keine Ausleihen in dieser Ansicht.</p>
   {% endif %}
 
+  {% if without_team %}
+    <h2>Freigabepflichtig, aber ohne Team ({{ without_team|length }})</h2>
+    <p class="muted">Anfragen zu diesen Titeln gehen an die Verwaltung.</p>
+    <ul>{% for t in without_team %}<li><a href="{% url 'title_edit' t.pk %}">{{ t.title }}</a></li>{% endfor %}</ul>
+  {% endif %}
+
   <h2>Unvollständige Exemplare ({{ incomplete|length }})</h2>
   {% if incomplete %}
     <ul>{% for c in incomplete %}<li><a href="{% url 'copy_detail' c.pk %}">{{ c.inventory_number }}</a> – {{ c.title.title }}</li>{% endfor %}</ul>

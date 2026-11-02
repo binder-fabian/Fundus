@@ -108,10 +108,10 @@ def test_copies_add_from_list(manager_client):
     assert list(title.copies.values_list("inventory_number", flat=True)) == ["A-1", "A-2"]
 
 
-def test_approval_required_needs_responsible_person(manager_client):
+def test_approval_required_needs_team(manager_client):
     data = title_data(CategoryFactory(), lendable="on", approval_required="on")
     response = manager_client.post(reverse("title_create"), data)
-    assert "brauchen eine zuständige Person" in response.content.decode()
+    assert "brauchen ein zuständiges Team" in response.content.decode()
 
 
 def test_cover_is_shrunk_and_served_only_after_login(manager_client, client, settings, tmp_path):

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Mein Konto{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <h1>Mein Konto</h1>
+    <p>Angemeldet als <strong>{{ user.get_full_name|default:user.email }}</strong> ({{ user.email }}), Rolle: {{ user.get_role_display }}.</p>
+
+    {% if teams %}
+      <h2>Abwesenheit</h2>
+      <p>Sie sind in {{ teams|join:", " }}. Während einer Abwesenheit bekommen die anderen im Team die Anfragen; sind alle abwesend, die Verwaltung.</p>
+      <form method="post" class="form">{% csrf_token %}
+        {% include "field.html" with field=absence.absent_until %}
+        <div class="actions">
+          <button class="button button-primary" name="abwesenheit" value="1">Speichern</button>
+          {% if user.absent_until %}<button class="button" name="abwesenheit_loeschen" value="1" formnovalidate>Abwesenheit löschen</button>{% endif %}
+        </div>
+      </form>
+    {% endif %}
+
+    <h2>Passwort ändern</h2>
+    <form method="post" class="form">{% csrf_token %}
+      {% include "form_fields.html" %}
+      <button class="button button-primary button-block" name="passwort" value="1">Passwort ändern</button>
+    </form>
+  </div>
+{% endblock %}

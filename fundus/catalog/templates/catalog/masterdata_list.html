@@ -16,6 +16,7 @@
             <td><a href="{% url 'masterdata_edit' kind o.pk %}">{{ o }}</a></td>
             {% if kind == "kategorien" %}<td>Ausleihfrist {{ o.default_loan_days }} Tage</td><td>{% if o.number_prefix %}Nummern {{ o.number_prefix }}…{% else %}<span class="muted">allgemeines Präfix</span>{% endif %}</td>{% endif %}
             {% if kind == "standorte" %}<td class="muted">{{ o.note }}</td>{% endif %}
+            {% if kind == "teams" %}<td>{{ o.member_names|default:"– keine Mitglieder –" }}</td>{% endif %}
             <td><a href="{% url 'history' history_kind o.pk %}">Änderungen</a></td>
           </tr>
         {% empty %}

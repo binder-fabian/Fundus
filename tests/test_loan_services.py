@@ -7,7 +7,14 @@ from fundus.accounts.models import Role
 from fundus.loans import services
 from fundus.loans.models import Loan
 from fundus.loans.services import LoanError
-from tests.factories import CategoryFactory, CopyFactory, LoanFactory, TitleFactory, UserFactory
+from tests.factories import (
+    CategoryFactory,
+    CopyFactory,
+    LoanFactory,
+    TitleFactory,
+    UserFactory,
+    team_of,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -60,8 +67,8 @@ def test_manager_lends_for_teacher(manager, teacher):
 
 def test_approval_required_blocks_teacher_but_not_responsible(teacher):
     responsible = UserFactory(first_name="Petra", last_name="Test")
-    copy = lendable_copy(approval_required=True, responsible=responsible)
-    with pytest.raises(LoanError, match="Petra Test"):
+    copy = lendable_copy(approval_required=True, team=team_of(responsible, name="Petras Team"))
+    with pytest.raises(LoanError, match="Petras Team"):
         services.lend(copy, by=teacher)
     loan = services.lend(copy, by=responsible, borrower=teacher)
     assert loan.handed_over_by == responsible
@@ -85,10 +92,10 @@ def test_anyone_can_return_normal_titles(teacher, manager):
 
 def test_approval_required_only_responsible_or_management_returns(teacher, manager):
     responsible = UserFactory(first_name="Petra", last_name="Test")
-    copy = lendable_copy(approval_required=True, responsible=responsible)
+    copy = lendable_copy(approval_required=True, team=team_of(responsible, name="Petras Team"))
     services.lend(copy, by=responsible, borrower=teacher)
     for person in (teacher, UserFactory()):
-        with pytest.raises(LoanError, match="Petra Test"):
+        with pytest.raises(LoanError, match="Petras Team"):
             services.return_copy(copy, by=person)
     services.return_copy(copy, by=responsible)
     services.lend(copy, by=responsible, borrower=teacher)
@@ -133,7 +140,7 @@ def test_extend_blocked_by_pending_request_or_other_person(teacher):
 
 def test_borrower_visibility(teacher, manager):
     responsible = UserFactory()
-    title = TitleFactory(responsible=responsible)
+    title = TitleFactory(team=team_of(responsible))
     assert services.can_see_borrower(manager, title)
     assert services.can_see_borrower(responsible, title)
     assert not services.can_see_borrower(teacher, title)

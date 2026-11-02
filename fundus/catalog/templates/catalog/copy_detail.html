@@ -17,7 +17,7 @@
           {% if loan.borrower_id == user.pk %}<br>von Ihnen{% elif show_borrower %}<br>bei {{ loan.borrower_display }}{% endif %}
         </p>
         {% if not can_return %}
-          <p class="message message-warning">Freigabepflichtig: Zurückbuchen bitte über {{ copy.title.responsible|default:copy.title.deputy|default:"die Verwaltung" }}.</p>
+          <p class="message message-warning">Freigabepflichtig: Zurückbuchen bitte über {{ copy.title.team|default:"die Verwaltung" }}.</p>
         {% endif %}
         {% if can_return %}
           <form method="post" action="{% url 'give_back' copy.pk %}" class="form">{% csrf_token %}
@@ -41,7 +41,7 @@
         {% endif %}
       {% elif lend_blocked %}
         <p class="status status-ok">Verfügbar</p>
-        <p class="message message-warning">Freigabepflichtig: Bitte an {{ copy.title.responsible|default:copy.title.deputy|default:"die Verwaltung" }} wenden.</p>
+        <p class="message message-warning">Freigabepflichtig: Bitte an {{ copy.title.team|default:"die Verwaltung" }} wenden.</p>
       {% else %}
         <p class="status status-ok">Verfügbar</p>
         <form method="post" action="{% url 'lend' copy.pk %}" class="form">{% csrf_token %}

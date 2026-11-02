@@ -2,7 +2,7 @@ import factory
 from django.utils import timezone
 
 from fundus.accounts.models import Role, User
-from fundus.catalog.models import Category, Copy, Location, Title
+from fundus.catalog.models import Category, Copy, Location, Team, Title
 from fundus.core.models import School, default_school_id
 from fundus.loans.models import Loan
 
@@ -36,6 +36,24 @@ class CategoryFactory(factory.django.DjangoModelFactory):
     school = factory.LazyFunction(default_school)
     name = factory.Sequence(lambda n: f"Kategorie {n}")
     default_loan_days = 14
+
+
+class TeamFactory(factory.django.DjangoModelFactory):
+    class Meta:
+        model = Team
+        skip_postgeneration_save = True
+
+    school = factory.LazyFunction(default_school)
+    name = factory.Sequence(lambda n: f"Team {n}")
+
+    @factory.post_generation
+    def members(self, create, extracted, **kwargs):
+        if create and extracted:
+            self.members.set(extracted)
+
+
+def team_of(*people, name=None):
+    return TeamFactory(members=list(people), **({"name": name} if name else {}))
 
 
 class LocationFactory(factory.django.DjangoModelFactory):

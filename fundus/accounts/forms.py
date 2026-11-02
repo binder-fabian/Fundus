@@ -87,3 +87,10 @@ class TeacherImportForm(forms.Form):
         if upload.size > self.MAX_SIZE:
             raise forms.ValidationError(_("Die Datei ist zu groß (höchstens 1 MB)."))
         return upload
+
+
+class AbsenceForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ["absent_until"]
+        widgets = {"absent_until": forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d")}

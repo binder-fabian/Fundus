@@ -23,7 +23,17 @@ class LoanError(Exception):
 
 
 def is_responsible(user, title):
-    return user.is_authenticated and user.pk in (title.responsible_id, title.deputy_id)
+    """Mitglied des zuständigen Teams (auch bei Abwesenheit)."""
+    return (
+        user.is_authenticated
+        and title.team_id is not None
+        and title.team.members.filter(pk=user.pk).exists()
+    )
+
+
+def contact_for(title):
+    """Wen Lehrkräfte bei freigabepflichtigen Titeln ansprechen."""
+    return title.team or _("die Verwaltung")
 
 
 def can_lend_for_others(user, title):
@@ -72,12 +82,7 @@ def lend(copy, by, borrower=None, due_date=None):
     if borrower != by and not can_lend_for_others(by, title):
         raise LoanError(_("Sie können nur für sich selbst ausleihen."))
     if title.approval_required and not can_lend_for_others(by, title):
-        contact = title.responsible or title.deputy
-        raise LoanError(
-            _("Freigabepflichtig: Bitte an %(p)s wenden.") % {"p": contact}
-            if contact
-            else _("Freigabepflichtig: Bitte an die Verwaltung wenden.")
-        )
+        raise LoanError(_("Freigabepflichtig: Bitte an %(p)s wenden.") % {"p": contact_for(title)})
 
     today = timezone.localdate()
     due_date = due_date or default_due_date(copy, today)
@@ -109,11 +114,9 @@ def return_copy(copy, by, complete=None, missing=()):
     if loan is None:
         raise LoanError(_("Dieses Exemplar ist nicht ausgeliehen."))
     if not can_return(by, loan):
-        contact = loan.copy.title.responsible or loan.copy.title.deputy
         raise LoanError(
-            _("Freigabepflichtig: Zurückbuchen bitte über %(p)s.") % {"p": contact}
-            if contact
-            else _("Freigabepflichtig: Zurückbuchen bitte über die Verwaltung.")
+            _("Freigabepflichtig: Zurückbuchen bitte über %(p)s.")
+            % {"p": contact_for(loan.copy.title)}
         )
 
     loan.status = Loan.Status.RETURNED

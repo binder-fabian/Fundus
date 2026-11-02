@@ -56,6 +56,12 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(_("aktiv"), default=True)
     is_staff = models.BooleanField(_("Zugang zur Admin-Oberfläche"), default=False)
     date_joined = models.DateTimeField(_("angelegt am"), default=timezone.now)
+    absent_until = models.DateField(
+        _("abwesend bis einschließlich"),
+        null=True,
+        blank=True,
+        help_text=_("In dieser Zeit gehen Anfragen an die anderen im Team."),
+    )
 
     objects = UserManager()
     history = HistoricalRecords(excluded_fields=["password", "last_login"])

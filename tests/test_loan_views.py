@@ -7,7 +7,14 @@ from django.utils import timezone
 from fundus.accounts.models import Role
 from fundus.catalog.models import Copy
 from fundus.loans.models import Loan
-from tests.factories import CategoryFactory, CopyFactory, LoanFactory, TitleFactory, UserFactory
+from tests.factories import (
+    CategoryFactory,
+    CopyFactory,
+    LoanFactory,
+    TitleFactory,
+    UserFactory,
+    team_of,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -69,7 +76,7 @@ def test_other_teacher_sees_no_name_but_can_return(client, teacher):
 
 
 def test_teacher_cannot_return_approval_required_title(client, teacher):
-    copy = copy_with(approval_required=True, responsible=UserFactory())
+    copy = copy_with(approval_required=True, team=team_of(UserFactory()))
     LoanFactory(copy=copy, borrower=teacher)
     page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
     assert "Zurückgeben</button>" not in page and "Zurückbuchen bitte über" in page
@@ -98,11 +105,9 @@ def test_teacher_cannot_smuggle_borrower(client, teacher):
 
 
 def test_approval_required_shows_contact(client, teacher):
-    copy = copy_with(
-        approval_required=True, responsible=UserFactory(first_name="Zora", last_name="Z")
-    )
+    copy = copy_with(approval_required=True, team=team_of(UserFactory(), name="Zoras Team"))
     page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
-    assert "Freigabepflichtig: Bitte an Zora Z wenden" in page
+    assert "Freigabepflichtig: Bitte an Zoras Team wenden" in page
     assert "Ausleihen</button>" not in page
 
 

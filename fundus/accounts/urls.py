@@ -22,6 +22,7 @@ urlpatterns = [
         auth_views.PasswordResetCompleteView.as_view(),
         name="password_reset_complete",
     ),
+    path("konto/", views.account, name="account"),
     path(
         "passwort-aendern/",
         auth_views.PasswordChangeView.as_view(success_url=reverse_lazy("password_change_done")),

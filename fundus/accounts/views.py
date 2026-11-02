@@ -1,5 +1,7 @@
 from django.conf import settings
 from django.contrib import messages
+from django.contrib.auth import forms as auth_forms
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
 from django.db import transaction
 from django.shortcuts import get_object_or_404, redirect, render
@@ -10,6 +12,7 @@ from django.views.decorators.http import require_POST
 from fundus.accounts import teacher_import
 from fundus.accounts.emails import send_invitation
 from fundus.accounts.forms import (
+    AbsenceForm,
     InvitationAwarePasswordResetForm,
     InviteUserForm,
     LoginForm,
@@ -166,3 +169,37 @@ def teacher_import_confirm(request):
             _("%(n)d Einladungen konnten nicht verschickt werden.") % {"n": failed},
         )
     return redirect("user_list")
+
+
+def account(request):
+    """Mein Konto: Abwesenheit eintragen und Passwort ändern."""
+    absence = AbsenceForm(
+        request.POST if "abwesenheit" in request.POST else None, instance=request.user
+    )
+    password = auth_forms.PasswordChangeForm(
+        request.user, request.POST if "passwort" in request.POST else None
+    )
+    if request.method == "POST":
+        if "abwesenheit_loeschen" in request.POST:
+            request.user.absent_until = None
+            request.user.save(update_fields=["absent_until"])
+            messages.success(request, _("Abwesenheit gelöscht."))
+            return redirect("account")
+        if "abwesenheit" in request.POST and absence.is_valid():
+            absence.save()
+            messages.success(request, _("Abwesenheit gespeichert."))
+            return redirect("account")
+        if "passwort" in request.POST and password.is_valid():
+            user = password.save()
+            update_session_auth_hash(request, user)
+            messages.success(request, _("Passwort geändert."))
+            return redirect("account")
+    return render(
+        request,
+        "accounts/account.html",
+        {
+            "absence": absence,
+            "form": password,
+            "teams": request.user.teams.all(),
+        },
+    )

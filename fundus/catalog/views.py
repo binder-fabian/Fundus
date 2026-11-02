@@ -20,12 +20,13 @@ from fundus.catalog.forms import (
     CopyForm,
     LocationForm,
     SupportFocusForm,
+    TeamForm,
     TitleForm,
     shrink_cover,
 )
 from fundus.catalog.history import history_entries
 from fundus.catalog.isbn import validate_isbn
-from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
+from fundus.catalog.models import Category, Copy, Location, SupportFocus, Team, Title
 from fundus.catalog.search import exact_copy, outdated_before_year, search_titles
 from fundus.core.models import SchoolSettings
 
@@ -58,9 +59,7 @@ def title_list(request):
 
 def title_detail(request, pk):
     title = get_object_or_404(
-        Title.objects.select_related("category", "responsible", "deputy").prefetch_related(
-            "support_focuses"
-        ),
+        Title.objects.select_related("category", "team").prefetch_related("support_focuses"),
         pk=pk,
     )
     copies = (
@@ -246,6 +245,7 @@ HISTORY_MODELS = {
     "kategorie": Category,
     "foerderschwerpunkt": SupportFocus,
     "standort": Location,
+    "team": Team,
 }
 
 
@@ -305,6 +305,7 @@ MASTERDATA = {
         "foerderschwerpunkt",
     ),
     "standorte": (Location, LocationForm, _("Standorte"), _("Standort"), "standort"),
+    "teams": (Team, TeamForm, _("Teams"), _("Team"), "team"),
 }
 
 

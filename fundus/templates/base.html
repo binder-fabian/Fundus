@@ -23,7 +23,7 @@
         {% if user.can_manage_users %}<a href="{% url 'user_list' %}">{% translate "Benutzer" %}</a>{% endif %}
         {% if user.is_admin %}<a href="{% url 'import_upload' %}">{% translate "Import/Export" %}</a>
         <a href="{% url 'school_settings' %}">{% translate "Einstellungen" %}</a>{% endif %}
-        <a href="{% url 'password_change' %}" title="{{ user.email }}">{% translate "Konto" %}</a>
+        <a href="{% url 'account' %}" title="{{ user.email }}">{% translate "Konto" %}</a>
         <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="linklike">{% translate "Abmelden" %}</button></form>
       </nav>
     {% endif %}

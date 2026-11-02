@@ -10,7 +10,7 @@ from PIL import Image, ImageOps
 
 from fundus.accounts.models import User
 from fundus.catalog import isbn_lookup, numbering
-from fundus.catalog.models import Category, Copy, Location, SupportFocus, Title
+from fundus.catalog.models import Category, Copy, Location, SupportFocus, Team, Title
 
 COVER_MAX_SIZE = (600, 600)
 
@@ -32,13 +32,6 @@ class PersonChoiceField(forms.ModelChoiceField):
 
 
 class TitleForm(forms.ModelForm):
-    responsible = PersonChoiceField(
-        queryset=User.objects.filter(is_active=True), required=False, label=_("zuständige Person")
-    )
-    deputy = PersonChoiceField(
-        queryset=User.objects.filter(is_active=True), required=False, label=_("Vertretung")
-    )
-
     cover_url = forms.CharField(required=False, widget=forms.HiddenInput)
 
     class Meta:
@@ -58,8 +51,7 @@ class TitleForm(forms.ModelForm):
             "contents",
             "lendable",
             "approval_required",
-            "responsible",
-            "deputy",
+            "team",
         ]
         widgets = {
             "support_focuses": forms.CheckboxSelectMultiple,
@@ -75,10 +67,8 @@ class TitleForm(forms.ModelForm):
                 self.add_error(
                     "approval_required", _("Freigabepflichtige Titel müssen ausleihbar sein.")
                 )
-            if not cleaned.get("responsible"):
-                self.add_error(
-                    "responsible", _("Freigabepflichtige Titel brauchen eine zuständige Person.")
-                )
+            if not cleaned.get("team"):
+                self.add_error("team", _("Freigabepflichtige Titel brauchen ein zuständiges Team."))
         return cleaned
 
     def save(self, commit=True):
@@ -255,6 +245,23 @@ class SupportFocusForm(UniqueNameMixin, forms.ModelForm):
     class Meta:
         model = SupportFocus
         fields = ["name"]
+
+
+class TeamForm(UniqueNameMixin, forms.ModelForm):
+    members = forms.ModelMultipleChoiceField(
+        queryset=User.objects.filter(is_active=True).order_by("last_name", "first_name"),
+        widget=forms.CheckboxSelectMultiple,
+        required=False,
+        label=_("Mitglieder"),
+    )
+
+    class Meta:
+        model = Team
+        fields = ["name", "members"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["members"].label_from_instance = lambda u: u.get_full_name() or u.email
 
 
 class LocationForm(forms.ModelForm):

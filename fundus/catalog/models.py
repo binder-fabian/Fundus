@@ -64,6 +64,37 @@ class SupportFocus(SchoolScopedModel):
         return self.name
 
 
+class Team(SchoolScopedModel):
+    """Zuständig für Titel, z. B. „Diagnostik-Team“. Alle Mitglieder haben die
+    Rechte der zuständigen Person und vertreten sich gegenseitig."""
+
+    name = models.CharField(_("Name"), max_length=100)
+    members = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name="teams", verbose_name=_("Mitglieder")
+    )
+
+    history = HistoricalRecords(m2m_fields=[members])
+
+    class Meta:
+        verbose_name = _("Team")
+        verbose_name_plural = _("Teams")
+        ordering = ["name"]
+        constraints = [
+            models.UniqueConstraint(fields=["school", "name"], name="team_unique_name"),
+        ]
+
+    def __str__(self):
+        return self.name
+
+    def member_names(self):
+        return ", ".join(str(m) for m in self.members.filter(is_active=True))
+
+    def available_members(self, today=None):
+        """Aktive Mitglieder, die nicht als abwesend eingetragen sind."""
+        today = today or timezone.localdate()
+        return self.members.filter(is_active=True).exclude(absent_until__gte=today)
+
+
 class Location(SchoolScopedModel):
     room = models.CharField(_("Raum"), max_length=100)
     shelf = models.CharField(_("Regal/Fach"), max_length=100, blank=True)
@@ -120,21 +151,14 @@ class Title(SchoolScopedModel):
         default=False,
         help_text=_("Ausleihe nur nach Freigabe und Übergabe durch die zuständige Person."),
     )
-    responsible = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
+    team = models.ForeignKey(
+        Team,
+        on_delete=models.PROTECT,
         null=True,
         blank=True,
-        related_name="responsible_titles",
-        verbose_name=_("zuständige Person"),
-    )
-    deputy = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="deputy_titles",
-        verbose_name=_("Vertretung"),
+        related_name="titles",
+        verbose_name=_("zuständiges Team"),
+        help_text=_("Genehmigt Anfragen und übergibt freigabepflichtige Titel."),
     )
     # Normalisierter Text für die Suche, wird beim Speichern gesetzt.
     search_text = models.TextField(editable=False, default="")
