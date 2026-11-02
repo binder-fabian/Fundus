@@ -101,7 +101,7 @@ def test_scheduler_runs_once_per_day_after_hour(settings):
 
 def test_send_reminders_command(capsys):
     call_command("send_reminders")
-    assert "Erinnerungen:" in capsys.readouterr().out
+    assert "Erinnerungen vor Ablauf" in capsys.readouterr().out
 
 
 def test_scheduler_writes_heartbeat(settings, tmp_path):

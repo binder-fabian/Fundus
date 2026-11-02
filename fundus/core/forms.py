@@ -25,6 +25,8 @@ class SchoolSettingsForm(forms.ModelForm):
             "request_reminder_days",
             "request_pickup_days",
             "reorder_email",
+            "anonymize_after_days",
+            "history_names_days",
             "label_offset_x",
             "label_offset_y",
         ]

@@ -14,5 +14,9 @@
       {% endfor %}
       <div class="actions"><button class="button button-primary">Speichern</button></div>
     </form>
+    <form method="post" action="{% url 'privacy_run_now' %}" class="form">{% csrf_token %}
+      <p class="help">Die Fristen werden einmal täglich angewendet. Nach dem Speichern geänderter Fristen können Sie die Bereinigung auch sofort starten.</p>
+      <button class="button">Datenschutz-Bereinigung jetzt ausführen</button>
+    </form>
   </div>
 {% endblock %}

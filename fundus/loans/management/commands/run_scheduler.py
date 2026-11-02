@@ -8,14 +8,14 @@ from django.core.management.base import BaseCommand
 from django.db import close_old_connections
 from django.utils import timezone
 
+from fundus.core.daily import describe, run_daily
 from fundus.core.models import SchoolSettings
-from fundus.loans.reminders import send_reminders
 
 
 class Command(BaseCommand):
     help = (
-        "Läuft dauerhaft und verschickt einmal täglich ab REMINDER_HOUR (Standard 7 Uhr) die "
-        "Erinnerungen. Für den Container-Dienst „scheduler“."
+        "Läuft dauerhaft und erledigt einmal täglich ab REMINDER_HOUR (Standard 7 Uhr) die "
+        "täglichen Aufgaben (siehe daily_tasks). Für den Container-Dienst „scheduler“."
     )
 
     def add_arguments(self, parser):
@@ -43,8 +43,7 @@ class Command(BaseCommand):
             return False
         if SchoolSettings.current().last_reminder_run == now.date():
             return False
-        counts = send_reminders(now.date())
-        self.stdout.write(f"{now:%d.%m.%Y %H:%M} Erinnerungen verschickt: {counts}")
+        self.stdout.write(f"{now:%d.%m.%Y %H:%M} {describe(run_daily(now.date()))}")
         return True
 
     def heartbeat(self):

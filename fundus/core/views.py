@@ -4,10 +4,14 @@ from django.contrib.auth.decorators import login_not_required
 from django.db import DatabaseError, connection
 from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import timezone
 from django.views.decorators.cache import never_cache
+from django.views.decorators.http import require_POST
 from django.views.static import serve
 
 from fundus.accounts.permissions import require
+from fundus.core import privacy
+from fundus.core.daily import describe
 from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
 
@@ -81,6 +85,34 @@ def school_settings(request):
             else "Achtung: Es gibt noch kein Konto mit der Rolle „Sekretariat“ und keine "
             "Adresse für Nachbestellungen. Hinweise gehen deshalb an die Verwaltung.",
         ),
+        (
+            "Datenschutz",
+            [form["anonymize_after_days"], form["history_names_days"]],
+            privacy_note(form.instance),
+        ),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})
+
+
+def privacy_note(config):
+    due = privacy.loans_due(config=config).count()
+    last = config.last_privacy_run
+    text = (
+        f"Beim nächsten täglichen Lauf werden {due} Ausleihen anonymisiert. "
+        if due
+        else "Zurzeit ist keine Ausleihe zur Anonymisierung fällig. "
+    )
+    if last:
+        text += f"Letzte Bereinigung: {timezone.localtime(last):%d.%m.%Y %H:%M}."
+    else:
+        text += "Bisher lief noch keine Bereinigung."
+    return text
+
+
+@require("is_admin")
+@require_POST
+def privacy_run_now(request):
+    counts = privacy.run()
+    messages.success(request, "Bereinigung erledigt. " + describe(counts) + ".")
+    return redirect("school_settings")

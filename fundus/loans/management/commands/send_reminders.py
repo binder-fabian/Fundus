@@ -1,16 +1,5 @@
-from django.core.management.base import BaseCommand
-
-from fundus.loans.reminders import send_reminders
+from fundus.core.management.commands.daily_tasks import Command as DailyTasks
 
 
-class Command(BaseCommand):
-    help = "Verschickt fällige E-Mail-Erinnerungen (einmal täglich aufrufen, z. B. per Cron)."
-
-    def handle(self, *args, **options):
-        counts = send_reminders()
-        self.stdout.write(
-            f"Erinnerungen: {counts['vorher']} vor Ablauf, {counts['ueberfaellig']} überfällig, "
-            f"{counts['verwaltung']} an die Verwaltung gemeldet; "
-            f"{counts['anfrage_erinnert']} Anfragen beim Team angemahnt, "
-            f"{counts['verfallen']} Genehmigungen verfallen."
-        )
+class Command(DailyTasks):
+    help = "Alter Name für „daily_tasks“ (bleibt, damit bestehende Cron-Einträge weiterlaufen)."

@@ -4,6 +4,7 @@ from django.urls import reverse
 from fundus.accounts.models import Role
 from fundus.catalog import numbering
 from fundus.catalog.models import Copy
+from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
 from tests.factories import CategoryFactory, CopyFactory, TitleFactory, UserFactory
 
@@ -63,6 +64,20 @@ def test_automatic_and_own_numbers_are_exclusive(client):
     assert not Copy.objects.filter(title=title).exists()
 
 
+def settings_data(**changes):
+    """Alle Felder der Einstellungsseite mit ihren aktuellen Werten, plus Änderungen."""
+    form = SchoolSettingsForm(instance=SchoolSettings.current())
+    data = {}
+    for name, field in form.fields.items():
+        value = form.initial.get(name, field.initial)
+        if isinstance(value, bool):
+            value = "on" if value else ""
+        data[name] = "" if value is None else value
+    data.setdefault("school_name", "Schule")
+    data.update(changes)
+    return data
+
+
 def test_settings_page_is_admin_only_and_saves(client):
     client.force_login(UserFactory(role=Role.MANAGER))
     assert client.get(reverse("school_settings")).status_code == 403
@@ -72,22 +87,16 @@ def test_settings_page_is_admin_only_and_saves(client):
     assert "Nächste Nummer mit dem allgemeinen Präfix: FS-0001" in page
     response = client.post(
         reverse("school_settings"),
-        {
-            "school_name": "Musterschule",
-            "number_prefix": "B-",
-            "number_digits": "5",
-            "next_number": "20",
-            "outdated_norm_years": "8",
-            "isbn_lookup_enabled": "",
-            "reminders_enabled": "on",
-            "reminder_days_before": "1",
-            "overdue_notice_days": "3",
-            "escalate_days": "14",
-            "request_reminder_days": "3",
-            "request_pickup_days": "14",
-            "label_offset_x": "0.5",
-            "label_offset_y": "-1",
-        },
+        settings_data(
+            school_name="Musterschule",
+            number_prefix="B-",
+            number_digits="5",
+            next_number="20",
+            outdated_norm_years="8",
+            isbn_lookup_enabled="",
+            label_offset_x="0.5",
+            label_offset_y="-1",
+        ),
     )
     assert response.status_code == 302
     s = SchoolSettings.current()

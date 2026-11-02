@@ -58,6 +58,7 @@ def _send_reminders(today):
     if not config.reminders_enabled:
         # Anfragen verfallen trotzdem; nur die Erinnerungen entfallen.
         counts.update(daily_request_tasks(today))
+        SchoolSettings.objects.filter(pk=config.pk).update(last_reminder_run=today)
         return counts
     now = timezone.now()
 
@@ -112,6 +113,5 @@ def _send_reminders(today):
 
     counts.update(daily_request_tasks(today))
 
-    config.last_reminder_run = today
-    config.save(update_fields=["last_reminder_run"])
+    SchoolSettings.objects.filter(pk=config.pk).update(last_reminder_run=today)
     return counts

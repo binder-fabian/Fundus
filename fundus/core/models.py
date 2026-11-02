@@ -102,6 +102,22 @@ class SchoolSettings(models.Model):
             "Z. B. sekretariat@meine-schule.de. Die Rolle „Sekretariat“ wird immer informiert."
         ),
     )
+    anonymize_after_days = models.PositiveSmallIntegerField(
+        _("Namen aus abgeschlossenen Ausleihen entfernen nach … Tagen"),
+        default=365,
+        help_text=_(
+            "Gilt für zurückgegebene, abgelehnte, zurückgezogene und verfallene Vorgänge. "
+            "Datum, Titel und Exemplar bleiben für die Statistik."
+        ),
+    )
+    history_names_days = models.PositiveSmallIntegerField(
+        _("Im Änderungsprotokoll „wer“ entfernen nach … Tagen"),
+        default=365,
+        help_text=_("Was geändert wurde, bleibt; nur der Name der ändernden Person wird entfernt."),
+    )
+    last_privacy_run = models.DateTimeField(
+        _("Datenschutz-Bereinigung zuletzt am"), null=True, blank=True
+    )
     last_reminder_run = models.DateField(
         _("Erinnerungen zuletzt verschickt am"), null=True, blank=True
     )
