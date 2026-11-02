@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Scannen{% endblock %}
+{% block content %}
+  <div id="scanner" class="scanner" data-mode="{{ mode }}" data-target="{{ target }}"
+       data-wasm="{% static 'vendor/zxing-wasm-3.1.3-reader.wasm' %}">
+    <h1>{% if mode == "isbn" %}ISBN scannen{% else %}QR-Code scannen{% endif %}</h1>
+    <div class="scanner-view">
+      <video playsinline muted aria-label="Kamerabild"></video>
+      <div class="scanner-frame" aria-hidden="true"></div>
+    </div>
+    <p data-status role="status" class="scanner-status">Kamera wird vorbereitet …</p>
+    <button type="button" class="button button-primary button-big" data-start hidden>Kamera starten</button>
+
+    {% if mode == "isbn" %}
+      <p><a href="{{ back }}">Ohne Kamera weiter</a></p>
+    {% else %}
+      <form method="get" action="{% url 'scan_lookup' %}" class="search-row">
+        <label class="sr-only" for="scan-number">Inventarnummer</label>
+        <input id="scan-number" type="text" name="nummer" placeholder="oder Inventarnummer eintippen" autocomplete="off">
+        <button class="button">Öffnen</button>
+      </form>
+    {% endif %}
+  </div>
+  <script src="{% static 'vendor/barcode-detector-3.2.2.ponyfill.js' %}"></script>
+  <script src="{% static 'fundus/scanner.js' %}"></script>
+{% endblock %}

@@ -2,6 +2,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
@@ -169,3 +170,19 @@ def overview(request):
             },
         },
     )
+
+
+def _safe_local_path(value, default):
+    return value if value.startswith("/") and not value.startswith("//") else default
+
+
+def scanner(request):
+    """Kamera-Scanner. ?ziel=isbn&zurueck=/pfad/ liefert eine ISBN an ein Formular zurück."""
+    mode = "isbn" if request.GET.get("ziel") == "isbn" else "exemplar"
+    if mode == "isbn":
+        back = _safe_local_path(request.GET.get("zurueck", ""), reverse("title_create"))
+        target = f"{back}{'&' if '?' in back else '?'}isbn=__CODE__"
+    else:
+        back = reverse("home")
+        target = reverse("scan", args=["__CODE__"])
+    return render(request, "loans/scanner.html", {"mode": mode, "target": target, "back": back})

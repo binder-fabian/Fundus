@@ -3,6 +3,7 @@ from django.urls import path
 from fundus.loans import views
 
 urlpatterns = [
+    path("scannen/", views.scanner, name="scanner"),
     path("s/", views.scan, name="scan_lookup"),
     path("s/<str:number>", views.scan, name="scan"),
     path("exemplar/<int:pk>/ausleihen/", views.lend, name="lend"),
