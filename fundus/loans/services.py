@@ -82,7 +82,6 @@ def default_due_date(copy, today=None):
     return copy.title.default_due_date(today or timezone.localdate())
 
 
-@transaction.atomic
 def anonymous_mode():
     return SchoolSettings.current().anonymous_lending
 
@@ -94,6 +93,7 @@ def clean_label(label):
     return label[:100]
 
 
+@transaction.atomic
 def lend(copy, by, borrower=None, due_date=None, label=""):
     """Leiht ein Exemplar aus – für `borrower` (Standard: `by`) oder, im Modus
     ohne Namen, für eine Klasse bzw. einen Raum (`label`)."""

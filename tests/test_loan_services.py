@@ -151,3 +151,14 @@ def test_is_overdue():
     assert loan.is_overdue
     loan.due_date = timezone.localdate()
     assert not loan.is_overdue
+
+
+@pytest.mark.django_db(transaction=True)
+def test_operations_run_in_their_own_transaction():
+    """Ohne umgebende Test-Transaktion: select_for_update braucht in PostgreSQL
+    eine Transaktion, die die Funktionen selbst öffnen müssen."""
+    teacher = UserFactory()
+    copy = CopyFactory()
+    loan = services.lend(copy, by=teacher)
+    services.extend(loan, by=teacher)
+    services.return_copy(copy, by=teacher)
