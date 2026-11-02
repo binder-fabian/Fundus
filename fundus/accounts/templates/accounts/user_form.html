@@ -10,7 +10,8 @@
       </div>
     </form>
     {% if not is_new %}
-      <p class="help">Konten werden nicht gelöscht, sondern deaktiviert. So bleiben vergangene Ausleihen nachvollziehbar, bis sie nach der Löschfrist anonymisiert werden.</p>
+      <p class="help">Wer die Schule nur vorübergehend verlässt, wird am besten <strong>deaktiviert</strong> (Haken bei „aktiv“ entfernen). Dann bleiben vergangene Ausleihen bis zur Löschfrist nachvollziehbar.</p>
+      <p><a class="button button-danger" href="{% url 'user_delete' edited.pk %}">Konto löschen …</a></p>
     {% endif %}
   </div>
 {% endblock %}

@@ -17,6 +17,10 @@
       </form>
     {% endif %}
 
+    <h2>Meine Daten</h2>
+    <p>Laden Sie alles herunter, was Fundus über Sie gespeichert hat: Konto, Teams, Ausleihen und Anfragen, Nachbestellungen und Ihre Einträge im Änderungsprotokoll.</p>
+    <p><a class="button" href="{% url 'my_data' %}">Meine Daten herunterladen (ZIP)</a></p>
+
     <h2>Passwort ändern</h2>
     <form method="post" class="form">{% csrf_token %}
       {% include "form_fields.html" %}

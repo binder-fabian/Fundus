@@ -23,6 +23,7 @@ urlpatterns = [
         name="password_reset_complete",
     ),
     path("konto/", views.account, name="account"),
+    path("konto/meine-daten.zip", views.my_data, name="my_data"),
     path(
         "passwort-aendern/",
         auth_views.PasswordChangeView.as_view(success_url=reverse_lazy("password_change_done")),
@@ -48,4 +49,5 @@ urlpatterns = [
     ),
     path("benutzer/<int:pk>/", views.user_edit, name="user_edit"),
     path("benutzer/<int:pk>/einladen/", views.user_invite, name="user_invite"),
+    path("benutzer/<int:pk>/loeschen/", views.user_delete, name="user_delete"),
 ]

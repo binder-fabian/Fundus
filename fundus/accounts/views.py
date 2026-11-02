@@ -4,12 +4,13 @@ from django.contrib.auth import forms as auth_forms
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth import views as auth_views
 from django.db import transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from fundus.accounts import teacher_import
+from fundus.accounts import personal_data, teacher_import
 from fundus.accounts.emails import send_invitation
 from fundus.accounts.forms import (
     AbsenceForm,
@@ -111,6 +112,32 @@ def user_invite(request, pk):
     return redirect("user_list")
 
 
+@require("can_manage_users")
+def user_delete(request, pk):
+    """Konto endgültig löschen; Ausleihen der Person werden dabei anonymisiert."""
+    from fundus.loans.models import Loan
+
+    user = get_object_or_404(User, pk=pk)
+    blockers = personal_data.deletion_blockers(user, request.user)
+    if request.method == "POST" and not blockers:
+        name = personal_data.delete_account(user, by=request.user)
+        messages.success(request, _("Das Konto von %(name)s wurde gelöscht.") % {"name": name})
+        return redirect("user_list")
+    return render(
+        request,
+        "accounts/user_delete.html",
+        {
+            "edited": user,
+            "blockers": blockers,
+            "loan_count": Loan.objects.filter(borrower=user, anonymized_at__isnull=True).count(),
+            "open_requests": Loan.objects.filter(
+                borrower=user, status__in=Loan.OPEN_REQUEST
+            ).count(),
+            "teams": user.teams.all(),
+        },
+    )
+
+
 SESSION_KEY = "teacher_import_rows"
 
 
@@ -203,3 +230,12 @@ def account(request):
             "teams": request.user.teams.all(),
         },
     )
+
+
+def my_data(request):
+    """Auskunft: alles, was Fundus über die angemeldete Person gespeichert hat."""
+    response = HttpResponse(
+        personal_data.personal_data_zip(request.user), content_type="application/zip"
+    )
+    response["Content-Disposition"] = 'attachment; filename="fundus-meine-daten.zip"'
+    return response

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Konto löschen{% endblock %}
+{% block content %}
+  <div class="narrow">
+    <p><a href="{% url 'user_edit' edited.pk %}">‹ {{ edited }}</a></p>
+    <h1>Konto von {{ edited }} löschen</h1>
+    {% if blockers %}
+      <div class="message message-error" role="alert">
+        {% for b in blockers %}<p>{{ b }}</p>{% endfor %}
+      </div>
+      <p><a class="button" href="{% url 'user_edit' edited.pk %}">Zurück</a></p>
+    {% else %}
+      <p>Das Löschen lässt sich nicht rückgängig machen. Dabei passiert Folgendes:</p>
+      <ul>
+        <li>Das Konto ({{ edited.email }}) wird entfernt; die Person kann sich nicht mehr anmelden.</li>
+        <li>{{ loan_count }} Ausleihe(n) und Anfrage(n) der Person werden sofort anonymisiert. Titel, Exemplar und Daten bleiben für die Statistik.</li>
+        {% if open_requests %}<li>{{ open_requests }} offene Anfrage(n) werden zurückgezogen.</li>{% endif %}
+        {% if teams %}<li>Die Person wird aus {% for t in teams %}„{{ t }}“{% if not forloop.last %}, {% endif %}{% endfor %} entfernt.</li>{% endif %}
+        <li>Ihr Name verschwindet aus dem Änderungsprotokoll („wer hat geändert“).</li>
+      </ul>
+      <p>Wer nur vorübergehend nicht da ist, sollte stattdessen deaktiviert werden.</p>
+      <form method="post" class="actions">{% csrf_token %}
+        <button class="button button-danger">Endgültig löschen</button>
+        <a class="button" href="{% url 'user_edit' edited.pk %}">Abbrechen</a>
+      </form>
+    {% endif %}
+  </div>
+{% endblock %}
