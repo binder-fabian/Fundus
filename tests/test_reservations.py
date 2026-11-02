@@ -409,3 +409,55 @@ def test_reminders_can_be_switched_off(teacher, mailoutbox):
     reservations.reserve(title_with(), teacher, *days(1, 1))
     assert reservations.daily_tasks()["reservierung_erinnert"] == 0
     assert mailoutbox == []
+
+
+# Hinweis an die Person, die das Exemplar gerade hat
+
+
+def test_current_borrower_is_asked_to_return_on_time(teacher, other, mailoutbox):
+    title = title_with(copies=1, title="Rechentest")
+    loan = services.lend(title.copies.first(), by=teacher, due_date=day(3))
+    reservations.reserve(title, other, *days(5, 6))
+    assert len(mailoutbox) == 1
+    message = mailoutbox[0]
+    assert message.to == [teacher.email]
+    assert message.subject.startswith("Bitte pünktlich zurückgeben")
+    assert day(5).strftime("%d.%m.%Y") in message.body
+    assert other.last_name not in message.body
+    loan.refresh_from_db()
+    assert loan.followup_notice_at is not None
+    # nur einmal je Ausleihe
+    reservations.reserve(title, UserFactory(), *days(8, 8))
+    assert len(mailoutbox) == 1
+
+
+def test_no_notice_when_another_copy_is_free(teacher, other, mailoutbox):
+    title = title_with(copies=2)
+    services.lend(title.copies.first(), by=teacher, due_date=day(3))
+    reservations.reserve(title, other, *days(5, 6))
+    assert mailoutbox == []
+
+
+def test_no_notice_for_own_reservation(teacher, mailoutbox):
+    title = title_with(copies=1)
+    services.lend(title.copies.first(), by=teacher, due_date=day(3))
+    reservations.reserve(title, teacher, *days(5, 6))
+    assert mailoutbox == []
+
+
+def test_lessons_reservation_names_the_time(teacher, other, mailoutbox):
+    title = title_with(copies=1)
+    services.lend(title.copies.first(), by=teacher, due_date=day(1))
+    reservations.reserve(title, other, **lessons(2, 3, 4))
+    assert "09:45 Uhr" in mailoutbox[0].body
+
+
+def test_whole_day_link_prefills_days_form(client, teacher):
+    client.force_login(teacher)
+    title = title_with(copies=1)
+    target = day(9)
+    response = client.get(reverse("reserve", args=[title.pk]), {"von": target.isoformat()})
+    form = response.context["days_form"]
+    assert form.initial["first"] == form.initial["last"] == target
+    content = response.content.decode()
+    assert "&amp;von=" in content and 'id="tage"' in content

@@ -94,11 +94,12 @@ Wer abwesend ist, trägt unter „Konto“ ein „abwesend bis …“ ein und be
 
 ## Reservierung
 
-Auf der Titelseite führt **„Reservieren“** zu einem Wochenkalender: Für jeden Tag und jede Unterrichtsstunde steht dort, wie viele Exemplare frei sind. Eine freie Stunde antippen trägt sie ins Formular ein.
+Auf der Titelseite führt **„Reservieren“** zu einem Wochenkalender: Für jeden Tag und jede Unterrichtsstunde steht dort, wie viele Exemplare frei sind. Einen freien Tag oder eine freie Stunde antippen trägt sie ins Formular ein.
 
 - **Ganze Tage** (von–bis) oder **einzelne Stunden** an einem Tag (z. B. 3.–4. Stunde). Bei Titeln mit mehreren Exemplaren auch mehrere auf einmal, z. B. „2 Tablet-Koffer“.
 - Fundus prüft, ob im Zeitraum genug frei ist: laufende Ausleihen bis zu ihrem Rückgabedatum, andere Reservierungen und Anfragen mit Zeitraum. Sonst nennt es den frühesten freien Beginn.
 - **Abholen:** Am ersten Tag das Exemplar scannen und „Ausleihen“ antippen. Die Reservierung wird dabei zur Ausleihe; Rückgabe ist das Ende des Zeitraums.
+- **Pünktlich zurück:** Klappt eine neue Reservierung oder Anfrage mit Zeitraum nur, wenn ein ausgeliehenes Exemplar rechtzeitig zurückkommt, bekommt die Person, die es gerade hat, eine freundliche E-Mail (einmal je Ausleihe, ohne Namen der reservierenden Person).
 - **Konflikte:** Wer ein Exemplar ausleiht, obwohl der Titel ab einem Datum ausgebucht ist, bekommt das Rückgabedatum auf den Tag davor begrenzt. Ist heute schon alles reserviert, geht Ausleihen nur noch über eine eigene Reservierung (z. B. für die Stunden davor).
 - **Verfall:** Nicht abgeholte Reservierungen bleiben bis zum Ende ihres Zeitraums bestehen. Am Vortag bekommt die Person eine Erinnerung, am Morgen nach dem ersten Tag einen Hinweis, falls sie noch nicht abgeholt hat (unter „Einstellungen → Schuljahr und Reservierung“ abschaltbar).
 - Eigene Reservierungen stehen auf der Startseite und lassen sich dort stornieren. Verwalter können jede Reservierung stornieren.

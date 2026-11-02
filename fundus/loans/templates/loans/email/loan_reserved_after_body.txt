@@ -1,0 +1,8 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Sie haben „{{ loan.title.title }}“ ({{ loan.copy.inventory_number }}) bis {{ loan.due_date|date:"d.m.Y" }} ausgeliehen. Ab {{ when }} ist der Titel für eine Kollegin oder einen Kollegen reserviert, und es gibt kein weiteres freies Exemplar.
+
+Bitte geben Sie ihn deshalb rechtzeitig zurück. Vielen Dank!
+
+{{ link }}
+{% endautoescape %}

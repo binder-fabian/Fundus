@@ -238,6 +238,54 @@ def check_period(title, start, end, quantity=1, exclude=(), whole_days=None):
     raise LoanError(_("In diesem Zeitraum sind nur %(n)d Exemplar(e) frei.") % {"n": free} + hint)
 
 
+def notify_current_borrowers(title, start, end, by=None):
+    """Freundlicher Hinweis an Personen, die gerade ein Exemplar haben, wenn
+    der Zeitraum [start, end) nur klappt, wenn ihr Exemplar pünktlich
+    zurückkommt. Je Ausleihe nur einmal; ohne Namen der reservierenden Person."""
+    from django.urls import reverse
+
+    from fundus.loans.requests import _mail, _url
+
+    intervals = busy_intervals(title)
+    total = capacity(title)
+    lent = (
+        Loan.objects.filter(
+            title=title,
+            status=Loan.Status.LENT,
+            borrower__isnull=False,
+            followup_notice_at__isnull=True,
+        )
+        .exclude(borrower__email="")
+        .select_related("borrower", "copy", "title")
+    )
+    if by is not None:
+        lent = lent.exclude(borrower=by)
+    sent = 0
+    for loan in lent:
+        # Wäre der Zeitraum noch frei, wenn dieses Exemplar nicht zurückkäme?
+        extended = [
+            (a, max(b, end) if other.pk == loan.pk else b, other) for a, b, other in intervals
+        ]
+        if total - max_busy(extended, start, end) >= 0:
+            continue
+        local = timezone.localtime(start)
+        when = date_format(local.date(), "SHORT_DATE_FORMAT")
+        if local.time() != datetime.time.min:
+            when += f", {local:%H:%M} Uhr"
+        if _mail(
+            "loan_reserved_after",
+            [loan.borrower.email],
+            {
+                "loan": loan,
+                "when": when,
+                "link": _url(reverse("copy_detail", args=[loan.copy_id])),
+            },
+        ):
+            Loan.objects.filter(pk=loan.pk).update(followup_notice_at=timezone.now())
+            sent += 1
+    return sent
+
+
 @transaction.atomic
 def reserve(title, by, start, end, quantity=1, label="", period_label=""):
     title = Title.objects.select_for_update().get(pk=title.pk)
@@ -263,6 +311,7 @@ def reserve(title, by, start, end, quantity=1, label="", period_label=""):
                 group=group,
             )
         )
+    notify_current_borrowers(title, start, end, by=by)
     return created
 
 

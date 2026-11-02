@@ -104,6 +104,8 @@ def request_title(title, by, message="", start=None, end=None, period_label=""):
         period_label=period_label if start else "",
         message=message.strip(),
     )
+    if start is not None:
+        reservations.notify_current_borrowers(title, start, end, by=by)
     _mail(
         "request_new",
         [p.email for p in deciders(title)],
@@ -134,6 +136,7 @@ def approve(loan, by, new_period=None):
         loan.period_label = ""
         loan.start_reminded_at = None
         loan.period_changed = True
+        reservations.notify_current_borrowers(loan.title, *new_period, by=loan.borrower)
     elif loan.reserved_until and loan.reserved_until <= timezone.now():
         raise LoanError(_("Der gewünschte Zeitraum ist vorbei. Bitte einen neuen angeben."))
     loan.status = Loan.Status.APPROVED

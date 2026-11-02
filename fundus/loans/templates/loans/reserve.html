@@ -17,7 +17,7 @@
       <table class="table calendar">
         <thead>
           <tr><th>Stunde</th>{% for d in grid.days %}<th{% if d.past %} class="past"{% endif %}>{{ d.day|date:"D d.m." }}</th>{% endfor %}</tr>
-          <tr class="calendar-day"><th>ganzer Tag</th>{% for d in grid.days %}<td class="{% if d.past %}past{% elif d.whole <= 0 %}busy{% elif d.whole < d.total %}partly{% else %}free{% endif %}">{% if d.whole <= 0 %}belegt{% else %}{{ d.whole }} frei{% endif %}</td>{% endfor %}</tr>
+          <tr class="calendar-day"><th>ganzer Tag</th>{% for d in grid.days %}<td class="{% if d.past %}past{% elif d.whole <= 0 %}busy{% elif d.whole < d.total %}partly{% else %}free{% endif %}">{% if d.past %}–{% elif d.whole <= 0 %}belegt{% else %}<a href="?woche={{ monday|date:'Y-m-d' }}&amp;von={{ d.day|date:'Y-m-d' }}#tage">{{ d.whole }} frei</a>{% endif %}</td>{% endfor %}</tr>
         </thead>
         <tbody>
           {% for row in grid.rows %}
@@ -33,10 +33,10 @@
         </tbody>
       </table>
     </div>
-    <p class="muted">Eine freie Stunde antippen, um sie unten einzutragen.</p>
+    <p class="muted">Einen freien Tag oder eine freie Stunde antippen, um sie unten einzutragen.</p>
 
     <div class="reserve-forms">
-      <section class="action-panel">
+      <section class="action-panel" id="tage">
         <h2>Ganze Tage</h2>
         <form method="post" class="form">{% csrf_token %}
           <input type="hidden" name="art" value="tage">

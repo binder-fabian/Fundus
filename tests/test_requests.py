@@ -295,3 +295,16 @@ def test_period_request_in_the_browser(client, setup):
     loan.refresh_from_db()
     assert loan.status == Loan.Status.APPROVED and loan.period_label == ""
     assert reservations.last_day(loan.reserved_until).isoformat() == first
+
+
+def test_period_request_asks_current_borrower_to_return_on_time(setup):
+    teacher, anna, _ben, title, copy = setup
+    lena = UserFactory(first_name="Lena")
+    requests.hand_over(requests.request_title(title, by=lena), copy, by=anna)
+    mail.outbox.clear()
+    start, end = period(16, 17)
+    requests.request_title(title, by=teacher, start=start, end=end)
+    to = [m.to for m in mail.outbox]
+    assert [lena.email] in to
+    notice = next(m for m in mail.outbox if m.to == [lena.email])
+    assert "Tina" not in notice.body and "rechtzeitig zurück" in notice.body

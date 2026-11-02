@@ -1,0 +1,1 @@
+Bitte pünktlich zurückgeben: „{{ loan.title.title|truncatechars:60 }}“

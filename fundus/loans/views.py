@@ -1,3 +1,4 @@
+import contextlib
 import datetime
 
 from django.contrib import messages
@@ -170,6 +171,11 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
     except ValueError:
         shown = today + datetime.timedelta(days=2) if today.weekday() >= 5 else today
     monday = reservations.week_start(shown)
+    days_initial = {"first": tomorrow, "last": tomorrow}
+    with contextlib.suppress(ValueError):
+        days_initial["first"] = days_initial["last"] = datetime.date.fromisoformat(
+            request.GET.get("von", "")
+        )
     lessons_initial = {"day": tomorrow}
     try:
         lessons_initial["day"] = datetime.date.fromisoformat(request.GET.get("tag", ""))
@@ -192,8 +198,7 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
         "capacity": capacity,
         "anonymous": anonymous,
         "label_suggestions": label_suggestions() if anonymous else [],
-        "days_form": days_form
-        or ReserveDaysForm(initial={"first": tomorrow, "last": tomorrow}, prefix="tage", **kwargs),
+        "days_form": days_form or ReserveDaysForm(initial=days_initial, prefix="tage", **kwargs),
         "lessons_form": lessons_form
         or ReserveLessonsForm(
             initial=lessons_initial, prefix="stunden", lessons=config.lessons, **kwargs

@@ -97,6 +97,9 @@ class Loan(models.Model):
     group = models.UUIDField(_("Reservierung"), null=True, blank=True, db_index=True)
     start_reminded_at = models.DateTimeField(_("an den Beginn erinnert am"), null=True, blank=True)
     missed_notice_at = models.DateTimeField(_("Hinweis „nicht abgeholt“ am"), null=True, blank=True)
+    followup_notice_at = models.DateTimeField(
+        _("auf folgende Reservierung hingewiesen am"), null=True, blank=True
+    )
     anonymized_at = models.DateTimeField(_("anonymisiert am"), null=True, blank=True)
     created_at = models.DateTimeField(_("angelegt am"), auto_now_add=True)
     updated_at = models.DateTimeField(_("geändert am"), auto_now=True)
