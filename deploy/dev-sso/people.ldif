@@ -1,0 +1,12 @@
+dn: ou=people,dc=schule,dc=test
+objectClass: organizationalUnit
+ou: people
+
+dn: uid=mmuster,ou=people,dc=schule,dc=test
+objectClass: inetOrgPerson
+uid: mmuster
+cn: Max Muster
+givenName: Max
+sn: Muster
+mail: m.muster@schule.test
+userPassword: max-dev-1234

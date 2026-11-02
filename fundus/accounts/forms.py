@@ -3,7 +3,7 @@ from django.conf import settings
 from django.contrib.auth.forms import AuthenticationForm, PasswordResetForm
 from django.utils.translation import gettext_lazy as _
 
-from fundus.accounts import throttle
+from fundus.accounts import sso, throttle
 from fundus.accounts.models import Role, User
 
 
@@ -12,6 +12,16 @@ class LoginForm(AuthenticationForm):
         label=_("E-Mail-Adresse"),
         widget=forms.EmailInput(attrs={"autofocus": True, "autocomplete": "email"}),
     )
+
+    def __init__(self, request=None, *args, **kwargs):
+        super().__init__(request, *args, **kwargs)
+        if sso.ldap_enabled():
+            # Am Schulserver meldet man sich oft mit Benutzernamen statt E-Mail an.
+            self.fields["username"] = forms.CharField(
+                label=_("Benutzername oder E-Mail-Adresse"),
+                max_length=254,
+                widget=forms.TextInput(attrs={"autofocus": True, "autocomplete": "username"}),
+            )
 
     def clean(self):
         if throttle.is_locked(self.data.get("username"), self.request):
@@ -23,7 +33,13 @@ class LoginForm(AuthenticationForm):
                 % {"m": settings.LOGIN_LOCK_MINUTES},
                 code="locked",
             )
-        return super().clean()
+        try:
+            return super().clean()
+        except forms.ValidationError:
+            note = getattr(self.request, "fundus_sso_message", "")
+            if note:
+                raise forms.ValidationError(note, code="sso") from None
+            raise
 
 
 class InvitationAwarePasswordResetForm(PasswordResetForm):

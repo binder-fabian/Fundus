@@ -10,7 +10,7 @@ from django.urls import reverse_lazy
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_POST
 
-from fundus.accounts import personal_data, teacher_import
+from fundus.accounts import personal_data, sso, teacher_import
 from fundus.accounts.emails import send_invitation
 from fundus.accounts.forms import (
     AbsenceForm,
@@ -29,6 +29,20 @@ class LoginView(auth_views.LoginView):
     form_class = LoginForm
     redirect_authenticated_user = True
 
+    def get_context_data(self, **kwargs):
+        from fundus.core.models import SchoolSettings
+
+        context = super().get_context_data(**kwargs)
+        context["oidc_enabled"] = sso.oidc_enabled()
+        context["oidc_label"] = settings.OIDC_BUTTON_LABEL
+        context["ldap_enabled"] = sso.ldap_enabled()
+        context["password_admins_only"] = (
+            sso.oidc_enabled()
+            and not sso.ldap_enabled()
+            and SchoolSettings.current().password_login == SchoolSettings.PasswordLogin.ADMINS
+        )
+        return context
+
 
 class PasswordResetView(auth_views.PasswordResetView):
     form_class = InvitationAwarePasswordResetForm
@@ -43,6 +57,7 @@ class InvitationAcceptView(auth_views.PasswordResetConfirmView):
     token_generator = invitation_token
     template_name = "accounts/invitation_accept.html"
     post_reset_login = True
+    post_reset_login_backend = "fundus.accounts.sso.PasswordBackend"
     success_url = reverse_lazy("home")
     reset_url_token = "einladung-annehmen"
 

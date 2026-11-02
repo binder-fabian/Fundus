@@ -1,0 +1,37 @@
+{
+  "realm": "schule",
+  "enabled": true,
+  "clients": [
+    {
+      "clientId": "fundus",
+      "enabled": true,
+      "protocol": "openid-connect",
+      "publicClient": false,
+      "secret": "fundus-dev-secret",
+      "standardFlowEnabled": true,
+      "directAccessGrantsEnabled": false,
+      "redirectUris": ["http://localhost:8000/oidc/callback/", "http://localhost:8001/oidc/callback/"],
+      "webOrigins": ["+"]
+    }
+  ],
+  "users": [
+    {
+      "username": "anna",
+      "enabled": true,
+      "email": "anna@schule.test",
+      "emailVerified": true,
+      "firstName": "Anna",
+      "lastName": "Beispiel",
+      "credentials": [{"type": "password", "value": "anna-dev-1234", "temporary": false}]
+    },
+    {
+      "username": "neu",
+      "enabled": true,
+      "email": "neu@schule.test",
+      "emailVerified": true,
+      "firstName": "Nora",
+      "lastName": "Neu",
+      "credentials": [{"type": "password", "value": "neu-dev-1234", "temporary": false}]
+    }
+  ]
+}

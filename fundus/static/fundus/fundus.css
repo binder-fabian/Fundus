@@ -815,3 +815,10 @@ details.reject[open] form {
     display: none;
   }
 }
+
+.login-password summary {
+  cursor: pointer;
+  min-height: var(--tap);
+  display: flex;
+  align-items: center;
+}

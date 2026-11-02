@@ -223,6 +223,37 @@ class SchoolSettings(models.Model):
             "die in Fundus selbst schon anonymisiert sind."
         ),
     )
+
+    class PasswordLogin(models.TextChoices):
+        ALL = "all", _("für alle")
+        ADMINS = "admins", _("nur für Administratoren (Notzugang)")
+
+    sso_create_accounts = models.BooleanField(
+        _("Neue Konten bei der ersten Anmeldung mit Schulkonto automatisch anlegen"),
+        default=False,
+        help_text=_(
+            "Aus: Nur wer schon ein Konto in Fundus hat (z. B. per Import), kann sich "
+            "anmelden; andere bekommen „Bitte an die Verwaltung wenden“. An: Neue Personen "
+            "werden als Lehrkraft angelegt."
+        ),
+    )
+    sso_domains = models.CharField(
+        _("Automatisch anlegen nur für diese E-Mail-Domains"),
+        max_length=300,
+        blank=True,
+        help_text=_("Z. B. „meine-schule.de“; mehrere mit Komma trennen. Leer = alle."),
+    )
+    password_login = models.CharField(
+        _("Anmeldung mit Fundus-Passwort"),
+        max_length=10,
+        choices=PasswordLogin,
+        default=PasswordLogin.ALL,
+        help_text=_(
+            "Gilt nur, wenn die Anmeldung mit Schulkonto eingerichtet ist. Administratoren "
+            "behalten ihr Passwort immer als Notzugang."
+        ),
+    )
+
     last_backup_at = models.DateTimeField(_("letzte Sicherung"), null=True, blank=True)
     last_backup_error = models.TextField(_("Fehler bei der letzten Sicherung"), blank=True)
     last_reminder_run = models.DateField(
@@ -263,6 +294,10 @@ class SchoolSettings(models.Model):
             return parse_lesson_times(self.lesson_times)
         except ValueError:
             return parse_lesson_times(DEFAULT_LESSON_TIMES)
+
+    def domain_allowed(self, email):
+        domains = [d.strip().lower().lstrip("@") for d in self.sso_domains.split(",") if d.strip()]
+        return not domains or email.rsplit("@", 1)[-1].lower() in domains
 
     def format_number(self, number):
         return f"{self.number_prefix}{number:0{self.number_digits}d}"

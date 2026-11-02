@@ -141,6 +141,47 @@ SCHEDULER_HEARTBEAT = env.str("SCHEDULER_HEARTBEAT", default="/tmp/fundus-schedu
 LOGIN_MAX_ATTEMPTS = env.int("LOGIN_MAX_ATTEMPTS", default=5)
 LOGIN_LOCK_MINUTES = env.int("LOGIN_LOCK_MINUTES", default=15)
 
+# Anmeldung mit Schulkonto (siehe docs/anmeldung.md). Ohne OIDC_CLIENT_ID bzw.
+# LDAP_SERVER_URI ist sie aus.
+AUTHENTICATION_BACKENDS = [
+    "fundus.accounts.sso.PasswordBackend",
+    "fundus.accounts.ldap.LDAPBackend",
+    "fundus.accounts.sso.OIDCBackend",
+]
+OIDC_ISSUER = env.str("OIDC_ISSUER", default="")
+OIDC_RP_CLIENT_ID = env.str("OIDC_CLIENT_ID", default="")
+OIDC_RP_CLIENT_SECRET = env.str("OIDC_CLIENT_SECRET", default="")
+OIDC_RP_SIGN_ALGO = env.str("OIDC_SIGN_ALGO", default="RS256")
+OIDC_RP_SCOPES = env.str("OIDC_SCOPES", default="openid email profile")
+OIDC_BUTTON_LABEL = env.str("OIDC_BUTTON_LABEL", default="Mit Schulkonto anmelden")
+# Endpunkte nur nötig, wenn der Dienst kein Discovery-Dokument anbietet.
+OIDC_OP_AUTHORIZATION_ENDPOINT = env.str("OIDC_AUTHORIZATION_ENDPOINT", default="")
+OIDC_OP_TOKEN_ENDPOINT = env.str("OIDC_TOKEN_ENDPOINT", default="")
+OIDC_OP_USER_ENDPOINT = env.str("OIDC_USERINFO_ENDPOINT", default="")
+OIDC_OP_JWKS_ENDPOINT = env.str("OIDC_JWKS_ENDPOINT", default="")
+OIDC_TIMEOUT = 10
+OIDC_USE_PKCE = True
+OIDC_CALLBACK_CLASS = "fundus.accounts.sso.OIDCCallbackView"
+OIDC_AUTHENTICATE_CLASS = "fundus.accounts.sso.OIDCLoginView"
+LOGIN_REDIRECT_URL_FAILURE = "/anmelden/"
+
+LDAP_SERVER_URI = env.str("LDAP_SERVER_URI", default="")
+LDAP_START_TLS = env.bool("LDAP_START_TLS", default=False)
+LDAP_CA_FILE = env.str("LDAP_CA_FILE", default="")
+# Nur zum Testen ohne Verschlüsselung; Passwörter gingen sonst im Klartext übers Netz.
+LDAP_ALLOW_UNENCRYPTED = env.bool("LDAP_ALLOW_UNENCRYPTED", default=False)
+LDAP_BIND_DN = env.str("LDAP_BIND_DN", default="")
+LDAP_BIND_PASSWORD = env.str("LDAP_BIND_PASSWORD", default="")
+LDAP_USER_SEARCH_BASE = env.str("LDAP_USER_SEARCH_BASE", default="")
+LDAP_USER_FILTER = env.str(
+    "LDAP_USER_FILTER",
+    default="(|(uid={user})(mail={user})(sAMAccountName={user})(userPrincipalName={user}))",
+)
+LDAP_ATTR_EMAIL = env.str("LDAP_ATTR_EMAIL", default="mail")
+LDAP_ATTR_FIRST_NAME = env.str("LDAP_ATTR_FIRST_NAME", default="givenName")
+LDAP_ATTR_LAST_NAME = env.str("LDAP_ATTR_LAST_NAME", default="sn")
+LDAP_TIMEOUT = env.int("LDAP_TIMEOUT", default=10)
+
 # Hinter einem Reverse Proxy mit HTTPS (siehe deploy/Caddyfile.example).
 BEHIND_HTTPS_PROXY = env.bool("BEHIND_HTTPS_PROXY", default=False)
 if BEHIND_HTTPS_PROXY:

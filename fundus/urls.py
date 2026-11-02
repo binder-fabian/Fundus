@@ -23,6 +23,7 @@ urlpatterns = [
         core_views.privacy_run_now,
         name="privacy_run_now",
     ),
+    path("oidc/", include("mozilla_django_oidc.urls")),
     path("", include("fundus.accounts.urls")),
     path("", include("fundus.catalog.urls")),
     path("", include("fundus.transfer.urls")),

@@ -1,0 +1,32 @@
+# Nur zum Ausprobieren der Anmeldung mit Schulkonto in der Entwicklung:
+# Keycloak (OIDC) auf Port 8080 und OpenLDAP auf Port 3389.
+#   podman compose -f deploy/dev-sso/docker-compose.sso.yml up -d
+# Testkonten und passende Umgebungsvariablen: siehe README.md in diesem Ordner.
+
+services:
+  keycloak:
+    image: quay.io/keycloak/keycloak:26.0.7
+    command: start-dev --import-realm
+    environment:
+      KC_BOOTSTRAP_ADMIN_USERNAME: admin
+      KC_BOOTSTRAP_ADMIN_PASSWORD: admin-dev
+    volumes:
+      - ./realm-schule.json:/opt/keycloak/data/import/realm-schule.json:ro,Z
+    ports:
+      - "8080:8080"
+
+  openldap:
+    image: docker.io/osixia/openldap:1.5.0
+    hostname: localhost
+    command: --copy-service
+    environment:
+      LDAP_ORGANISATION: Testschule
+      LDAP_DOMAIN: schule.test
+      LDAP_ADMIN_PASSWORD: admin-dev
+      LDAP_TLS_VERIFY_CLIENT: never
+    volumes:
+      - ./people.ldif:/container/service/slapd/assets/config/bootstrap/ldif/custom/50-people.ldif:ro,Z
+      # Zertifikat für StartTLS, vorher mit ./make-certs.sh erzeugen.
+      - ./certs:/container/service/slapd/assets/certs:ro,Z
+    ports:
+      - "3389:389"

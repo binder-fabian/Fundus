@@ -107,10 +107,33 @@ def school_settings(request):
             ],
             privacy_note(form.instance),
         ),
+        (
+            "Anmeldung mit Schulkonto",
+            [form["sso_create_accounts"], form["sso_domains"], form["password_login"]],
+            sso_note(),
+        ),
         ("Sicherung", [form["backup_interval"], form["backup_keep"]], backup_note(form.instance)),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})
+
+
+def sso_note():
+    from fundus.accounts import sso
+
+    ways = []
+    if sso.oidc_enabled():
+        ways.append(f"OIDC ({settings.OIDC_ISSUER or 'Endpunkte fest eingetragen'})")
+    if sso.ldap_enabled():
+        ways.append(f"LDAP ({settings.LDAP_SERVER_URI})")
+    if not ways:
+        return (
+            "Zurzeit nicht eingerichtet; alle melden sich mit Fundus-Passwort an. Einrichten "
+            "über Umgebungsvariablen, siehe Admin-Handbuch."
+        )
+    return (
+        "Eingerichtet: " + ", ".join(ways) + ". Konten werden über die E-Mail-Adresse zugeordnet."
+    )
 
 
 def privacy_note(config):

@@ -18,6 +18,8 @@ dependencies = [
     "defusedxml>=0.7",
     "reportlab>=4.2",
     "python-docx>=1.2.0",
+    "mozilla-django-oidc>=4.0",
+    "ldap3>=2.9",
 ]
 
 [dependency-groups]
@@ -35,6 +37,8 @@ package = false
 DJANGO_SETTINGS_MODULE = "fundus.test_settings"
 testpaths = ["tests"]
 addopts = "--strict-markers"
+# ldap3 nutzt noch alte Namen aus pyasn1; harmlos.
+filterwarnings = ["ignore:.*(tagMap|typeMap) is deprecated:DeprecationWarning"]
 
 [tool.ruff]
 line-length = 100
