@@ -35,7 +35,8 @@ Stand: Phase 2 (Katalog, Erfassung, Etiketten). Ausleihe und Kamera-Scanner folg
 Unter „Einstellungen“ (nur Administratoren):
 
 - **Name der Schule:** erscheint auf dem Plakat.
-- **Nummernschema:** Präfix (z. B. `FS-`), Stellenzahl (z. B. 4 → `0101`) und nächste Nummer. Fundus setzt immer nach der höchsten vorhandenen Nummer mit diesem Präfix fort, auch nach einem Import. Die nächste Nummer wird angezeigt.
+- **Nummernschema:** allgemeines Präfix (z. B. `FS-`), Stellenzahl (z. B. 4 → `0101`) und nächste Nummer. Fundus setzt immer nach der höchsten vorhandenen Nummer mit diesem Präfix fort, auch nach einem Import. Die nächste Nummer wird angezeigt.
+- **Präfix je Kategorie:** Unter „Stammdaten → Kategorien“ kann jede Kategorie ein eigenes Präfix bekommen, z. B. `B-` für Bücher, `T-` für Tests, `IT-` für Technik. Jede Folge zählt für sich (B-0001, T-0001 …). Maßgeblich ist die Kategorie des Titels beim Anlegen der Exemplare; vergebene Nummern ändern sich später nie.
 - **Veraltete Tests:** ab wie vielen Jahren nach dem Normjahr ein Test als veraltet markiert wird (Standard 10).
 - **ISBN-Abruf:** an- oder abschalten (siehe unten).
 - **Druckversatz** für Etiketten (siehe unten).

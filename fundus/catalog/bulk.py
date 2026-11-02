@@ -73,11 +73,10 @@ def create(rows, category, location=None, lendable=False):
             new_titles.append(title)
         plan.append((title, count))
 
-    numbers = iter(numbering.allocate(sum(count for _title, count in plan)))
     copies = []
     for title, count in plan:
-        for _ in range(count):
-            copy = Copy(title=title, inventory_number=next(numbers), location=location)
+        for number in numbering.allocate(count, title.category):
+            copy = Copy(title=title, inventory_number=number, location=location)
             copy._change_reason = "Massenerfassung"
             copy.save()
             copies.append(copy)

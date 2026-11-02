@@ -21,6 +21,15 @@ class Category(SchoolScopedModel):
         default=28,
         help_text=_("Wird beim Ausleihen als Rückgabedatum vorgeschlagen."),
     )
+    number_prefix = models.CharField(
+        _("Präfix für Inventarnummern"),
+        max_length=20,
+        blank=True,
+        help_text=_(
+            "Z. B. „B-“ für Bücher oder „T-“ für Tests; jede Präfix-Folge zählt für sich. "
+            "Leer: allgemeines Präfix aus den Einstellungen."
+        ),
+    )
 
     history = HistoricalRecords()
 

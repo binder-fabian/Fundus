@@ -140,9 +140,14 @@ class CopiesAddForm(forms.Form):
         super().__init__(*args, **kwargs)
         self.title = title
         self.required = required
-        self.fields["auto_count"].help_text = _(
-            "Vergibt die nächsten freien Nummern nach dem Nummernschema, beginnend mit %(n)s."
-        ) % {"n": numbering.preview_next()}
+        if title is not None:
+            self.fields["auto_count"].help_text = _(
+                "Vergibt die nächsten freien Nummern nach dem Nummernschema, beginnend mit %(n)s."
+            ) % {"n": numbering.preview_next(title.category)}
+        else:
+            self.fields["auto_count"].help_text = _(
+                "Vergibt die nächsten freien Nummern nach dem Präfix der gewählten Kategorie."
+            )
 
     def clean(self):
         cleaned = super().clean()
@@ -200,7 +205,7 @@ class CopiesAddForm(forms.Form):
     def save(self, title):
         numbers = list(self.cleaned_data["inventory_numbers"])
         if self.cleaned_data.get("auto_count"):
-            numbers += numbering.allocate(self.cleaned_data["auto_count"])
+            numbers += numbering.allocate(self.cleaned_data["auto_count"], title.category)
         return [
             Copy.objects.create(
                 title=title, inventory_number=n, location=self.cleaned_data.get("location")
@@ -237,7 +242,13 @@ class UniqueNameMixin:
 class CategoryForm(UniqueNameMixin, forms.ModelForm):
     class Meta:
         model = Category
-        fields = ["name", "default_loan_days"]
+        fields = ["name", "default_loan_days", "number_prefix"]
+
+    def clean_number_prefix(self):
+        prefix = self.cleaned_data["number_prefix"].strip()
+        if any(c.isspace() for c in prefix):
+            raise forms.ValidationError(_("Das Präfix darf keine Leerzeichen enthalten."))
+        return prefix
 
 
 class SupportFocusForm(UniqueNameMixin, forms.ModelForm):

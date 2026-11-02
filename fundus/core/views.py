@@ -40,6 +40,7 @@ def media(request, path):
 
 @require("is_admin")
 def school_settings(request):
+    from fundus.catalog.models import Category
     from fundus.catalog.numbering import preview_next
 
     form = SchoolSettingsForm(request.POST or None, instance=SchoolSettings.current())
@@ -52,7 +53,13 @@ def school_settings(request):
         (
             "Nummernschema für neue Exemplare",
             [form["number_prefix"], form["number_digits"], form["next_number"]],
-            f"Nächste vergebene Nummer: {preview_next()}",
+            "Nächste Nummer mit dem allgemeinen Präfix: "
+            + preview_next()
+            + "".join(
+                f" · {c.name}: {preview_next(c)}"
+                for c in Category.objects.exclude(number_prefix="")
+            )
+            + ". Eigene Präfixe je Kategorie unter Stammdaten → Kategorien.",
         ),
         ("Katalog", [form["outdated_norm_years"], form["isbn_lookup_enabled"]], ""),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
