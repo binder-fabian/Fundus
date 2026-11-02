@@ -5,3 +5,7 @@ services:
   app:
     build: .
     image: localhost/fundus:latest
+
+  scheduler:
+    image: localhost/fundus:latest
+    pull_policy: never

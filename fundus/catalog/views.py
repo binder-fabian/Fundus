@@ -72,12 +72,13 @@ def title_detail(request, pk):
     return render(request, "catalog/title_detail.html", {"title": title, "copies": copies})
 
 
-def _isbn_lookup_into(request, form_class, instance=None):
+def _isbn_lookup_into(request, form_class, instance=None, source=None):
     """Ruft Daten zur eingegebenen ISBN ab und zeigt das Formular vorausgefüllt
     wieder an. Gespeichert wird erst, wenn die Person bestätigt."""
-    data = {k: v for k, v in request.POST.items() if k != "csrfmiddlewaretoken"}
-    data["support_focuses"] = request.POST.getlist("support_focuses")
-    isbn = request.POST.get("isbn", "")
+    source = request.POST if source is None else source
+    data = {k: v for k, v in source.items() if k != "csrfmiddlewaretoken"}
+    data["support_focuses"] = source.getlist("support_focuses")
+    isbn = source.get("isbn", "")
     probe = form_class(instance=instance)
     try:
         validate_isbn(isbn)
@@ -121,6 +122,13 @@ def title_create(request):
             prefix="copies",
             required=False,
         )
+    elif request.method == "GET" and request.GET.get("isbn"):
+        # Aus dem Kamera-Scanner: ISBN übernehmen und gleich abrufen.
+        if _lookup_enabled():
+            form = _isbn_lookup_into(request, TitleForm, source=request.GET)
+        else:
+            form = TitleForm(initial={"isbn": request.GET["isbn"]})
+        copies_form = CopiesAddForm(prefix="copies", required=False)
     else:
         form = TitleForm(request.POST or None, request.FILES or None)
         copies_form = CopiesAddForm(request.POST or None, prefix="copies", required=False)
@@ -192,8 +200,14 @@ def copy_detail(request, pk):
     copy = get_object_or_404(
         Copy.objects.select_related("title__category", "location").with_availability(), pk=pk
     )
+    from fundus.loans.views import copy_actions
+
     loans = copy.loans.select_related("borrower")[:20] if request.user.can_manage_catalog else []
-    return render(request, "catalog/copy_detail.html", {"copy": copy, "loans": loans})
+    return render(
+        request,
+        "catalog/copy_detail.html",
+        {"copy": copy, "loans": loans, **copy_actions(request, copy)},
+    )
 
 
 @require("can_manage_catalog")

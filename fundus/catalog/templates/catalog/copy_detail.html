@@ -2,16 +2,64 @@
 {% block title %}{{ copy.inventory_number }}{% endblock %}
 {% block content %}
   <p><a href="{% url 'title_detail' copy.title.pk %}">‹ {{ copy.title.title }}</a></p>
-  <h1>{{ copy.inventory_number }}</h1>
-  <p class="subtitle">{{ copy.title.title }}</p>
-  {% if copy.title.lendable %}
-    <p>{% if copy.is_lent %}<span class="badge badge-busy">ausgeliehen bis {{ copy.due_date|date:"d.m.Y" }}</span>{% else %}<span class="badge badge-ok">verfügbar</span>{% endif %}</p>
+  <h1>{{ copy.title.title }}</h1>
+  <p class="subtitle">{{ copy.inventory_number }}{% if copy.location %} · {{ copy.location }}{% endif %}</p>
+
+  {% if copy.incomplete %}
+    <div class="message message-warning"><strong>Unvollständig.</strong>{% if copy.note %} <span class="prewrap">{{ copy.note }}</span>{% endif %}</div>
   {% endif %}
+
+  {% if copy.title.lendable %}
+    <section class="action-panel">
+      {% if loan %}
+        <p class="status status-busy">
+          Ausgeliehen bis <strong>{{ loan.due_date|date:"d.m.Y" }}</strong>{% if loan.is_overdue %} – <strong>überfällig</strong>{% endif %}
+          {% if loan.borrower_id == user.pk %}<br>von Ihnen{% elif show_borrower %}<br>bei {{ loan.borrower_display }}{% endif %}
+        </p>
+        {% if not can_return %}
+          <p class="message message-warning">Freigabepflichtig: Zurückbuchen bitte über {{ copy.title.responsible|default:copy.title.deputy|default:"die Verwaltung" }}.</p>
+        {% endif %}
+        {% if can_return %}
+          <form method="post" action="{% url 'give_back' copy.pk %}" class="form">{% csrf_token %}
+            {% if copy.title.contents_items %}
+              <fieldset>
+                <legend>Inhalt prüfen – alles da?</legend>
+                {% for item in copy.title.contents_items %}
+                  <div class="field field-checkbox"><label><input type="checkbox" name="part_{{ forloop.counter0 }}" value="1" checked> {{ item }}</label></div>
+                {% endfor %}
+                <p class="help">Fehlende Teile abhaken (Haken entfernen). Das Exemplar wird dann als unvollständig markiert.</p>
+              </fieldset>
+            {% endif %}
+            <button class="button button-primary button-big">Zurückgeben</button>
+          </form>
+        {% endif %}
+        {% if can_extend %}
+          <form method="post" action="{% url 'extend' loan.pk %}">{% csrf_token %}
+            <input type="hidden" name="weiter" value="{% url 'copy_detail' copy.pk %}">
+            <button class="button">Verlängern</button>
+          </form>
+        {% endif %}
+      {% elif lend_blocked %}
+        <p class="status status-ok">Verfügbar</p>
+        <p class="message message-warning">Freigabepflichtig: Bitte an {{ copy.title.responsible|default:copy.title.deputy|default:"die Verwaltung" }} wenden.</p>
+      {% else %}
+        <p class="status status-ok">Verfügbar</p>
+        <form method="post" action="{% url 'lend' copy.pk %}" class="form">{% csrf_token %}
+          {% if copy.title.contents_items %}<p class="help">Inhalt: {{ copy.title.contents_items|join:", " }}</p>{% endif %}
+          {% include "field.html" with field=lend_form.due_date %}
+          {% if lend_form.borrower %}{% include "field.html" with field=lend_form.borrower %}{% endif %}
+          <button class="button button-primary button-big">Ausleihen</button>
+        </form>
+      {% endif %}
+    </section>
+  {% endif %}
+
   <dl class="facts">
+    <dt>Inventarnummer</dt><dd>{{ copy.inventory_number }}</dd>
     <dt>Standort</dt><dd>{{ copy.location|default:"–" }}</dd>
-    {% if user.can_manage_catalog %}<dt>Etikett</dt><dd>{% if copy.label_printed_at %}gedruckt am {{ copy.label_printed_at|date:"d.m.Y" }}{% else %}noch nicht gedruckt{% endif %}</dd>{% endif %}
     <dt>Zustand</dt><dd>{{ copy.get_condition_display }}{% if copy.incomplete %}, unvollständig{% endif %}</dd>
-    {% if copy.note %}<dt>Notiz</dt><dd class="prewrap">{{ copy.note }}</dd>{% endif %}
+    {% if user.can_manage_catalog %}<dt>Etikett</dt><dd>{% if copy.label_printed_at %}gedruckt am {{ copy.label_printed_at|date:"d.m.Y" }}{% else %}noch nicht gedruckt{% endif %}</dd>{% endif %}
+    {% if copy.note and not copy.incomplete %}<dt>Notiz</dt><dd class="prewrap">{{ copy.note }}</dd>{% endif %}
   </dl>
   {% if user.can_manage_catalog %}
     <div class="actions">
@@ -22,7 +70,7 @@
     </div>
     {% if loans %}
       <h2>Letzte Ausleihen</h2>
-      <ul>{% for loan in loans %}<li>{{ loan.lent_at|date:"d.m.Y"|default:"–" }}: {{ loan.borrower_display }} ({{ loan.get_status_display }})</li>{% endfor %}</ul>
+      <ul>{% for l in loans %}<li>{{ l.lent_at|date:"d.m.Y"|default:"–" }}: {{ l.borrower_display }} ({{ l.get_status_display }}{% if l.returned_at %}, zurück {{ l.returned_at|date:"d.m.Y" }}{% endif %})</li>{% endfor %}</ul>
     {% endif %}
   {% endif %}
 {% endblock %}

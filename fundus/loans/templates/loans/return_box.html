@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Rückgabekiste{% endblock %}
+{% block content %}
+  <p><a href="{% url 'loan_overview' %}">‹ Ausleihen</a></p>
+  <h1>Rückgabekiste</h1>
+
+  {% if check %}
+    <section class="action-panel">
+      <p class="status status-busy"><strong>{{ check.inventory_number }}</strong> – {{ check.title.title }}</p>
+      <form method="post" class="form">{% csrf_token %}
+        <input type="hidden" name="nummer" value="{{ check.inventory_number }}">
+        <input type="hidden" name="pruefung" value="1">
+        <fieldset>
+          <legend>Inhalt prüfen – alles da?</legend>
+          {% for item in check.title.contents_items %}
+            <div class="field field-checkbox"><label><input type="checkbox" name="part_{{ forloop.counter0 }}" value="1" checked> {{ item }}</label></div>
+          {% endfor %}
+          <p class="help">Fehlende Teile abhaken (Haken entfernen).</p>
+        </fieldset>
+        <button class="button button-primary button-big">Zurückbuchen</button>
+      </form>
+    </section>
+  {% elif confirm %}
+    <section class="action-panel">
+      <p class="status status-busy"><strong>{{ confirm.inventory_number }}</strong> – {{ confirm.title.title }}</p>
+      <form method="post">{% csrf_token %}
+        <input type="hidden" name="nummer" value="{{ confirm.inventory_number }}">
+        <button class="button button-primary button-big" autofocus>Zurückbuchen</button>
+      </form>
+    </section>
+  {% else %}
+    <p>Exemplare nacheinander mit dem Handscanner scannen – jedes wird sofort zurückgebucht. Bei Testkoffern wird vorher der Inhalt abgefragt.</p>
+    <form method="post" class="search-row">{% csrf_token %}
+      <label class="sr-only" for="box-number">Inventarnummer</label>
+      <input id="box-number" type="text" name="nummer" placeholder="Inventarnummer scannen" autocomplete="off" autofocus>
+      <button class="button button-primary">Zurück</button>
+    </form>
+    <p><a class="button" href="{% url 'scanner' %}?ziel=kiste">Mit Kamera scannen</a></p>
+  {% endif %}
+
+  {% if log %}
+    <h2>Gerade zurückgebucht</h2>
+    <ul>{% for entry in log %}<li><strong>{{ entry.number }}</strong> – {{ entry.title }}: {{ entry.text }}</li>{% endfor %}</ul>
+  {% endif %}
+{% endblock %}

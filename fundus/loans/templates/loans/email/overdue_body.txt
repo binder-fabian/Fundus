@@ -1,0 +1,9 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+„{{ loan.copy.title.title }}“ ({{ loan.copy.inventory_number }}) sollte bis {{ loan.due_date|date:"d.m.Y" }} zurückgegeben werden – das ist {{ days }} Tag{{ days|pluralize:"e" }} her.
+
+Bitte bringen Sie es zurück oder verlängern Sie die Ausleihe in Fundus, damit andere Kolleginnen und Kollegen planen können:
+{{ link }}
+
+Vielen Dank!
+{% endautoescape %}

@@ -1,6 +1,6 @@
 # Admin-Handbuch
 
-Stand: Phase 2 (Katalog, Erfassung, Etiketten). Ausleihe und Kamera-Scanner folgen in Phase 3.
+Stand: Phase 3 (Katalog, Erfassung, Etiketten, Ausleihe mit Scanner). Freigabe-Workflow und Verbrauchsmaterial folgen in Phase 4.
 
 ## Rollen
 
@@ -77,6 +77,29 @@ Nicht gefundene ISBNs stehen am Ende in einer Liste zum Nacharbeiten.
 
 Unter „Etiketten“ gibt es ein A4-Plakat mit QR-Code zur Adresse von Fundus (`SITE_URL`) und einer kurzen Anleitung, z. B. für das Lehrerzimmer.
 
+## Ausleihe
+
+- **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite. Die Kamera braucht HTTPS.
+- **Ausleihen:** Das Rückgabedatum ist mit der Frist der Kategorie vorausgefüllt. Lehrkräfte leihen für sich selbst. Verwalter sowie die zuständige Person eines Titels können auch für andere Lehrkräfte ausbuchen.
+- **Zurückgeben:** Jede angemeldete Person kann zurückbuchen, z. B. wenn ein Exemplar im Lehrerzimmer liegen geblieben ist. Freigabepflichtige Titel bucht nur die zuständige Person (oder Vertretung bzw. Verwaltung) zurück. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
+- **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage vorliegt.
+- **Wer sieht Namen?** Verwalter, Administratoren und die zuständige Person. Andere Lehrkräfte sehen nur „ausgeliehen bis …“.
+- **Freigabepflichtige Titel** können Lehrkräfte noch nicht selbst ausleihen; sie wenden sich an die zuständige Person, die direkt für sie ausbucht. Der Anfrage-Ablauf folgt in Phase 4.
+
+**Übersicht „Ausleihen“** (Verwalter): offene, überfällige und alle Vorgänge, Filter nach Lehrkraft, dazu die Liste unvollständiger Exemplare.
+
+**Rückgabekiste:** Unter „Ausleihen → Rückgabekiste“ scannen Sie viele Exemplare nacheinander mit dem Handscanner; jedes wird sofort zurückgebucht. Mit der Kamera genügt ein Tipp zur Bestätigung. Testkoffer fragen vorher den Inhalt ab.
+
+## Erinnerungen per E-Mail
+
+Der Dienst `scheduler` (in `docker-compose.yml` enthalten) verschickt einmal täglich ab 7 Uhr (`REMINDER_HOUR`):
+
+- eine Erinnerung am Tag vor der Rückgabe,
+- einen Hinweis, wenn die Ausleihe 3 Tage überfällig ist,
+- nach 14 Tagen eine Sammelmail an alle Verwalter und Administratoren.
+
+Jede Nachricht geht je Ausleihe nur einmal raus; nach dem Verlängern beginnt es neu. Die Tage und das Abschalten finden Sie unter „Einstellungen“. Ohne Container rufen Sie stattdessen täglich `python manage.py send_reminders` auf (siehe [Installation ohne Container](native-install.md)).
+
 ## Änderungsprotokoll
 
 Jede Änderung an Titeln, Exemplaren, Stammdaten und Benutzerkonten wird mit Zeitpunkt und Person gespeichert. Über „Änderungen“ sehen Verwalter, was vorher und nachher stand, und können einen älteren Stand wiederherstellen. Auch gelöschte Stammdaten lassen sich so zurückholen.
@@ -117,6 +140,7 @@ legt den Export unter `/data/exporte/` im Daten-Volume ab. Automatische Sicherun
 | `LOGIN_MAX_ATTEMPTS` | 5 | Falsche Passwörter, bevor die Anmeldung gesperrt wird (je Gerät das Vierfache) |
 | `LOGIN_LOCK_MINUTES` | 15 | Dauer der Sperre |
 | `GOOGLE_BOOKS_API_KEY` | leer | Optionaler Schlüssel für Google Books als dritte ISBN-Quelle |
+| `REMINDER_HOUR` | 7 | Ab dieser Stunde verschickt der `scheduler` die täglichen Erinnerungen |
 | `INVITATION_TIMEOUT_DAYS` | 14 | Gültigkeit von Einladungslinks |
 | `TIME_ZONE` | Europe/Berlin | Zeitzone |
 | `LOG_LEVEL` | INFO | Ausführlichkeit der Protokolle |

@@ -44,6 +44,12 @@ WantedBy=multi-user.target
 sudo systemctl enable --now fundus
 ```
 
+Erinnerungen täglich um 7 Uhr per Cron (`sudo -u fundus crontab -e`):
+
+```
+0 7 * * * cd /opt/fundus/app && .venv/bin/python manage.py send_reminders
+```
+
 ## Windows
 
 1. Python 3.12 von python.org installieren, dann in PowerShell: `pip install uv`
@@ -59,4 +65,4 @@ uv run python manage.py createadmin --email ihre.adresse@meine-schule.de
 uv run waitress-serve --listen=127.0.0.1:8000 fundus.wsgi:application
 ```
 
-Für den Dauerbetrieb den letzten Befehl als Windows-Dienst einrichten (z. B. mit NSSM) und einen Reverse Proxy mit HTTPS davorschalten.
+Für den Dauerbetrieb den letzten Befehl als Windows-Dienst einrichten (z. B. mit NSSM) und einen Reverse Proxy mit HTTPS davorschalten. Für die täglichen Erinnerungen in der Aufgabenplanung eine Aufgabe anlegen, die um 7 Uhr `uv run python manage.py send_reminders` in `C:\Fundus` ausführt.

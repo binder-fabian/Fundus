@@ -4,8 +4,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}Start{% endblock %} · Fundus</title>
+  <meta name="theme-color" content="#0b5cad">
+  <link rel="manifest" href="{% url 'manifest' %}">
+  <link rel="icon" href="{% static 'fundus/icons/icon-192.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'fundus/icons/apple-touch-icon.png' %}">
   <link rel="stylesheet" href="{% static 'fundus/fundus.css' %}">
   <script src="{% static 'vendor/htmx-2.0.4.min.js' %}" defer></script>
+  <script src="{% static 'fundus/app.js' %}" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -13,7 +18,8 @@
     {% if user.is_authenticated %}
       <nav class="mainnav" aria-label="{% translate 'Hauptmenü' %}">
         <a href="{% url 'title_list' %}">{% translate "Katalog" %}</a>
-        {% if user.can_manage_catalog %}<a href="{% url 'masterdata_list' 'kategorien' %}">{% translate "Stammdaten" %}</a>{% endif %}
+        {% if user.can_manage_catalog %}<a href="{% url 'loan_overview' %}">{% translate "Ausleihen" %}</a>
+        <a href="{% url 'masterdata_list' 'kategorien' %}">{% translate "Stammdaten" %}</a>{% endif %}
         {% if user.can_manage_users %}<a href="{% url 'user_list' %}">{% translate "Benutzer" %}</a>{% endif %}
         {% if user.is_admin %}<a href="{% url 'import_upload' %}">{% translate "Import/Export" %}</a>
         <a href="{% url 'school_settings' %}">{% translate "Einstellungen" %}</a>{% endif %}
@@ -22,6 +28,13 @@
       </nav>
     {% endif %}
   </header>
+  {% if user.is_authenticated %}
+    <nav class="tabbar" aria-label="{% translate 'Schnellzugriff' %}">
+      <a href="{% url 'home' %}"{% if request.resolver_match.url_name == "home" %} aria-current="page"{% endif %}>{% translate "Start" %}</a>
+      <a href="{% url 'scanner' %}" class="tabbar-scan"{% if request.resolver_match.url_name == "scanner" %} aria-current="page"{% endif %}>{% translate "Scannen" %}</a>
+      <a href="{% url 'title_list' %}"{% if request.resolver_match.url_name == "title_list" %} aria-current="page"{% endif %}>{% translate "Katalog" %}</a>
+    </nav>
+  {% endif %}
   <main class="content">
     {% if messages %}
       <ul class="messages" role="status">

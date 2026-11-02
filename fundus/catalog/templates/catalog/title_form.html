@@ -9,7 +9,8 @@
       {% for field in form.visible_fields %}
         {% include "field.html" %}
         {% if field.name == "isbn" and isbn_lookup %}
-          <p><button class="button" name="lookup" value="1" formnovalidate>Daten zur ISBN abrufen</button>
+          <p class="actions"><button class="button" name="lookup" value="1" formnovalidate>Daten zur ISBN abrufen</button>
+          {% if is_new %}<a class="button" href="{% url 'scanner' %}?ziel=isbn&amp;zurueck={% url 'title_create' %}">ISBN mit Kamera scannen</a>{% endif %}</p><p>
           <span class="help">ISBN tippen oder mit dem Handscanner scannen. Abgefragt werden DNB und Open Library; übermittelt wird nur die ISBN.</span></p>
         {% endif %}
       {% endfor %}

@@ -12,11 +12,6 @@ from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
 
 
-def home(request):
-    # Vorerst ist der Katalog die Startseite; ab Phase 3 kommt hier der Scanner hin.
-    return redirect("title_list")
-
-
 @login_not_required
 @never_cache
 def health(request):
@@ -62,6 +57,16 @@ def school_settings(request):
             + ". Eigene Präfixe je Kategorie unter Stammdaten → Kategorien.",
         ),
         ("Katalog", [form["outdated_norm_years"], form["isbn_lookup_enabled"]], ""),
+        (
+            "Erinnerungen per E-Mail",
+            [
+                form["reminders_enabled"],
+                form["reminder_days_before"],
+                form["overdue_notice_days"],
+                form["escalate_days"],
+            ],
+            "Werden einmal täglich verschickt (Dienst „scheduler“).",
+        ),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})

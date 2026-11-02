@@ -18,6 +18,10 @@ class SchoolSettingsForm(forms.ModelForm):
             "next_number",
             "outdated_norm_years",
             "isbn_lookup_enabled",
+            "reminders_enabled",
+            "reminder_days_before",
+            "overdue_notice_days",
+            "escalate_days",
             "label_offset_x",
             "label_offset_y",
         ]
@@ -40,3 +44,10 @@ class SchoolSettingsForm(forms.ModelForm):
         school.name = self.cleaned_data["school_name"]
         school.save()
         return super().save(commit)
+
+    def clean(self):
+        cleaned = super().clean()
+        overdue, escalate = cleaned.get("overdue_notice_days"), cleaned.get("escalate_days")
+        if overdue is not None and escalate is not None and escalate < overdue:
+            self.add_error("escalate_days", "Sollte nicht vor dem Überfällig-Hinweis liegen.")
+        return cleaned

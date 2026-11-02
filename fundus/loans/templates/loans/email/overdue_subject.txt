@@ -1,0 +1,1 @@
+Überfällig: „{{ loan.copy.title.title|truncatechars:60 }}“

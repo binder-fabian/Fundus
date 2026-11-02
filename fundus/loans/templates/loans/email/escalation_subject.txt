@@ -1,0 +1,1 @@
+Fundus: {{ loans|length }} lange überfällige Ausleihe{{ loans|length|pluralize:"n" }}

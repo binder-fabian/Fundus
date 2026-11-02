@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Start{% endblock %}
+{% block content %}
+  {% include "loans/_scan_box.html" %}
+
+  <h1>Meine Ausleihen</h1>
+  {% if loans %}
+    <ul class="cards">
+      {% for loan in loans %}
+        <li class="card{% if loan.is_overdue %} card-alert{% endif %}">
+          <a class="card-link" href="{% url 'copy_detail' loan.copy_id %}">
+            <span class="card-title">{{ loan.copy.title.title }}</span>
+            <span class="muted">{{ loan.copy.inventory_number }}</span>
+          </a>
+          <span class="card-meta">
+            {% if loan.is_overdue %}<span class="badge badge-alert">überfällig seit {{ loan.due_date|date:"d.m.Y" }}</span>
+            {% else %}<span class="badge">bis {{ loan.due_date|date:"d.m.Y" }}</span>{% endif %}
+            <form method="post" action="{% url 'extend' loan.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'home' %}"><button class="button button-small">Verlängern</button></form>
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>Sie haben gerade nichts ausgeliehen.</p>
+  {% endif %}
+  <p><a href="{% url 'title_list' %}">Zum Katalog</a></p>
+{% endblock %}

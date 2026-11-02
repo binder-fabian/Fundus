@@ -1,0 +1,10 @@
+{% autoescape off %}Guten Tag,
+
+diese Ausleihen sind schon länger überfällig; die Lehrkräfte wurden bereits erinnert:
+
+{% for loan in loans %}- {{ loan.copy.inventory_number }} „{{ loan.copy.title.title }}“ – {{ loan.borrower_display }}, fällig seit {{ loan.due_date|date:"d.m.Y" }}
+{% endfor %}
+Übersicht: {{ link }}
+
+Diese Nachricht geht an alle Verwalterinnen, Verwalter und Administratoren von Fundus.
+{% endautoescape %}

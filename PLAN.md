@@ -258,3 +258,43 @@ Bewusst offen:
 - **Echter Probedruck:** Die Etiketten sind als PDF geprüft, aber noch nicht auf echten Bögen gedruckt und mit dem Handy gescannt. Das sollte vor dem Einsatz einmal je verwendetem Bogenformat passieren.
 - **ISBN per Handykamera** kommt mit dem Scanner in Phase 3.
 - **Google Books** braucht einen eigenen API-Schlüssel; ohne ihn fragt Fundus nur DNB und Open Library.
+
+## 8. Phase 3 – Ausleihe
+
+Status: **umgesetzt auf dem Zweig `phase-3`, wartet auf Freigabe und Zusammenführung** (Nacht zum 3. November 2026). Auf ausdrücklichen Wunsch über Nacht umgesetzt; `main` bleibt bis zur Freigabe unverändert.
+
+Ziel laut SPEC: Scanner-PWA, Ausleihen/Zurückgeben, Rückgabekiste-Modus, Testkoffer-Inhaltslisten, E-Mail-Erinnerungen. Leitprinzip: „App öffnen, scannen, fertig“ in unter 10 Sekunden.
+
+### Schritte
+
+- **3.1 Ausleihlogik:** Ausleihen, Zurückgeben, Verlängern als eigene, getestete Funktionen mit Rechteprüfung; Rückgabedatum aus der Ausleihfrist der Kategorie.
+- **3.2 Oberfläche:** Exemplarseite mit der passenden Aktion (ausleihen / zurückgeben / verlängern), Startseite mit großem „Scannen“ und „Meine Ausleihen“, Übersicht für Verwalter (offen, überfällig, nach Lehrkraft, unvollständige Testkoffer).
+- **3.3 Scanner-PWA:** Kamera-Scanner im Browser (QR-Codes der Etiketten und ISBN-Strichcodes), USB-Handscanner und Eintippen überall; installierbar als App (Manifest, Service Worker), Navigationsleiste unten auf dem Handy.
+- **3.4 Rückgabekiste und Inhaltslisten:** Verwalter scannen viele Exemplare nacheinander zurück; bei Testkoffern wird die Inhaltsliste angezeigt und „vollständig / unvollständig“ abgefragt, fehlende Teile landen in der Notiz.
+- **3.5 E-Mail-Erinnerungen:** Erinnerung am Tag vor der Rückgabe, Hinweis bei Überfälligkeit, danach zusätzlich an die Verwalter. Ein zweiter Dienst im selben Image (`scheduler`) verschickt täglich; ohne Container per Cron/Aufgabenplanung.
+- **3.6 Dokumentation und Abnahme.**
+
+### Technik
+
+- Kamera: `barcode-detector` (Ponyfill der BarcodeDetector-Schnittstelle) mit ZXing als WebAssembly, lokal ausgeliefert – funktioniert auch auf iPhones, die keinen eingebauten Barcode-Scanner im Browser haben. Kamera braucht HTTPS (lokal geht `localhost`).
+- Kein neuer Dienst außer dem `scheduler`, der dasselbe Image nutzt.
+
+### Entscheidungen (am 3. November 2026 durchgegangen)
+
+| # | Frage | Entschieden |
+| --- | --- | --- |
+| A | Wer sieht, **bei wem** etwas ist? | Vorerst nur Verwalter, Administratoren und zuständige Person; in Phase 5 wird es eine Einstellung für die Schule. |
+| B | **Freigabepflichtige** Titel vor Phase 4? | Nur über die zuständige Person (oder Verwaltung) ausleihbar; Lehrkräfte sehen „Bitte an … wenden“. |
+| C | Wer darf **zurückbuchen**? | Freigabepflichtige Titel nur die zuständige Person (mit Vertretung und Verwaltung); alle anderen Titel jede angemeldete Person. |
+| D | **Verlängern** | Durch die ausleihende Lehrkraft, beliebig oft, solange keine Anfrage vorliegt. |
+| E | **Erinnerungen** | 1 Tag vorher, 3 Tage überfällig, nach 14 Tagen zusätzlich an die Verwaltung. |
+| F | **Für andere ausleihen** | Verwaltung und zuständige Personen; Lehrkräfte nur für sich. |
+| G | **Unvollständige Testkoffer** | Ausleihbar mit deutlichem Hinweis. |
+
+### Stand nach Phase 3 (Nacht zum 3. November 2026)
+
+Schritte 3.1–3.6 umgesetzt; 198 automatische Tests (SQLite und PostgreSQL) grün. Geprüft im laufenden System: Ausleihen, „Meine Ausleihen“, Zurückgeben mit Inhaltsabfrage, Erinnerung per E-Mail (Mailpit), Scanner-Bibliothek erkennt QR-Codes (eingebauter Detektor und ZXing).
+
+Nicht geprüft und vor dem Einsatz nötig:
+
+- **Kamera auf echten Handys** (Android und iPhone) über HTTPS – im Entwicklungs-Browser ist die Kamera gesperrt.
