@@ -76,6 +76,22 @@ class SchoolSettings(models.Model):
             "Dabei wird nur die ISBN übermittelt."
         ),
     )
+    reminders_enabled = models.BooleanField(
+        _("E-Mail-Erinnerungen verschicken"),
+        default=True,
+    )
+    reminder_days_before = models.PositiveSmallIntegerField(
+        _("Erinnerung … Tage vor Ablauf"), default=1
+    )
+    overdue_notice_days = models.PositiveSmallIntegerField(
+        _("Überfällig-Hinweis … Tage nach Ablauf"), default=3
+    )
+    escalate_days = models.PositiveSmallIntegerField(
+        _("Zusätzlich an die Verwaltung … Tage nach Ablauf"), default=14
+    )
+    last_reminder_run = models.DateField(
+        _("Erinnerungen zuletzt verschickt am"), null=True, blank=True
+    )
     label_offset_x = models.DecimalField(
         _("Druckversatz waagerecht (mm)"),
         max_digits=4,

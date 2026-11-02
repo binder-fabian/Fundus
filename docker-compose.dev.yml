@@ -14,6 +14,12 @@ services:
       mailpit:
         condition: service_started
 
+  scheduler:
+    image: localhost/fundus:dev
+    environment:
+      EMAIL_URL: smtp://mailpit:1025
+      SITE_URL: http://localhost:8000
+
   mailpit:
     image: docker.io/axllent/mailpit:latest
     ports:

@@ -22,5 +22,22 @@ services:
       start_period: 30s
       retries: 3
 
+  # Verschickt einmal täglich die E-Mail-Erinnerungen (gleiches Image).
+  scheduler:
+    image: ghcr.io/binder-fabian/fundus:latest
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: sqlite:////data/fundus.sqlite3
+      MIGRATE_ON_START: "0"
+    command: ["python", "manage.py", "run_scheduler"]
+    healthcheck:
+      disable: true
+    volumes:
+      - fundus-data:/data
+    depends_on:
+      app:
+        condition: service_healthy
+
 volumes:
   fundus-data:

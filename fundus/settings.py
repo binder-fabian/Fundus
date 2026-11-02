@@ -130,6 +130,9 @@ EMAIL_CONFIG = env.email_url("EMAIL_URL", default="consolemail://")
 vars().update(EMAIL_CONFIG)
 DEFAULT_FROM_EMAIL = env.str("DEFAULT_FROM_EMAIL", default="fundus@localhost")
 
+# Ab dieser Stunde verschickt der Dienst „scheduler“ täglich die Erinnerungen.
+REMINDER_HOUR = env.int("REMINDER_HOUR", default=7)
+
 # Anmeldesperre nach zu vielen falschen Passwörtern.
 LOGIN_MAX_ATTEMPTS = env.int("LOGIN_MAX_ATTEMPTS", default=5)
 LOGIN_LOCK_MINUTES = env.int("LOGIN_LOCK_MINUTES", default=15)

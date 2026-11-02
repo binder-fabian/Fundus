@@ -1,0 +1,9 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Sie haben „{{ loan.copy.title.title }}“ ({{ loan.copy.inventory_number }}) ausgeliehen. Die Rückgabe ist bis {{ loan.due_date|date:"l, d.m.Y" }} vorgesehen.
+
+Brauchen Sie es länger? Dann können Sie in Fundus verlängern:
+{{ link }}
+
+Vielen Dank!
+{% endautoescape %}

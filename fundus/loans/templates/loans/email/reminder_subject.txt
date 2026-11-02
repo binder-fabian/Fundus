@@ -1,0 +1,1 @@
+Erinnerung: „{{ loan.copy.title.title|truncatechars:60 }}“ bis {{ loan.due_date|date:"d.m.Y" }} zurückgeben
