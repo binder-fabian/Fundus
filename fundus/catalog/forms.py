@@ -250,9 +250,13 @@ class SupportFocusForm(UniqueNameMixin, forms.ModelForm):
 class TeamForm(UniqueNameMixin, forms.ModelForm):
     members = forms.ModelMultipleChoiceField(
         queryset=User.objects.filter(is_active=True).order_by("last_name", "first_name"),
-        widget=forms.CheckboxSelectMultiple,
+        widget=forms.CheckboxSelectMultiple(attrs={"data-filter": _("Namen suchen …")}),
         required=False,
         label=_("Mitglieder"),
+        help_text=_(
+            "Die Liste zeigt alle Konten. Wer einen Haken hat, gehört zum Team "
+            "und bekommt die Anfragen."
+        ),
     )
 
     class Meta:

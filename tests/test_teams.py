@@ -62,7 +62,7 @@ def test_account_page_sets_and_clears_absence(client):
     team_of(user, name="Diagnostik-Team")
     client.force_login(user)
     page = client.get(reverse("account")).content.decode()
-    assert "Diagnostik-Team" in page and "Abwesenheit" in page
+    assert "Sie gehören zum Team „Diagnostik-Team“." in page and "Abwesenheit" in page
     until = (timezone.localdate() + datetime.timedelta(days=7)).isoformat()
     client.post(reverse("account"), {"abwesenheit": "1", "absent_until": until})
     user.refresh_from_db()
@@ -95,3 +95,19 @@ def test_overview_lists_approval_titles_without_team(client):
     TitleFactory(title="Mit Team", approval_required=True, team=team_of(UserFactory()))
     page = client.get(reverse("loan_overview")).content.decode()
     assert "Ohne Team" in page and "Mit Team" not in page
+
+
+def test_team_form_explains_checkbox_list(client):
+    client.force_login(UserFactory(role=Role.MANAGER))
+    page = client.get(reverse("masterdata_create", args=["teams"])).content.decode()
+    assert "Wer einen Haken hat, gehört zum Team" in page
+    assert 'data-filter="Namen suchen …"' in page
+
+
+def test_account_page_lists_several_teams(client):
+    user = UserFactory()
+    team_of(user, name="Diagnostik-Team")
+    team_of(user, name="Lesekoffer")
+    client.force_login(user)
+    page = client.get(reverse("account")).content.decode()
+    assert "Sie gehören zu den Teams „Diagnostik-Team“, „Lesekoffer“." in page

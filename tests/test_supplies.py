@@ -137,3 +137,23 @@ def test_duplicate_code_rejected(client):
         {"name": "X", "code": "nb-0001", "unit": "Stück", "stock": 0, "min_stock": 0},
     )
     assert "schon vergeben" in response.content.decode()
+
+
+def test_without_secretary_notices_go_to_management_and_settings_warn(client):
+    admin = UserFactory(role=Role.ADMIN, email="leitung@schule.de")
+    UserFactory(role=Role.MANAGER, email="verwaltung@schule.de")
+    assert not services.order_handlers_configured()
+    services.request_reorder(item())
+    assert sorted(mail.outbox[0].to) == ["leitung@schule.de", "verwaltung@schule.de"]
+    client.force_login(admin)
+    assert (
+        "Hinweise gehen deshalb an die Verwaltung"
+        in client.get(reverse("school_settings")).content.decode()
+    )
+
+
+def test_settings_do_not_warn_with_secretary(client, secretary):
+    assert services.order_handlers_configured()
+    client.force_login(UserFactory(role=Role.ADMIN))
+    page = client.get(reverse("school_settings")).content.decode()
+    assert "Hinweise gehen deshalb an die Verwaltung" not in page

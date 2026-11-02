@@ -37,6 +37,7 @@ def media(request, path):
 def school_settings(request):
     from fundus.catalog.models import Category
     from fundus.catalog.numbering import preview_next
+    from fundus.supplies.services import order_handlers_configured
 
     form = SchoolSettingsForm(request.POST or None, instance=SchoolSettings.current())
     if request.method == "POST" and form.is_valid():
@@ -72,7 +73,14 @@ def school_settings(request):
             [form["request_reminder_days"], form["request_pickup_days"]],
             "",
         ),
-        ("Verbrauchsmaterial", [form["reorder_email"]], ""),
+        (
+            "Verbrauchsmaterial",
+            [form["reorder_email"]],
+            ""
+            if order_handlers_configured()
+            else "Achtung: Es gibt noch kein Konto mit der Rolle „Sekretariat“ und keine "
+            "Adresse für Nachbestellungen. Hinweise gehen deshalb an die Verwaltung.",
+        ),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})

@@ -7,7 +7,7 @@
 
     {% if teams %}
       <h2>Abwesenheit</h2>
-      <p>Sie sind in {{ teams|join:", " }}. Während einer Abwesenheit bekommen die anderen im Team die Anfragen; sind alle abwesend, die Verwaltung.</p>
+      <p>{% if teams|length == 1 %}Sie gehören zum Team „{{ teams.0 }}“.{% else %}Sie gehören zu den Teams {% for t in teams %}„{{ t }}“{% if not forloop.last %}, {% endif %}{% endfor %}.{% endif %} Während einer Abwesenheit bekommen die anderen im Team die Anfragen; sind alle abwesend, die Verwaltung.</p>
       <form method="post" class="form">{% csrf_token %}
         {% include "field.html" with field=absence.absent_until %}
         <div class="actions">

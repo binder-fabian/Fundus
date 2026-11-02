@@ -36,16 +36,27 @@ def next_code():
     return f"{CODE_PREFIX}{max(numbers, default=0) + 1:04d}"
 
 
-def notice_recipients():
-    emails = list(
-        User.objects.filter(is_active=True, role=Role.SECRETARY)
+def _emails(roles):
+    return list(
+        User.objects.filter(is_active=True, role__in=roles)
         .exclude(email="")
+        .order_by("email")
         .values_list("email", flat=True)
     )
+
+
+def order_handlers_configured():
+    """Gibt es ein Sekretariatskonto oder eine Adresse für Nachbestellungen?"""
+    return bool(_emails([Role.SECRETARY]) or SchoolSettings.current().reorder_email)
+
+
+def notice_recipients():
+    """Sekretariat und Zusatzadresse; fehlen beide, die Verwaltung."""
+    emails = _emails([Role.SECRETARY])
     extra = SchoolSettings.current().reorder_email
     if extra and extra not in emails:
         emails.append(extra)
-    return emails
+    return emails or _emails([Role.ADMIN, Role.MANAGER])
 
 
 def _notify(notice):

@@ -5,6 +5,7 @@ from fundus.loans import views
 urlpatterns = [
     path("scannen/", views.scanner, name="scanner"),
     path("s/", views.scan, name="scan_lookup"),
+    path("s/vorschlaege/", views.scan_suggestions, name="scan_suggestions"),
     path("s/<str:number>", views.scan, name="scan"),
     path("exemplar/<int:pk>/ausleihen/", views.lend, name="lend"),
     path("exemplar/<int:pk>/zurueckgeben/", views.give_back, name="give_back"),

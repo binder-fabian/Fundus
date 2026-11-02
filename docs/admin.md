@@ -9,7 +9,7 @@ Stand: Phase 4 (Katalog, Erfassung, Etiketten, Ausleihe mit Scanner, Freigaben, 
 | Administrator | alles: Benutzer, Import und Export, dazu alles von „Verwalter“ |
 | Verwalter | Katalog, Exemplare, Stammdaten pflegen; Änderungen ansehen und zurücknehmen |
 | Lehrkraft | Katalog ansehen und durchsuchen |
-| Sekretariat | wie Lehrkraft; später Nachbestellhinweise |
+| Sekretariat | wie Lehrkraft; bearbeitet Nachbestellhinweise |
 
 Zuständig für einen Titel ist ein **Team** (siehe unten), keine Rolle. Jede Person hat genau eine Rolle; das Sekretariat bearbeitet zusätzlich die Nachbestellungen.
 
@@ -79,13 +79,13 @@ Unter „Etiketten“ gibt es ein A4-Plakat mit QR-Code zur Adresse von Fundus (
 
 ## Teams
 
-Unter „Stammdaten → Teams“ legen Verwalter Teams an, z. B. „Diagnostik-Team“, mit einer bis beliebig vielen Personen. Am Titel wird dann das zuständige Team gewählt. Alle Mitglieder dürfen Anfragen genehmigen, Material übergeben, zurückbuchen und für andere ausleihen; sie vertreten sich gegenseitig.
+Unter „Stammdaten → Teams“ legen Verwalter Teams an, z. B. „Diagnostik-Team“, mit einer bis beliebig vielen Personen: In der Liste aller Konten bekommt jedes Mitglied einen Haken, ab acht Konten hilft ein Suchfeld. Am Titel wird dann das zuständige Team gewählt. Alle Mitglieder dürfen Anfragen genehmigen, Material übergeben, zurückbuchen und für andere ausleihen; sie vertreten sich gegenseitig.
 
 Wer abwesend ist, trägt unter „Konto“ ein „abwesend bis …“ ein und bekommt in der Zeit keine Anfragen. Sind alle im Team abwesend (oder hat ein Titel kein Team), gehen Anfragen an die Verwaltung. Die Übersicht „Ausleihen“ listet freigabepflichtige Titel ohne Team.
 
 ## Ausleihe
 
-- **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite. Die Kamera braucht HTTPS.
+- **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite; beim Eintippen schlägt das Feld passende Exemplare und Verbrauchsmaterial vor (Nummer oder Titel). Die Kamera braucht HTTPS.
 - **Ausleihen:** Das Rückgabedatum ist mit der Frist der Kategorie vorausgefüllt. Lehrkräfte leihen für sich selbst. Verwalter sowie die zuständige Person eines Titels können auch für andere Lehrkräfte ausbuchen.
 - **Zurückgeben:** Jede angemeldete Person kann zurückbuchen, z. B. wenn ein Exemplar im Lehrerzimmer liegen geblieben ist. Freigabepflichtige Titel bucht nur die zuständige Person (oder Vertretung bzw. Verwaltung) zurück. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
 - **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage vorliegt.
@@ -106,7 +106,7 @@ Unter „Material“ stehen Verbrauchsmaterialien wie Protokollbögen, jeweils m
 
 - **Bestand zählen ist freiwillig:** Mit „Bestand zählen“ werden Entnahmen gebucht; wird die Mindestmenge erreicht, geht automatisch ein Nachbestellhinweis raus. Ohne Zählen genügt die Nachbestellkarte.
 - **Nachbestellkarten** (Material → Nachbestellkarten) sind A6-Karten mit QR-Code, vier je A4-Blatt. Die Karte kommt in den Stapel an die Stelle, ab der nachbestellt werden soll. Wer sie erreicht, scannt sie und tippt „Nachbestellen“.
-- **Hinweise** gehen an alle mit der Rolle „Sekretariat“ und zusätzlich an die Adresse unter „Einstellungen → Verbrauchsmaterial“. Je Material gibt es höchstens einen offenen Hinweis.
+- **Hinweise** gehen an alle mit der Rolle „Sekretariat“ und zusätzlich an die Adresse unter „Einstellungen → Verbrauchsmaterial“. Fehlen beide, bekommt die Verwaltung die Hinweise, und die Einstellungen zeigen eine Warnung. Je Material gibt es höchstens einen offenen Hinweis.
 - Das Sekretariat hakt unter „Material → Nachbestellungen“ ab: **bestellt**, dann **geliefert** (mit Menge, füllt den Bestand auf) oder **verwerfen**.
 
 **Übersicht „Ausleihen“** (Verwalter): offene, überfällige und alle Vorgänge, Filter nach Lehrkraft, dazu die Liste unvollständiger Exemplare.

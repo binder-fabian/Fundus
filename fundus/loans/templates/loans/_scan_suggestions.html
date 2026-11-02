@@ -1,0 +1,10 @@
+{% if copies or items %}
+  <ul class="suggestions">
+    {% for c in copies %}
+      <li><a href="{% url 'copy_detail' c.pk %}"><strong>{{ c.inventory_number }}</strong> {{ c.title.title }}</a></li>
+    {% endfor %}
+    {% for i in items %}
+      <li><a href="{% url 'consumable_detail' i.pk %}"><strong>{{ i.code }}</strong> {{ i.name }}</a></li>
+    {% endfor %}
+  </ul>
+{% endif %}

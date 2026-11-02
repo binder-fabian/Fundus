@@ -3,7 +3,9 @@
   {% if scanner_url %}<a class="button button-primary button-big" href="{{ scanner_url }}">QR-Code scannen</a>{% endif %}
   <form method="get" action="{% url 'scan_lookup' %}" class="search-row">
     <label class="sr-only" for="scan-number">Inventarnummer</label>
-    <input id="scan-number" type="text" name="nummer" placeholder="Inventarnummer eingeben oder Handscanner" autocomplete="off" {% if autofocus %}autofocus{% endif %}>
+    <input id="scan-number" type="text" name="nummer" placeholder="Inventarnummer eingeben oder Handscanner" autocomplete="off" {% if autofocus %}autofocus{% endif %}
+           hx-get="{% url 'scan_suggestions' %}" hx-trigger="input changed delay:250ms" hx-target="#scan-suggestions" hx-sync="this:replace">
     <button class="button">Öffnen</button>
   </form>
+  <div id="scan-suggestions" aria-live="polite"></div>
 </div>

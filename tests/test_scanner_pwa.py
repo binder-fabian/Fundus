@@ -5,7 +5,8 @@ from django.urls import reverse
 
 from fundus.accounts.models import Role
 from fundus.catalog.models import IsbnLookupCache
-from tests.factories import UserFactory
+from fundus.supplies.models import Consumable
+from tests.factories import CopyFactory, TitleFactory, UserFactory
 
 pytestmark = pytest.mark.django_db
 
@@ -59,3 +60,22 @@ def test_tabbar_for_logged_in_users(client):
     client.force_login(UserFactory())
     page = client.get(reverse("home")).content.decode()
     assert 'class="tabbar"' in page and 'rel="manifest"' in page
+
+
+def test_scan_box_suggests_copies_and_supplies_while_typing(client):
+    client.force_login(UserFactory())
+    title = TitleFactory(title="Rechentest für Klasse 3")
+    CopyFactory(title=title, inventory_number="FS-0003")
+    CopyFactory(inventory_number="FS-0100")
+    Consumable.objects.create(name="Protokollbögen Rechentest", code="NB-0001")
+    url = reverse("scan_suggestions")
+
+    page = client.get(url, {"nummer": "0003"}).content.decode()
+    assert "FS-0003" in page and "FS-0100" not in page
+
+    page = client.get(url, {"nummer": "rechen"}).content.decode()
+    assert "FS-0003" in page and "NB-0001" in page and "FS-0100" not in page
+
+    assert client.get(url, {"nummer": "f"}).content.decode().strip() == ""
+    home = client.get(reverse("home")).content.decode()
+    assert 'hx-get="' + url + '"' in home

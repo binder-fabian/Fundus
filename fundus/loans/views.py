@@ -57,6 +57,31 @@ def scan(request, number=None):
     return redirect(request.GET.get("zurueck") or "home")
 
 
+SUGGESTION_LIMIT = 8
+
+
+def scan_suggestions(request):
+    """Vorschläge beim Tippen im Feld „Inventarnummer“: Exemplare und
+    Verbrauchsmaterial, deren Nummer oder Titel die Eingabe enthält."""
+    query = request.GET.get("nummer", "").strip()
+    copies, items = [], []
+    if len(query) >= 2:
+        words = normalize(query).split()
+        title_match = Q()
+        for word in words:
+            title_match &= Q(title__search_text__contains=word)
+        copies = list(
+            Copy.objects.filter(Q(inventory_number__icontains=query) | title_match)
+            .select_related("title")
+            .order_by("inventory_number")[:SUGGESTION_LIMIT]
+        )
+        item_match = Q(code__icontains=query) | Q(name__icontains=query)
+        items = list(
+            Consumable.objects.filter(item_match).order_by("code")[: SUGGESTION_LIMIT - len(copies)]
+        )
+    return render(request, "loans/_scan_suggestions.html", {"copies": copies, "items": items})
+
+
 def copy_actions(request, copy):
     """Kontext für die Aktionen auf der Exemplarseite."""
     user = request.user

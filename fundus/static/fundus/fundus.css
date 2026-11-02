@@ -171,6 +171,20 @@ input[type="checkbox"] {
   height: 24px;
 }
 
+/* Häkchen-Listen (mehrere Auswahlmöglichkeiten) */
+.field label:has(> input[type="checkbox"]) {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: 400;
+  min-height: var(--tap);
+  margin: 0;
+}
+
+.checklist-filter {
+  margin-bottom: 8px;
+}
+
 .help {
   color: var(--muted);
   font-size: 0.9rem;
@@ -547,6 +561,30 @@ pre {
   display: grid;
   gap: 12px;
   margin-bottom: 24px;
+}
+
+.suggestions {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.suggestions li + li {
+  border-top: 1px solid var(--border);
+}
+
+.suggestions a {
+  display: block;
+  padding: 10px 12px;
+  min-height: var(--tap);
+  text-decoration: none;
+  color: var(--fg);
+}
+
+.suggestions strong {
+  margin-right: 6px;
 }
 
 .action-panel {
