@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1 und 2 umgesetzt**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–3 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -261,7 +261,7 @@ Bewusst offen:
 
 ## 8. Phase 3 – Ausleihe
 
-Status: **umgesetzt auf dem Zweig `phase-3`, wartet auf Freigabe und Zusammenführung** (Nacht zum 3. November 2026). Auf ausdrücklichen Wunsch über Nacht umgesetzt; `main` bleibt bis zur Freigabe unverändert.
+Status: **umgesetzt und freigegeben** (3. November 2026), über Pull Request #1 in `main` übernommen.
 
 Ziel laut SPEC: Scanner-PWA, Ausleihen/Zurückgeben, Rückgabekiste-Modus, Testkoffer-Inhaltslisten, E-Mail-Erinnerungen. Leitprinzip: „App öffnen, scannen, fertig“ in unter 10 Sekunden.
 
