@@ -324,3 +324,88 @@ def test_reserve_and_pickup_run_in_their_own_transaction():
     [reservation] = reservations.reserve(title, teacher, *days(0, 0))
     loan = services.lend(title.copies.first(), by=teacher)
     assert loan.pk == reservation.pk
+
+
+# Kalender und täglicher Lauf
+
+
+def test_week_grid_counts_free_copies(teacher, other):
+    title = title_with(copies=2)
+    monday = reservations.week_start(day(7))
+    wednesday = monday + datetime.timedelta(days=2)
+    start, end, label = reservations.lessons_period(wednesday, 3, 4, LESSONS)
+    reservations.reserve(title, teacher, start, end, period_label=label)
+    reservations.reserve(title, other, *reservations.days_period(wednesday, wednesday))
+    grid = reservations.week_grid(title, monday, LESSONS)
+    assert [d["day"].weekday() for d in grid["days"]] == [0, 1, 2, 3, 4]
+    wed = grid["days"][2]
+    assert wed["whole"] == 0
+    assert [c["free"] for c in wed["cells"]][:5] == [1, 1, 0, 0, 1]
+    assert grid["days"][0]["whole"] == 2
+    assert grid["rows"][2]["cells"][2]["free"] == 0
+
+
+def test_weekend_appears_only_when_busy(teacher):
+    title = title_with(copies=1)
+    monday = reservations.week_start(day(7))
+    saturday = monday + datetime.timedelta(days=5)
+    reservations.reserve(title, teacher, *reservations.days_period(saturday, saturday))
+    days_shown = [d["day"] for d in reservations.week_grid(title, monday, LESSONS)["days"]]
+    assert saturday in days_shown
+    assert monday + datetime.timedelta(days=6) not in days_shown
+
+
+def test_calendar_on_reserve_page_prefills_lessons(client, teacher):
+    client.force_login(teacher)
+    title = title_with(copies=1)
+    target = day(8)
+    response = client.get(
+        reverse("reserve", args=[title.pk]),
+        {"woche": target.isoformat(), "tag": target.isoformat(), "stunde": 5},
+    )
+    content = response.content.decode()
+    assert "Belegung" in content and "ganzer Tag" in content
+    form = response.context["lessons_form"]
+    assert form.initial["day"] == target and form.initial["first"] == 5
+    assert response.context["monday"] == reservations.week_start(target)
+
+
+def test_daily_reminders_and_expiry(teacher, mailoutbox):
+    title = title_with(copies=3)
+    tomorrow = reservations.reserve(title, teacher, *days(1, 1), quantity=2)
+    started = reservations.reserve(title, teacher, *days(-1, 1))[0]
+    Loan.objects.filter(pk=started.pk).update(reserved_from=reservations.day_start(day(-1)))
+    ended = Loan.objects.create(
+        title=title,
+        borrower=teacher,
+        status=Loan.Status.RESERVED,
+        reserved_from=reservations.day_start(day(-3)),
+        reserved_until=reservations.day_end(day(-1)),
+    )
+    counts = reservations.daily_tasks()
+    assert counts == {
+        "reservierung_erinnert": 1,
+        "reservierung_nicht_abgeholt": 1,
+        "reservierung_verfallen": 1,
+    }
+    subjects = sorted(m.subject for m in mailoutbox)
+    assert (
+        subjects[0].startswith("Morgen reserviert")
+        and "2 Exemplare" in mailoutbox[[m.subject for m in mailoutbox].index(subjects[0])].body
+    )
+    assert subjects[1].startswith("Noch nicht abgeholt")
+    ended.refresh_from_db()
+    assert ended.status == Loan.Status.EXPIRED
+    assert Loan.objects.filter(pk=tomorrow[1].pk, start_reminded_at__isnull=False).exists()
+    # nur einmal
+    assert reservations.daily_tasks()["reservierung_erinnert"] == 0
+    assert len(mailoutbox) == 2
+
+
+def test_reminders_can_be_switched_off(teacher, mailoutbox):
+    config = SchoolSettings.current()
+    config.reservation_reminders = False
+    config.save()
+    reservations.reserve(title_with(), teacher, *days(1, 1))
+    assert reservations.daily_tasks()["reservierung_erinnert"] == 0
+    assert mailoutbox == []

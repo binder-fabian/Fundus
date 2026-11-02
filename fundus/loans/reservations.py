@@ -312,3 +312,107 @@ def collapse(rows):
         seen[key] = loan
         result.append(loan)
     return result
+
+
+# Kalender
+
+
+def week_start(day):
+    return day - datetime.timedelta(days=day.weekday())
+
+
+def week_grid(title, monday, lessons, now=None):
+    """Belegung einer Woche: je Tag ganzer Tag und jede Unterrichtsstunde mit
+    Zahl der freien Exemplare. Samstag/Sonntag nur, wenn dort etwas belegt ist."""
+    now = now or timezone.now()
+    intervals = busy_intervals(title, now=now)
+    total = capacity(title)
+    days = []
+    for offset in range(7):
+        day = monday + datetime.timedelta(days=offset)
+        start, end = day_start(day), day_end(day)
+        whole = total - max_busy(intervals, start, end)
+        if offset >= 5 and whole == total:
+            continue
+        cells = []
+        for number, first, last in lessons:
+            a = timezone.make_aware(datetime.datetime.combine(day, first))
+            b = timezone.make_aware(datetime.datetime.combine(day, last))
+            cells.append(
+                {
+                    "number": number,
+                    "free": total - max_busy(intervals, a, b),
+                    "past": b <= now,
+                }
+            )
+        days.append(
+            {"day": day, "whole": whole, "cells": cells, "past": end <= now, "total": total}
+        )
+    rows = [
+        {
+            "number": number,
+            "time": f"{first:%H:%M}–{last:%H:%M}",
+            "cells": [d["cells"][i] | {"day": d["day"]} for d in days],
+        }
+        for i, (number, first, last) in enumerate(lessons)
+    ]
+    return {"days": days, "rows": rows, "total": total}
+
+
+# Täglich
+
+
+def daily_tasks(today=None, now=None):
+    """Erinnerung am Vortag, Hinweis „noch nicht abgeholt“, Verfall am Ende
+    des Zeitraums. Gibt die Anzahl je Art zurück."""
+    from django.urls import reverse
+
+    from fundus.core.models import SchoolSettings
+    from fundus.loans.requests import _mail, _url
+
+    now = now or timezone.now()
+    today = today or timezone.localdate(now)
+    counts = {"reservierung_erinnert": 0, "reservierung_nicht_abgeholt": 0}
+
+    if SchoolSettings.current().reservation_reminders:
+        tomorrow = today + datetime.timedelta(days=1)
+        upcoming = Loan.objects.filter(
+            status__in=[Loan.Status.RESERVED, Loan.Status.APPROVED],
+            borrower__isnull=False,
+            start_reminded_at__isnull=True,
+            reserved_from__gte=day_start(tomorrow),
+            reserved_from__lt=day_end(tomorrow),
+        ).select_related("title", "borrower")
+        for loan in collapse(upcoming):
+            if _mail(
+                "reservation_tomorrow",
+                [loan.borrower.email],
+                {
+                    "loan": loan,
+                    "quantity": loan.quantity,
+                    "link": _url(reverse("reserve", args=[loan.title_id])),
+                },
+            ):
+                group_of(loan).update(start_reminded_at=now)
+                counts["reservierung_erinnert"] += 1
+
+        missed = Loan.objects.filter(
+            status=Loan.Status.RESERVED,
+            borrower__isnull=False,
+            missed_notice_at__isnull=True,
+            reserved_from__lt=day_start(today),
+            reserved_until__gt=now,
+        ).select_related("title", "borrower")
+        for loan in collapse(missed):
+            if _mail(
+                "reservation_missed",
+                [loan.borrower.email],
+                {"loan": loan, "link": _url(reverse("reserve", args=[loan.title_id]))},
+            ):
+                group_of(loan).update(missed_notice_at=now)
+                counts["reservierung_nicht_abgeholt"] += 1
+
+    counts["reservierung_verfallen"] = Loan.objects.filter(
+        status=Loan.Status.RESERVED, reserved_until__lte=now
+    ).update(status=Loan.Status.EXPIRED, updated_at=now)
+    return counts

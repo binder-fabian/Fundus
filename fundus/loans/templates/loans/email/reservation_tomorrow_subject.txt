@@ -1,0 +1,1 @@
+Morgen reserviert: „{{ loan.title.title|truncatechars:60 }}“

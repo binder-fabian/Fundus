@@ -1,0 +1,8 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Sie haben „{{ loan.title.title }}“ reserviert: {{ loan.period_display }}{% if quantity > 1 %} ({{ quantity }} Exemplare){% endif %}.
+
+Zum Abholen das Exemplar scannen und „Ausleihen“ antippen. Wenn Sie es nicht mehr brauchen, stornieren Sie die Reservierung bitte, damit andere es nutzen können:
+
+{{ link }}
+{% endautoescape %}

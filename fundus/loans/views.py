@@ -164,6 +164,19 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
         .select_related("borrower")
         .order_by("reserved_from", "pk")
     )
+    today = timezone.localdate()
+    try:
+        shown = datetime.date.fromisoformat(request.GET.get("woche", ""))
+    except ValueError:
+        shown = today + datetime.timedelta(days=2) if today.weekday() >= 5 else today
+    monday = reservations.week_start(shown)
+    lessons_initial = {"day": tomorrow}
+    try:
+        lessons_initial["day"] = datetime.date.fromisoformat(request.GET.get("tag", ""))
+        lessons_initial["first"] = lessons_initial["last"] = int(request.GET.get("stunde", ""))
+    except ValueError:
+        pass
+    grid = reservations.week_grid(title, monday, config.lessons)
     see_names = services.can_see_borrower(request.user, title)
     entries = reservations.collapse(upcoming)
     for entry in entries:
@@ -180,9 +193,15 @@ def reservation_context(request, title, days_form=None, lessons_form=None):
         or ReserveDaysForm(initial={"first": tomorrow, "last": tomorrow}, prefix="tage", **kwargs),
         "lessons_form": lessons_form
         or ReserveLessonsForm(
-            initial={"day": tomorrow}, prefix="stunden", lessons=config.lessons, **kwargs
+            initial=lessons_initial, prefix="stunden", lessons=config.lessons, **kwargs
         ),
         "entries": entries,
+        "grid": grid,
+        "week_end": grid["days"][-1]["day"] if grid["days"] else monday,
+        "monday": monday,
+        "previous_week": monday - datetime.timedelta(days=7),
+        "next_week": monday + datetime.timedelta(days=7),
+        "this_week": reservations.week_start(today),
     }
 
 

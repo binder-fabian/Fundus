@@ -765,3 +765,53 @@ details.reject[open] form {
   margin: 0;
   align-content: start;
 }
+
+.week-nav {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.calendar th,
+.calendar td {
+  text-align: center;
+  white-space: nowrap;
+  padding: 6px 8px;
+}
+
+.calendar tbody th {
+  text-align: left;
+}
+
+.calendar .free {
+  background: var(--ok-bg);
+}
+
+.calendar .partly {
+  background: var(--warn-bg);
+}
+
+.calendar .busy {
+  background: var(--error-bg);
+}
+
+.calendar .past {
+  color: var(--muted);
+  background: none;
+}
+
+.calendar-day td {
+  font-weight: 600;
+}
+
+.week-nav .button {
+  white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+  .calendar tbody th .muted {
+    display: none;
+  }
+}

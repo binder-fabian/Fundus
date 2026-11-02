@@ -7,6 +7,34 @@
   {% if not capacity %}
     <p class="message message-warning">Von diesem Titel gibt es noch keine Exemplare.</p>
   {% else %}
+    <h2 id="kalender">Belegung</h2>
+    <nav class="week-nav" aria-label="Woche">
+      <a class="button button-small" href="?woche={{ previous_week|date:'Y-m-d' }}#kalender">‹ früher</a>
+      <span>{{ monday|date:"d.m." }}–{{ week_end|date:"d.m.Y" }}</span>
+      <a class="button button-small" href="?woche={{ next_week|date:'Y-m-d' }}#kalender">später ›</a>
+    </nav>
+    <div class="table-wrap">
+      <table class="table calendar">
+        <thead>
+          <tr><th>Stunde</th>{% for d in grid.days %}<th{% if d.past %} class="past"{% endif %}>{{ d.day|date:"D d.m." }}</th>{% endfor %}</tr>
+          <tr class="calendar-day"><th>ganzer Tag</th>{% for d in grid.days %}<td class="{% if d.past %}past{% elif d.whole <= 0 %}busy{% elif d.whole < d.total %}partly{% else %}free{% endif %}">{% if d.whole <= 0 %}belegt{% else %}{{ d.whole }} frei{% endif %}</td>{% endfor %}</tr>
+        </thead>
+        <tbody>
+          {% for row in grid.rows %}
+            <tr>
+              <th>{{ row.number }}.<span class="muted"> {{ row.time }}</span></th>
+              {% for c in row.cells %}
+                <td class="{% if c.past %}past{% elif c.free <= 0 %}busy{% elif c.free < grid.total %}partly{% else %}free{% endif %}">
+                  {% if c.past %}–{% elif c.free <= 0 %}belegt{% else %}<a href="?woche={{ monday|date:'Y-m-d' }}&amp;tag={{ c.day|date:'Y-m-d' }}&amp;stunde={{ c.number }}#stunden">{{ c.free }} frei</a>{% endif %}
+                </td>
+              {% endfor %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Eine freie Stunde antippen, um sie unten einzutragen.</p>
+
     <div class="reserve-forms">
       <section class="action-panel">
         <h2>Ganze Tage</h2>
@@ -16,7 +44,7 @@
           <button class="button button-primary">Reservieren</button>
         </form>
       </section>
-      <section class="action-panel">
+      <section class="action-panel" id="stunden">
         <h2>Einzelne Stunden</h2>
         <form method="post" class="form">{% csrf_token %}
           <input type="hidden" name="art" value="stunden">

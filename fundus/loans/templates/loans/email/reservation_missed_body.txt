@@ -1,0 +1,8 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Ihre Reservierung für „{{ loan.title.title }}“ ({{ loan.period_display }}) hat begonnen, das Material ist aber noch nicht abgeholt.
+
+Die Reservierung bleibt bis zum Ende des Zeitraums bestehen. Wenn Sie das Material nicht mehr brauchen, stornieren Sie sie bitte:
+
+{{ link }}
+{% endautoescape %}
