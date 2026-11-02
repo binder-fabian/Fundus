@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–5 umgesetzt**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–5 umgesetzt, Phase 6 in Umsetzung**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -453,3 +453,81 @@ Hinweise:
 - Der tägliche Lauf heißt jetzt `daily_tasks`; `send_reminders` bleibt als alter Name.
 - Nicht geprüft: Wiederherstellung auf einem frischen Server nach der Anleitung, die Word-Datei in Word selbst (geprüft mit python-docx), weiterhin echter Mailversand und Kamera auf echten Handys.
 
+
+## 11. Phase 6 – Erweiterungen
+
+Status: **freigegeben** (2. November 2026), in Umsetzung
+
+Ziel laut SPEC: Reservierung nach Datum/Stunde, OIDC/LDAP, Statistik, Webhooks, Mandantenfähigkeit. Umgesetzt werden in Phase 6 **Statistik, Reservierung und Anmeldung mit Schulkonto**; Webhooks und Mandantenfähigkeit bleiben für später (siehe unten).
+
+### Vorab geprüft
+
+- **Anfragen** haben schon „gewünscht ab/bis“, aber ohne Prüfung auf Überschneidungen. Eine Reservierung lässt sich als weiterer Status der Ausleihe abbilden („reserviert“). Dann greifen Anonymisierung, „Meine Daten“, Konto löschen und Änderungsprotokoll ohne Zusatzarbeit.
+- **Statistik:** Die Ausleihen bleiben nach der Anonymisierung mit Titel, Exemplar und Daten erhalten (Phase 5). Alles Nötige ist also schon gespeichert.
+- **LDAP:** `django-auth-ldap` braucht `python-ldap` mit C-Bibliotheken (unter Windows nativ umständlich). Deshalb `ldap3` (reines Python, LGPL-3.0, mit AGPL verträglich) mit einem kleinen eigenen Anmelde-Backend.
+- **SAML** entfällt: `python3-saml` braucht `xmlsec` (C-Bibliothek, unter Windows schwierig), und die üblichen Dienste (Entra, Google, Keycloak) können auch OIDC.
+
+### Schritt 6.1 – Statistik
+
+- Neue Seite „Statistik“ für Verwaltung und Admins: Ausleihen je Titel im gewählten Zeitraum (Schuljahr, Halbjahr, frei), dazu je Kategorie und Förderschwerpunkt; Titel, die nie ausgeliehen wurden; durchschnittliche Ausleihdauer; abgelehnte und verfallene Anfragen.
+- **Keine Auswertung nach Personen** (Leistungs- und Verhaltenskontrolle, Personalrat). Gezählt wird auch nach der Anonymisierung.
+- Download als Excel-Datei.
+
+### Schritt 6.2 – Stundenraster und Reservierung
+
+- In den Einstellungen ein **Stundenraster**: Anzahl der Stunden, Beginn und Ende jeder Unterrichtsstunde (Vorgabe beim ersten Start: 1.–8. Stunde à 45 Minuten ab 8:00, frei änderbar). Eine Reservierung speichert die Uhrzeiten, damit sie bei einem geänderten Raster nicht verrutscht.
+- Reservierung = Ausleihe mit Status „reserviert“ und Zeitraum: **von Tag bis Tag** (Standard) oder **ein Tag mit Stunden** (z. B. 3.–4. Stunde). Sie gilt einem **Titel** mit **Anzahl** (z. B. „2 Tablet-Koffer“); das Exemplar steht erst bei der Abholung fest, wie bei Anfragen.
+- Fundus prüft, ob im Zeitraum genug Exemplare frei sind (laufende Ausleihen mit ihrem Rückgabedatum, andere Reservierungen, offene Anfragen), und sagt sonst, wann es wieder geht.
+- Eigene Reservierungen auf der Startseite, mit „Stornieren“.
+
+### Schritt 6.3 – Kalender, Abholung und Konflikte
+
+- **Kalender pro Titel**: Wochenansicht mit Stunden bzw. Tagen, auf dem Handy als Liste. Zeigt belegte und freie Zeiten; Namen nach der Sichtbarkeits-Einstellung aus Phase 5.
+- **Abholung:** Scannen eines Exemplars wandelt die Reservierung in eine Ausleihe um; Rückgabedatum = Ende der Reservierung.
+- **Konflikt beim Ausleihen:** Ist ein Titel ab einem Datum ausgebucht, begrenzt Fundus das Rückgabedatum und sagt es deutlich. Verlängern geht nur, wenn keine Reservierung entgegensteht.
+- **Verfall:** Eine nicht abgeholte Reservierung bleibt bis zum Ende ihres Zeitraums bestehen (letzter Tag bzw. letzte Stunde) und verfällt erst dann. Erinnerung am Vortag und ein Hinweis am ersten Tag, falls noch nicht abgeholt (beides abschaltbar).
+- Im Modus ohne Namen: Reservierung für Klasse oder Raum, ohne Erinnerung.
+
+### Schritt 6.4 – Reservierung freigabepflichtiger Titel
+
+- Läuft **wie eine Anfrage**: Sie geht an das zuständige Team, das genehmigt oder ablehnt. Der Zeitraum ist schon während der Prüfung vorgemerkt, damit niemand dazwischenbucht. Die Übergabe macht weiterhin das Team per Scan.
+- Die bisherige Anfrage mit „gewünscht ab/bis“ geht darin auf: Wer einen Zeitraum angibt, reserviert; ohne Zeitraum bleibt es eine Anfrage „so bald wie möglich“.
+- **Kein Verfall, solange das Team nicht reagiert hat.** Eine unbearbeitete Reservierung bleibt offen, auch wenn ihr Beginn erreicht oder der Zeitraum vorbei ist. Das Team wird wie bisher nach einigen Tagen erinnert und zusätzlich am Vortag des Beginns. Beginnt der Zeitraum ohne Entscheidung, kann das Team noch genehmigen (dann ab sofort) oder einen neuen Zeitraum vorschlagen; nach Ende des Zeitraums steht sie als „Zeitraum vorbei“ in der Liste des Teams, bis es entscheidet.
+- Erst eine **genehmigte**, aber nicht abgeholte Reservierung verfällt, und zwar wie normale Reservierungen am Ende ihres Zeitraums. Lehrkraft und Team erhalten dann eine Mitteilung.
+
+### Schritt 6.5 – Anmeldung mit Schulkonto (OIDC)
+
+- `mozilla-django-oidc` (MPL-2.0): Knopf „Mit Schulkonto anmelden“ auf der Anmeldeseite; Einrichtung über Umgebungsvariablen (Aussteller-URL, Client-ID, Geheimnis, Name auf dem Knopf). Getestet mit Keycloak im Dev-Stack; Anleitungen für Microsoft Entra, Google und Keycloak.
+- Zuordnung zu vorhandenen Konten über die **E-Mail-Adresse**. Rollen werden weiter in Fundus vergeben.
+- **Neue Konten:** Einstellung, Standard „nicht anlegen“ (Meldung „Bitte an die Verwaltung wenden“); umschaltbar auf „automatisch als Lehrkraft anlegen“, optional nur für bestimmte E-Mail-Domains.
+- Lokale Anmeldung mit Passwort bleibt; der Admin kann sie für Nicht-Admins abschalten. Admins behalten sie als Notzugang.
+
+### Schritt 6.6 – Anmeldung über LDAP
+
+- Für Schulserver mit Verzeichnis (paedML, IServ, UCS@school, Active Directory): Benutzername und Passwort werden gegen den LDAP-Server geprüft (nur verschlüsselt: LDAPS oder StartTLS), Konten über die E-Mail-Adresse zugeordnet. Gleiche Regel für neue Konten wie bei OIDC.
+- Getestet mit einem OpenLDAP-Container im Dev-Stack.
+
+### Schritt 6.7 – Dokumentation und Abnahme
+
+- Admin-Handbuch (Statistik, Stundenraster, Reservierung, Anmeldung mit Schulkonto), Kurzanleitung (Reservieren), Verarbeitungsbeschreibung (Reservierungen, Anmeldedienst als Empfänger), Installationsanleitung (Umgebungsvariablen für OIDC/LDAP). Tests auf SQLite und PostgreSQL.
+
+### Reihenfolge
+
+6.1 (klein, unabhängig), dann 6.2–6.4 (Reservierung), dann 6.5–6.6 (Anmeldung), zuletzt 6.7.
+
+### Für später
+
+- **Webhooks** (Teams, Matrix …): Benachrichtigungen zusätzlich in einen Kanal; datensparsam ohne Namen. Baut auf den vorhandenen E-Mail-Benachrichtigungen auf.
+- **Mandantenfähigkeit:** Vorbereitet sind Schulbezug bei Kategorien, Standorten, Titeln, Exemplaren, Teams, Verbrauchsmaterial und Einstellungen. Es fehlen: Schulbezug der Konten und Rollen (heute instanzweit), Filter nach Schule in jeder Abfrage, Suche, Export, Sicherung pro Schule, Etiketten, eine Rolle „Träger-Admin“. Aufwand etwa so groß wie eine eigene Phase; sinnvoll erst, wenn ein Sachaufwandsträger konkret Interesse hat.
+
+### Entscheidungen zu Phase 6 (2. November 2026)
+
+| Frage | Entscheidung |
+| --- | --- |
+| Umfang | Statistik, Reservierung, Anmeldung mit Schulkonto; Webhooks und Mandantenfähigkeit später |
+| Zeitraster | Tage und Unterrichtsstunden (einstellbares Stundenraster) |
+| Freigabepflichtige Titel | Reservierung läuft wie eine Anfrage an das Team; Zeitraum ist während der Prüfung vorgemerkt |
+| Anmeldewege | OIDC und LDAP |
+| Neue Konten bei Anmeldung mit Schulkonto | einstellbar, Standard: nicht anlegen |
+| Verfall nicht abgeholter Reservierungen | erst am Ende des reservierten Zeitraums |
+| Unbearbeitete Reservierungen freigabepflichtiger Titel | verfallen nie von selbst; bleiben offen, bis das Team entscheidet |
