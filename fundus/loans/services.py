@@ -71,7 +71,11 @@ def default_due_date(copy, today=None):
 
 @transaction.atomic
 def lend(copy, by, borrower=None, due_date=None):
-    copy = Copy.objects.select_for_update().select_related("title__category").get(pk=copy.pk)
+    copy = (
+        Copy.objects.select_for_update(of=("self",))
+        .select_related("title__category")
+        .get(pk=copy.pk)
+    )
     title = copy.title
     borrower = borrower or by
     if not title.lendable:
@@ -110,7 +114,7 @@ def lend(copy, by, borrower=None, due_date=None):
 def return_copy(copy, by, complete=None, missing=()):
     """Bucht ein Exemplar zurück. `complete` (True/False/None) ist das Ergebnis
     der Inhaltsprüfung bei Testkoffern; `missing` die fehlenden Teile."""
-    copy = Copy.objects.select_for_update().select_related("title").get(pk=copy.pk)
+    copy = Copy.objects.select_for_update(of=("self",)).select_related("title").get(pk=copy.pk)
     loan = copy.loans.filter(status=Loan.Status.LENT).select_related("borrower").first()
     if loan is None:
         raise LoanError(_("Dieses Exemplar ist nicht ausgeliehen."))
@@ -143,7 +147,11 @@ def return_copy(copy, by, complete=None, missing=()):
 
 @transaction.atomic
 def extend(loan, by, today=None):
-    loan = Loan.objects.select_for_update().select_related("copy__title__category").get(pk=loan.pk)
+    loan = (
+        Loan.objects.select_for_update(of=("self",))
+        .select_related("copy__title__category")
+        .get(pk=loan.pk)
+    )
     if loan.status != Loan.Status.LENT:
         raise LoanError(_("Nur laufende Ausleihen können verlängert werden."))
     if loan.borrower_id != by.pk and not by.can_manage_catalog:

@@ -91,7 +91,11 @@ def request_title(title, by, wished_from=None, wished_until=None, message=""):
 
 @transaction.atomic
 def approve(loan, by):
-    loan = Loan.objects.select_for_update().select_related("title", "borrower").get(pk=loan.pk)
+    loan = (
+        Loan.objects.select_for_update(of=("self",))
+        .select_related("title", "borrower")
+        .get(pk=loan.pk)
+    )
     _check_decider(loan, by)
     if loan.status != Loan.Status.REQUESTED:
         raise LoanError(_("Diese Anfrage ist schon bearbeitet."))
@@ -113,7 +117,11 @@ def approve(loan, by):
 
 @transaction.atomic
 def reject(loan, by, reason=""):
-    loan = Loan.objects.select_for_update().select_related("title", "borrower").get(pk=loan.pk)
+    loan = (
+        Loan.objects.select_for_update(of=("self",))
+        .select_related("title", "borrower")
+        .get(pk=loan.pk)
+    )
     _check_decider(loan, by)
     if loan.status not in Loan.OPEN_REQUEST:
         raise LoanError(_("Diese Anfrage ist schon bearbeitet."))
@@ -143,7 +151,11 @@ def hand_over(loan, copy, by, due_date=None):
     """Übergabe: Das Team scannt ein freies Exemplar und bucht es für die
     anfragende Person aus. Eine noch nicht genehmigte Anfrage gilt damit
     als genehmigt."""
-    loan = Loan.objects.select_for_update().select_related("title__category").get(pk=loan.pk)
+    loan = (
+        Loan.objects.select_for_update(of=("self",))
+        .select_related("title__category")
+        .get(pk=loan.pk)
+    )
     copy = Copy.objects.select_for_update().get(pk=copy.pk)
     _check_decider(loan, by)
     if loan.status not in Loan.OPEN_REQUEST:
