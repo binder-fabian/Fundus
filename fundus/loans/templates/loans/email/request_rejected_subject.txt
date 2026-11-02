@@ -1,0 +1,1 @@
+Abgelehnt: „{{ loan.title.title|truncatechars:60 }}“

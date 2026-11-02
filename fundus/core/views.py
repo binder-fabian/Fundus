@@ -67,6 +67,11 @@ def school_settings(request):
             ],
             "Werden einmal täglich verschickt (Dienst „scheduler“).",
         ),
+        (
+            "Anfragen für freigabepflichtige Titel",
+            [form["request_reminder_days"], form["request_pickup_days"]],
+            "",
+        ),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})

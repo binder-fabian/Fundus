@@ -89,6 +89,12 @@ class SchoolSettings(models.Model):
     escalate_days = models.PositiveSmallIntegerField(
         _("Zusätzlich an die Verwaltung … Tage nach Ablauf"), default=14
     )
+    request_reminder_days = models.PositiveSmallIntegerField(
+        _("Team erinnern, wenn eine Anfrage … Tage unbearbeitet ist"), default=3
+    )
+    request_pickup_days = models.PositiveSmallIntegerField(
+        _("Genehmigte Anfragen verfallen nach … Tagen ohne Abholung"), default=14
+    )
     last_reminder_run = models.DateField(
         _("Erinnerungen zuletzt verschickt am"), null=True, blank=True
     )

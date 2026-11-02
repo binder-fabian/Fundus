@@ -83,6 +83,8 @@ def test_settings_page_is_admin_only_and_saves(client):
             "reminder_days_before": "1",
             "overdue_notice_days": "3",
             "escalate_days": "14",
+            "request_reminder_days": "3",
+            "request_pickup_days": "14",
             "label_offset_x": "0.5",
             "label_offset_y": "-1",
         },

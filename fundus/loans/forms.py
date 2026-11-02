@@ -35,3 +35,22 @@ def contents_check(title, data):
         return None, []
     missing = [item for i, item in enumerate(items) if not data.get(f"part_{i}")]
     return not missing, missing
+
+
+class RequestForm(forms.Form):
+    wished_from = forms.DateField(
+        label=_("gewünscht ab"),
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    wished_until = forms.DateField(
+        label=_("gewünscht bis"),
+        required=False,
+        widget=forms.DateInput(attrs={"type": "date"}, format="%Y-%m-%d"),
+    )
+    message = forms.CharField(
+        label=_("Nachricht an das Team"),
+        required=False,
+        max_length=500,
+        widget=forms.Textarea(attrs={"rows": 2, "placeholder": _("z. B. für welche Klasse")}),
+    )

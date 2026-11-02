@@ -1,0 +1,1 @@
+Neue Anfrage: „{{ loan.title.title|truncatechars:60 }}“ von {{ loan.borrower }}

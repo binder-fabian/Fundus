@@ -1,0 +1,8 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Ihre Anfrage für „{{ loan.title.title }}“ wurde von {{ loan.approved_by }} abgelehnt.{% if loan.rejection_reason %}
+
+Begründung: {{ loan.rejection_reason }}{% endif %}
+
+Bei Fragen wenden Sie sich bitte an {{ loan.title.team|default:"die Verwaltung" }}.
+{% endautoescape %}

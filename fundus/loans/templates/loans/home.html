@@ -3,6 +3,12 @@
 {% block content %}
   {% include "loans/_scan_box.html" %}
 
+  {% if team_requests %}
+    <h1>Anfragen an mein Team</h1>
+    <p class="muted">Zur Übergabe den QR-Code eines freien Exemplars scannen – dort steht dann „An … übergeben“.</p>
+    <ul class="cards">{% for r in team_requests %}{% include "loans/_team_request.html" %}{% endfor %}</ul>
+  {% endif %}
+
   <h1>Meine Ausleihen</h1>
   {% if loans %}
     <ul class="cards">
@@ -22,6 +28,24 @@
     </ul>
   {% else %}
     <p>Sie haben gerade nichts ausgeliehen.</p>
+  {% endif %}
+
+  {% if my_requests %}
+    <h2>Meine Anfragen</h2>
+    <ul class="cards">
+      {% for r in my_requests %}
+        <li class="card">
+          <a class="card-link" href="{% url 'title_detail' r.title_id %}">
+            <span class="card-title">{{ r.title.title }}</span>
+            <span class="muted">{% if r.status == "approved" %}genehmigt – bitte bei {{ r.title.team|default:"der Verwaltung" }} abholen{% else %}angefragt am {{ r.requested_at|date:"d.m.Y" }}, wartet auf {{ r.title.team|default:"die Verwaltung" }}{% endif %}</span>
+          </a>
+          <span class="card-meta">
+            <span class="badge{% if r.status == 'approved' %} badge-ok{% endif %}">{{ r.get_status_display }}</span>
+            <form method="post" action="{% url 'request_withdraw' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{% url 'home' %}"><button class="button button-small">Zurückziehen</button></form>
+          </span>
+        </li>
+      {% endfor %}
+    </ul>
   {% endif %}
   <p><a href="{% url 'title_list' %}">Zum Katalog</a></p>
 {% endblock %}

@@ -1,0 +1,7 @@
+{% autoescape off %}Guten Tag,
+
+die Anfrage von {{ loan.borrower }} für „{{ loan.title.title }}“ vom {{ loan.requested_at|date:"d.m.Y" }} ist noch nicht bearbeitet.
+
+Bitte in Fundus genehmigen oder ablehnen:
+{{ link }}
+{% endautoescape %}

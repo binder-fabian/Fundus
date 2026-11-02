@@ -17,6 +17,7 @@ from django.utils import timezone, translation
 from fundus.accounts.models import Role, User
 from fundus.core.models import SchoolSettings
 from fundus.loans.models import Loan
+from fundus.loans.requests import daily_request_tasks
 
 logger = logging.getLogger(__name__)
 
@@ -55,6 +56,8 @@ def _send_reminders(today):
     config = SchoolSettings.current()
     counts = {"vorher": 0, "ueberfaellig": 0, "verwaltung": 0}
     if not config.reminders_enabled:
+        # Anfragen verfallen trotzdem; nur die Erinnerungen entfallen.
+        counts.update(daily_request_tasks(today))
         return counts
     now = timezone.now()
 
@@ -106,6 +109,8 @@ def _send_reminders(today):
         if _send("escalation", managers, context):
             Loan.objects.filter(pk__in=[loan.pk for loan in escalate]).update(escalated_at=now)
             counts["verwaltung"] = len(escalate)
+
+    counts.update(daily_request_tasks(today))
 
     config.last_reminder_run = today
     config.save(update_fields=["last_reminder_run"])

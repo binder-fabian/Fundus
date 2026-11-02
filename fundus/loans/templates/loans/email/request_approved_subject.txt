@@ -1,0 +1,1 @@
+Genehmigt: „{{ loan.title.title|truncatechars:60 }}“

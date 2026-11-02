@@ -11,8 +11,8 @@ from fundus.accounts.models import User
 from fundus.accounts.permissions import require
 from fundus.catalog.models import Copy, Title
 from fundus.catalog.text import normalize
-from fundus.loans import services
-from fundus.loans.forms import LendForm, contents_check
+from fundus.loans import requests, services
+from fundus.loans.forms import LendForm, RequestForm, contents_check
 from fundus.loans.models import Loan
 
 
@@ -22,7 +22,21 @@ def home(request):
         .select_related("copy__title")
         .order_by("due_date")
     )
-    return render(request, "loans/home.html", {"loans": loans, "today": timezone.localdate()})
+    my_requests = (
+        Loan.objects.filter(borrower=request.user, status__in=Loan.OPEN_REQUEST)
+        .select_related("title__team", "approved_by")
+        .order_by("requested_at")
+    )
+    return render(
+        request,
+        "loans/home.html",
+        {
+            "loans": loans,
+            "my_requests": my_requests,
+            "team_requests": requests_context(request.user),
+            "today": timezone.localdate(),
+        },
+    )
 
 
 def scan(request, number=None):
@@ -48,9 +62,15 @@ def copy_actions(request, copy):
     }
     if not title.lendable:
         return context
+    if title.approval_required:
+        context["own_request"] = requests.open_request(title, user)
+        if context["can_lend_for_others"] and loan is None:
+            context["handover_requests"] = requests_context(user, title)
     if loan is None:
         blocked = title.approval_required and not services.can_lend_for_others(user, title)
         context["lend_blocked"] = blocked
+        if blocked and not context.get("own_request"):
+            context["request_form"] = RequestForm()
         if not blocked:
             context["lend_form"] = LendForm(
                 initial={"due_date": services.default_due_date(copy), "borrower": user.pk},
@@ -249,3 +269,105 @@ def return_box(request):
             "log": request.session.get(BOX_SESSION_KEY, []),
         },
     )
+
+
+# Anfragen für freigabepflichtige Titel
+
+
+def requests_context(user, title=None):
+    """Offene Anfragen, über die `user` entscheiden darf (optional nur ein Titel)."""
+    loans = Loan.objects.filter(status__in=Loan.OPEN_REQUEST).select_related(
+        "title__team", "borrower", "approved_by"
+    )
+    if title is not None:
+        loans = loans.filter(title=title)
+    elif not user.can_manage_catalog:
+        loans = loans.filter(title__team__members=user)
+    return [
+        loan
+        for loan in loans.order_by("requested_at")
+        if services.can_lend_for_others(user, loan.title)
+    ]
+
+
+@require_POST
+def request_create(request, pk):
+    title = get_object_or_404(Title, pk=pk)
+    form = RequestForm(request.POST)
+    if form.is_valid():
+        try:
+            requests.request_title(title, by=request.user, **form.cleaned_data)
+        except services.LoanError as error:
+            messages.error(request, str(error))
+        else:
+            messages.success(
+                request,
+                _("Angefragt. %(team)s bekommt Bescheid; Sie werden per E-Mail informiert.")
+                % {"team": services.contact_for(title)},
+            )
+    else:
+        for errors in form.errors.values():
+            messages.error(request, " ".join(errors))
+    return redirect(request.POST.get("weiter") or reverse("title_detail", args=[pk]))
+
+
+def _request_action(request, pk, action, success):
+    loan = get_object_or_404(Loan, pk=pk)
+    try:
+        action(loan)
+    except services.LoanError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(request, success)
+    return redirect(request.POST.get("weiter") or "home")
+
+
+@require_POST
+def request_approve(request, pk):
+    return _request_action(
+        request,
+        pk,
+        lambda loan: requests.approve(loan, by=request.user),
+        _("Genehmigt. Die Lehrkraft wird informiert und holt das Material ab."),
+    )
+
+
+@require_POST
+def request_reject(request, pk):
+    return _request_action(
+        request,
+        pk,
+        lambda loan: requests.reject(loan, by=request.user, reason=request.POST.get("grund", "")),
+        _("Abgelehnt. Die Lehrkraft wird informiert."),
+    )
+
+
+@require_POST
+def request_withdraw(request, pk):
+    return _request_action(
+        request,
+        pk,
+        lambda loan: requests.withdraw(loan, by=request.user),
+        _("Anfrage zurückgezogen."),
+    )
+
+
+@require_POST
+def hand_over(request, pk, copy_pk):
+    loan = get_object_or_404(Loan, pk=pk)
+    copy = get_object_or_404(Copy, pk=copy_pk)
+    try:
+        loan = requests.hand_over(loan, copy, by=request.user)
+    except services.LoanError as error:
+        messages.error(request, str(error))
+    else:
+        messages.success(
+            request,
+            _("%(n)s an %(p)s übergeben, bis %(d)s.")
+            % {
+                "n": copy.inventory_number,
+                "p": loan.borrower,
+                "d": loan.due_date.strftime("%d.%m.%Y"),
+            },
+        )
+    return redirect("copy_detail", pk=copy.pk)

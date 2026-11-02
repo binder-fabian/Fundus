@@ -1,0 +1,8 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+Ihre Anfrage für „{{ loan.title.title }}“ wurde von {{ loan.approved_by }} genehmigt.
+
+Bitte holen Sie das Material innerhalb von {{ days }} Tagen beim zuständigen Team ({{ loan.title.team|default:"Verwaltung" }}) ab. Bei der Übergabe wird es für Sie ausgebucht.
+
+{{ link }}
+{% endautoescape %}

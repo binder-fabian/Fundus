@@ -73,7 +73,8 @@ def test_returned_and_disabled_send_nothing():
     config.reminders_enabled = False
     config.save()
     loan_due(1)
-    assert send_reminders(TODAY) == {"vorher": 0, "ueberfaellig": 0, "verwaltung": 0}
+    counts = send_reminders(TODAY)
+    assert counts["vorher"] == counts["ueberfaellig"] == counts["verwaltung"] == 0
     assert not mail.outbox
 
 

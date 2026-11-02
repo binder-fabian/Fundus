@@ -58,7 +58,8 @@ def can_return(user, loan):
 
 
 def pending_request(copy):
-    return copy.loans.filter(status__in=[Loan.Status.REQUESTED, Loan.Status.APPROVED]).exists()
+    """Liegt für den Titel dieses Exemplars eine offene Anfrage vor?"""
+    return Loan.objects.filter(title_id=copy.title_id, status__in=Loan.OPEN_REQUEST).exists()
 
 
 # Vorgänge

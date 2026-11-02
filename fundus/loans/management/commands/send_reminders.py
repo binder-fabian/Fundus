@@ -10,5 +10,7 @@ class Command(BaseCommand):
         counts = send_reminders()
         self.stdout.write(
             f"Erinnerungen: {counts['vorher']} vor Ablauf, {counts['ueberfaellig']} überfällig, "
-            f"{counts['verwaltung']} an die Verwaltung gemeldet."
+            f"{counts['verwaltung']} an die Verwaltung gemeldet; "
+            f"{counts['anfrage_erinnert']} Anfragen beim Team angemahnt, "
+            f"{counts['verfallen']} Genehmigungen verfallen."
         )

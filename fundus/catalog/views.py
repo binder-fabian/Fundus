@@ -68,7 +68,16 @@ def title_detail(request, pk):
         .with_availability()
         .order_by("inventory_number")
     )
-    return render(request, "catalog/title_detail.html", {"title": title, "copies": copies})
+    context = {"title": title, "copies": copies}
+    if title.approval_required and title.lendable:
+        from fundus.loans import requests as loan_requests
+        from fundus.loans.forms import RequestForm
+        from fundus.loans.services import can_lend_for_others
+
+        context["own_request"] = loan_requests.open_request(title, request.user)
+        if not context["own_request"] and not can_lend_for_others(request.user, title):
+            context["request_form"] = RequestForm()
+    return render(request, "catalog/title_detail.html", context)
 
 
 def _isbn_lookup_into(request, form_class, instance=None, source=None):

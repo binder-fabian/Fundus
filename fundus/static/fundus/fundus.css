@@ -676,3 +676,13 @@ pre {
     display: none;
   }
 }
+
+details.reject summary {
+  list-style: none;
+}
+
+details.reject[open] form {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}

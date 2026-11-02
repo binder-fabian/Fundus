@@ -1,0 +1,17 @@
+{% if own_request %}
+  <p class="message{% if own_request.status == 'approved' %} message-success{% endif %}">
+    {% if own_request.status == "approved" %}Ihre Anfrage ist genehmigt – bitte bei {{ title.team|default:"der Verwaltung" }} abholen.{% else %}Sie haben diesen Titel am {{ own_request.requested_at|date:"d.m.Y" }} angefragt. {{ title.team|default:"Die Verwaltung" }} meldet sich.{% endif %}
+  </p>
+  <form method="post" action="{% url 'request_withdraw' own_request.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{{ request.get_full_path }}"><button class="button">Anfrage zurückziehen</button></form>
+{% elif request_form %}
+  <form method="post" action="{% url 'request_create' title.pk %}" class="form">{% csrf_token %}
+    <input type="hidden" name="weiter" value="{{ request.get_full_path }}">
+    <p>Freigabepflichtig: Fragen Sie an, {{ title.team|default:"die Verwaltung" }} genehmigt und übergibt.</p>
+    <div class="filter-grid">
+      {% include "field.html" with field=request_form.wished_from %}
+      {% include "field.html" with field=request_form.wished_until %}
+    </div>
+    {% include "field.html" with field=request_form.message %}
+    <button class="button button-primary button-big">Anfragen</button>
+  </form>
+{% endif %}

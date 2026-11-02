@@ -1,0 +1,26 @@
+<li class="card">
+  <span class="card-link">
+    <span class="card-title">{{ r.title.title }}</span>
+    <span>{{ r.borrower }}{% if r.wished_from or r.wished_until %} · gewünscht {% if r.wished_from %}ab {{ r.wished_from|date:"d.m." }}{% endif %}{% if r.wished_until %} bis {{ r.wished_until|date:"d.m.Y" }}{% endif %}{% endif %}</span>
+    {% if r.message %}<span class="muted">„{{ r.message }}“</span>{% endif %}
+    <span class="muted">angefragt am {{ r.requested_at|date:"d.m.Y" }}{% if r.status == "approved" %} · genehmigt von {{ r.approved_by }}, wartet auf Übergabe{% endif %}</span>
+  </span>
+  <span class="card-meta">
+    {% if copy %}
+      <form method="post" action="{% url 'request_hand_over' r.pk copy.pk %}">{% csrf_token %}<button class="button button-primary">An {{ r.borrower.get_short_name }} übergeben</button></form>
+    {% elif r.status == "requested" %}
+      <form method="post" action="{% url 'request_approve' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{{ request.get_full_path }}"><button class="button button-small button-primary">Genehmigen</button></form>
+    {% endif %}
+    {% if not copy %}
+      <details class="reject">
+        <summary class="button button-small">Ablehnen</summary>
+        <form method="post" action="{% url 'request_reject' r.pk %}">{% csrf_token %}
+          <input type="hidden" name="weiter" value="{{ request.get_full_path }}">
+          <label class="sr-only" for="grund-{{ r.pk }}">Begründung</label>
+          <input id="grund-{{ r.pk }}" type="text" name="grund" placeholder="Begründung (optional)">
+          <button class="button button-small button-danger">Ablehnen</button>
+        </form>
+      </details>
+    {% endif %}
+  </span>
+</li>

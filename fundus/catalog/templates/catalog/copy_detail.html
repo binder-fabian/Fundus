@@ -41,9 +41,14 @@
         {% endif %}
       {% elif lend_blocked %}
         <p class="status status-ok">Verfügbar</p>
-        <p class="message message-warning">Freigabepflichtig: Bitte an {{ copy.title.team|default:"die Verwaltung" }} wenden.</p>
+        {% include "loans/_request_box.html" with title=copy.title %}
       {% else %}
         <p class="status status-ok">Verfügbar</p>
+        {% if handover_requests %}
+          <h2>Übergabe</h2>
+          <ul class="cards">{% for r in handover_requests %}{% include "loans/_team_request.html" %}{% endfor %}</ul>
+          <p class="muted">Oder ohne Anfrage direkt ausleihen:</p>
+        {% endif %}
         <form method="post" action="{% url 'lend' copy.pk %}" class="form">{% csrf_token %}
           {% if copy.title.contents_items %}<p class="help">Inhalt: {{ copy.title.contents_items|join:", " }}</p>{% endif %}
           {% include "field.html" with field=lend_form.due_date %}

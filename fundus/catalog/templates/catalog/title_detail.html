@@ -15,6 +15,13 @@
     </div>
   </div>
 
+  {% if title.approval_required and title.lendable %}
+    <section class="action-panel">
+      <p><strong>Freigabepflichtig.</strong> Zuständig: {{ title.team|default:"Verwaltung" }}.</p>
+      {% include "loans/_request_box.html" %}
+    </section>
+  {% endif %}
+
   {% if user.can_manage_catalog %}
     <div class="actions">
       <a class="button" href="{% url 'title_edit' title.pk %}">Bearbeiten</a>

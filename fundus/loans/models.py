@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
 
-from fundus.catalog.models import Copy
+from fundus.catalog.models import Copy, Title
 
 
 class Loan(models.Model):
@@ -20,9 +20,22 @@ class Loan(models.Model):
         LENT = "lent", _("ausgeliehen")
         RETURNED = "returned", _("zurück")
         REJECTED = "rejected", _("abgelehnt")
+        WITHDRAWN = "withdrawn", _("zurückgezogen")
+        EXPIRED = "expired", _("verfallen")
 
+    OPEN_REQUEST = (Status.REQUESTED, Status.APPROVED)
+
+    # Eine Anfrage gilt dem Titel; das Exemplar steht erst bei der Übergabe fest.
+    title = models.ForeignKey(
+        Title, on_delete=models.PROTECT, related_name="loans", verbose_name=_("Titel")
+    )
     copy = models.ForeignKey(
-        Copy, on_delete=models.PROTECT, related_name="loans", verbose_name=_("Exemplar")
+        Copy,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="loans",
+        verbose_name=_("Exemplar"),
     )
     # Personenbezug: entweder eine Lehrkraft oder – im Modus ohne Personenbezug –
     # nur Klasse/Raum. Nach Ablauf der Löschfrist wird beides entfernt (anonymized_at).
@@ -59,6 +72,15 @@ class Loan(models.Model):
         blank=True,
         related_name="+",
         verbose_name=_("übergeben von"),
+    )
+    requested_at = models.DateTimeField(_("angefragt am"), null=True, blank=True)
+    wished_from = models.DateField(_("gewünscht ab"), null=True, blank=True)
+    wished_until = models.DateField(_("gewünscht bis"), null=True, blank=True)
+    message = models.TextField(_("Nachricht"), blank=True)
+    decided_at = models.DateTimeField(_("entschieden am"), null=True, blank=True)
+    rejection_reason = models.TextField(_("Begründung der Ablehnung"), blank=True)
+    request_reminded_at = models.DateTimeField(
+        _("Team an Anfrage erinnert am"), null=True, blank=True
     )
     reminder_sent_at = models.DateTimeField(_("Erinnerung verschickt am"), null=True, blank=True)
     overdue_notice_sent_at = models.DateTimeField(
@@ -97,13 +119,23 @@ class Loan(models.Model):
                 name="loan_lent_has_lent_at",
             ),
             models.CheckConstraint(
+                condition=~Q(status__in=["lent", "returned"]) | Q(copy__isnull=False),
+                name="loan_lent_has_copy",
+            ),
+            models.CheckConstraint(
                 condition=~Q(status="returned") | Q(returned_at__isnull=False),
                 name="loan_returned_has_returned_at",
             ),
         ]
 
     def __str__(self):
-        return f"{self.copy.inventory_number} ({self.get_status_display()})"
+        what = self.copy.inventory_number if self.copy_id else self.title.title
+        return f"{what} ({self.get_status_display()})"
+
+    def save(self, *args, **kwargs):
+        if self.copy_id and not self.title_id:
+            self.title_id = self.copy.title_id
+        super().save(*args, **kwargs)
 
     @property
     def is_overdue(self):

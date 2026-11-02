@@ -1,0 +1,1 @@
+Verfallen: Genehmigung für „{{ loan.title.title|truncatechars:60 }}“

@@ -1,0 +1,4 @@
+{% autoescape off %}Guten Tag {{ loan.borrower.get_full_name|default:loan.borrower.email }},
+
+die Genehmigung für „{{ loan.title.title }}“ ist verfallen, weil das Material nicht abgeholt wurde. Wenn Sie es noch brauchen, stellen Sie bitte eine neue Anfrage.
+{% endautoescape %}
