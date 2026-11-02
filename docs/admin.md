@@ -121,11 +121,29 @@ Der Dienst `scheduler` (in `docker-compose.yml` enthalten) verschickt einmal tä
 - einen Hinweis, wenn die Ausleihe 3 Tage überfällig ist,
 - nach 14 Tagen eine Sammelmail an alle Verwalter und Administratoren.
 
-Jede Nachricht geht je Ausleihe nur einmal raus; nach dem Verlängern beginnt es neu. Die Tage und das Abschalten finden Sie unter „Einstellungen“. Ohne Container rufen Sie stattdessen täglich `python manage.py send_reminders` auf (siehe [Installation ohne Container](native-install.md)).
+Jede Nachricht geht je Ausleihe nur einmal raus; nach dem Verlängern beginnt es neu. Die Tage und das Abschalten finden Sie unter „Einstellungen“.
+
+Im selben täglichen Lauf erledigt der `scheduler` auch die Datenschutz-Bereinigung und die automatische Sicherung (siehe unten). Ohne Container rufen Sie stattdessen täglich `python manage.py daily_tasks` auf (siehe [Installation ohne Container](native-install.md)); der alte Name `send_reminders` funktioniert weiter.
 
 ## Änderungsprotokoll
 
-Jede Änderung an Titeln, Exemplaren, Stammdaten und Benutzerkonten wird mit Zeitpunkt und Person gespeichert. Über „Änderungen“ sehen Verwalter, was vorher und nachher stand, und können einen älteren Stand wiederherstellen. Auch gelöschte Stammdaten lassen sich so zurückholen.
+Jede Änderung an Titeln, Exemplaren, Stammdaten und Benutzerkonten wird mit Zeitpunkt und Person gespeichert. Über „Änderungen“ sehen Verwalter, was vorher und nachher stand, und können einen älteren Stand wiederherstellen. Auch gelöschte Stammdaten lassen sich so zurückholen. Nach einer einstellbaren Frist (Standard 1 Jahr) entfernt Fundus, **wer** geändert hat; was geändert wurde, bleibt.
+
+## Datenschutz
+
+Alle Einstellungen dazu stehen unter „Einstellungen → Datenschutz“. Fundus speichert keine Daten von Schülerinnen und Schülern.
+
+**Verarbeitungsbeschreibung.** Oben auf der Einstellungsseite laden Sie eine Word-Datei für Datenschutzbeauftragte und Personalrat herunter: welche Daten, wofür, wer was sieht, Fristen, Schutzmaßnahmen. Sie folgt den aktuellen Einstellungen. Gelb markierte Stellen (z. B. Verantwortlicher, Serverstandort) ergänzt die Schule. Nach Änderung einer datenschutzrelevanten Einstellung erinnert Fundus daran, die Datei neu herunterzuladen.
+
+**Löschfrist.** Abgeschlossene Ausleihen und Anfragen verlieren nach der eingestellten Frist (Standard 365 Tage) alle Namen: Lehrkraft, Klasse/Raum, „genehmigt von“, „übergeben von“, Nachricht und Ablehnungsgrund, auch im Änderungsprotokoll. Was wann wie lange ausgeliehen war, bleibt für die Statistik. Die Bereinigung läuft täglich; unter den Einstellungen sehen Sie, wie viele Ausleihen beim nächsten Lauf anonymisiert werden, und können sie sofort starten. Erledigte Nachbestellhinweise verlieren ihre Namen nach derselben Frist, abgelaufene Abwesenheiten werden gelöscht.
+
+**Wer sieht, bei wem etwas ist?** Standard: nur Verwaltung und das zuständige Team. Wahlweise alle angemeldeten Lehrkräfte, damit man direkt nachfragen kann. Die Übersicht aller Ausleihen bleibt der Verwaltung vorbehalten.
+
+**Ausleihen ohne Namen.** Solange der Personalrat noch nicht zugestimmt hat, schalten Sie „Ausleihen ohne Namen (nur Klasse oder Raum)“ ein. Dann wird beim Ausleihen statt der Person z. B. „3b“ oder „Raum 104“ eingetragen (mit Vorschlägen aus früheren Einträgen). Folgen: keine „Meine Ausleihen“, keine Erinnerungen an Lehrkräfte; Überfälliges sehen Sie in der Übersicht. Anfragen für freigabepflichtige Titel laufen weiter mit Namen und E-Mail; bei der Übergabe trägt das Team Klasse oder Raum ein, und Fundus löscht dabei Namen und Nachricht. Bestehende Ausleihen mit Namen bleiben, wie sie sind.
+
+**Konto löschen.** Unter „Benutzer → Person → Konto löschen …“. Möglich, sobald die Person nichts mehr ausgeliehen hat. Ihre Ausleihen werden dabei sofort anonymisiert, offene Anfragen zurückgezogen, ihr Name verschwindet aus Teams und Änderungsprotokoll. Wer nur vorübergehend weg ist, wird besser deaktiviert.
+
+**Auskunft.** Jede Person lädt unter „Konto → Meine Daten herunterladen“ alles herunter, was Fundus über sie gespeichert hat (ZIP mit CSV-Dateien).
 
 ## Import vorhandener Listen
 
@@ -153,7 +171,15 @@ Passwörter sind nie enthalten. Auf dem Server:
 docker compose exec app python manage.py export_all
 ```
 
-legt den Export unter `/data/exporte/` im Daten-Volume ab. Automatische Sicherungen nach Zeitplan folgen in Phase 5.
+legt den Export unter `/data/exporte/` im Daten-Volume ab.
+
+### Automatische Sicherung
+
+Der `scheduler` legt nach Zeitplan eine Sicherung an (Standard: täglich, die letzten 14 bleiben). Einstellbar unter „Einstellungen → Sicherung“; dort sehen Sie auch, wann zuletzt gesichert wurde, und bekommen eine Warnung, wenn eine Sicherung fehlgeschlagen ist oder fehlt. „Jetzt sichern“ legt sofort eine an, z. B. vor einem Update.
+
+Eine Sicherung (`fundus-sicherung-JJJJ-MM-TT-hhmmss.zip`) enthält die komplette Datenbank (auch die Passwort-Prüfwerte, damit sich nach einer Wiederherstellung alle wieder anmelden können), die Bilder und zusätzlich den lesbaren Export. **Sie gehört deshalb in ein geschütztes Verzeichnis** und sollte zusätzlich außerhalb des Servers liegen, z. B. auf einem NAS. Ablage: `BACKUP_DIR`, im Container `/data/sicherungen`. Bis eine Sicherung gelöscht wird, enthält sie auch Namen, die in Fundus selbst schon anonymisiert sind.
+
+Wiederherstellen siehe [Installation](installation.md#sicherung-wiederherstellen).
 
 ## Einstellungen über `.env`
 
@@ -163,7 +189,8 @@ legt den Export unter `/data/exporte/` im Daten-Volume ab. Automatische Sicherun
 | `LOGIN_MAX_ATTEMPTS` | 5 | Falsche Passwörter, bevor die Anmeldung gesperrt wird (je Gerät das Vierfache) |
 | `LOGIN_LOCK_MINUTES` | 15 | Dauer der Sperre |
 | `GOOGLE_BOOKS_API_KEY` | leer | Optionaler Schlüssel für Google Books als dritte ISBN-Quelle |
-| `REMINDER_HOUR` | 7 | Ab dieser Stunde verschickt der `scheduler` die täglichen Erinnerungen |
+| `REMINDER_HOUR` | 7 | Ab dieser Stunde erledigt der `scheduler` die täglichen Aufgaben (Erinnerungen, Bereinigung, Sicherung) |
 | `INVITATION_TIMEOUT_DAYS` | 14 | Gültigkeit von Einladungslinks |
+| `BACKUP_DIR` | `DATA_DIR/sicherungen` | Ordner für die automatischen Sicherungen |
 | `TIME_ZONE` | Europe/Berlin | Zeitzone |
 | `LOG_LEVEL` | INFO | Ausführlichkeit der Protokolle |

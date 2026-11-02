@@ -23,6 +23,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.management import call_command
 from django.db import connection, transaction
 from django.db.migrations.recorder import MigrationRecorder
+from django.test.utils import override_settings
 from django.utils import timezone
 
 from fundus.core.models import SchoolSettings
@@ -194,14 +195,28 @@ def restore(path, replace=False):
     with tempfile.TemporaryDirectory() as tmp:
         with zipfile.ZipFile(path) as archive:
             archive.extractall(tmp)
+        # Erst die Bilder: schlägt das fehl, bleibt die Datenbank unverändert.
+        _copy_files(Path(tmp) / "dateien", Path(settings.MEDIA_ROOT))
         with transaction.atomic():
             call_command("flush", interactive=False, verbosity=0)
             # flush legt Inhaltstypen und Berechtigungen neu an; die aus der
             # Sicherung bringen ihre eigenen Nummern mit.
             Permission.objects.all().delete()
             ContentType.objects.all().delete()
-            call_command("loaddata", str(Path(tmp) / "datenbank.json"), verbosity=0)
-        files = Path(tmp) / "dateien"
-        if files.exists():
-            shutil.copytree(files, settings.MEDIA_ROOT, dirs_exist_ok=True)
+            # Das Änderungsprotokoll kommt vollständig aus der Sicherung; beim
+            # Einspielen (z. B. Förderschwerpunkte eines Titels) keine neuen Einträge.
+            with override_settings(SIMPLE_HISTORY_ENABLED=False):
+                call_command("loaddata", str(Path(tmp) / "datenbank.json"), verbosity=0)
     return version
+
+
+def _copy_files(source, target):
+    """Kopiert nur Dateiinhalte – ohne Rechte und Zeitstempel, die auf fremden
+    Ordnern (z. B. im Container) nicht gesetzt werden dürfen."""
+    if not source.exists():
+        return
+    for file in source.rglob("*"):
+        if file.is_file():
+            destination = target / file.relative_to(source)
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copyfile(file, destination)

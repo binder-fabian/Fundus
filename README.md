@@ -2,7 +2,7 @@
 
 Katalog und Ausleihe für Schulen: Bücher, Diagnostiktests, Fördermaterial und Technik an einem Ort, mit QR-Codes zum Ausleihen per Handy. Selbst gehostet, ohne Cloud-Abhängigkeit, datensparsam.
 
-> **Stand:** Phasen 1–4: Katalog, Suche, Benutzer, Import und Export, ISBN-Abruf, Massenerfassung, Nummernschema, Etiketten mit QR-Code, Ausleihe per Handy-Scanner, Rückgabekiste, E-Mail-Erinnerungen, Anfragen mit Übergabe-Scan, Teams und Verbrauchsmaterial mit Nachbestellkarten. Datenschutz-Einstellungen und automatische Sicherung folgen in Phase 5.
+> **Stand:** Phasen 1–5: Katalog, Suche, Benutzer, Import und Export, ISBN-Abruf, Massenerfassung, Nummernschema, Etiketten mit QR-Code, Ausleihe per Handy-Scanner, Rückgabekiste, E-Mail-Erinnerungen, Anfragen mit Übergabe-Scan, Teams, Verbrauchsmaterial mit Nachbestellkarten, Anonymisierung nach Löschfrist, Ausleihen ohne Namen, Auskunft und Löschung von Konten, automatische Sicherung und Verarbeitungsbeschreibung für Datenschutz und Personalrat. Erweiterungen (Reservierung, OIDC/LDAP, Statistik) folgen in Phase 6.
 
 - Anforderungen: [SPEC.md](SPEC.md)
 - Umsetzungsplan und Entscheidungen: [PLAN.md](PLAN.md)
@@ -11,7 +11,7 @@ Katalog und Ausleihe für Schulen: Bücher, Diagnostiktests, Fördermaterial und
 
 - [Installation](docs/installation.md) mit Docker oder Podman, für Nicht-Experten
 - [Installation ohne Container](docs/native-install.md) unter Linux und Windows (Entwurf)
-- [Admin-Handbuch](docs/admin.md): Rollen, Benutzer, Katalog, Import, Export
+- [Admin-Handbuch](docs/admin.md): Rollen, Benutzer, Katalog, Ausleihe, Datenschutz, Import, Export und Sicherung
 - [Kurzanleitung für Lehrkräfte](docs/kurzanleitung-lehrkraefte.md) (1 Seite)
 
 ## Schnellstart mit Docker oder Podman

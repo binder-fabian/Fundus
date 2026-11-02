@@ -18,10 +18,12 @@
 
 **Zurückgeben.** Wieder scannen und „Zurückgeben“ antippen. Bei Testkoffern kurz abhaken, ob alles drin ist.
 
-**Meine Ausleihen** stehen auf der Startseite, mit „Verlängern“. Einen Tag vor Ablauf kommt eine Erinnerung per E-Mail.
+**Meine Ausleihen** stehen auf der Startseite, mit „Verlängern“. Einen Tag vor Ablauf kommt eine Erinnerung per E-Mail. Erfasst Ihre Schule Ausleihen **ohne Namen**, tragen Sie beim Ausleihen nur Klasse oder Raum ein (z. B. „3b“); dann gibt es keine Liste und keine Erinnerungen.
 
 **Als App aufs Handy.** Im Browser „Zum Startbildschirm hinzufügen“ wählen (iPhone: Teilen-Symbol; Android: Menü ⋮). Dann startet Fundus wie eine App.
 
 **Freigabepflichtige Tests** (z. B. teure Diagnostik): „Anfragen“ antippen. Das zuständige Team genehmigt, Sie bekommen eine E-Mail und holen den Test dort ab. Zurück geben Sie ihn auch beim Team.
 
 **Protokollbögen & Co. fast leer?** Die Nachbestellkarte im Stapel scannen und „Nachbestellen“ antippen. Das Sekretariat kümmert sich.
+
+**Ihre Daten.** Fundus speichert nur, was für die Ausleihe nötig ist, und entfernt Namen nach Ablauf der Frist automatisch. Unter „Konto → Meine Daten herunterladen“ sehen Sie alles, was über Sie gespeichert ist.

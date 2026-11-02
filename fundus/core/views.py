@@ -132,7 +132,8 @@ def privacy_run_now(request):
 
 def backup_note(config):
     files = backup.existing_backups()
-    text = f"Ablage: {settings.BACKUP_DIR} ({len(files)} Sicherungen vorhanden). "
+    count = "1 Sicherung" if len(files) == 1 else f"{len(files)} Sicherungen"
+    text = f"Ablage: {settings.BACKUP_DIR} ({count} vorhanden). "
     if config.last_backup_at:
         text += f"Letzte Sicherung: {timezone.localtime(config.last_backup_at):%d.%m.%Y %H:%M}. "
     if config.last_backup_error:

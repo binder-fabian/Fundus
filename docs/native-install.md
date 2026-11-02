@@ -44,11 +44,13 @@ WantedBy=multi-user.target
 sudo systemctl enable --now fundus
 ```
 
-Erinnerungen täglich um 7 Uhr per Cron (`sudo -u fundus crontab -e`):
+Tägliche Aufgaben (Erinnerungen, Datenschutz-Bereinigung, Sicherung) um 7 Uhr per Cron (`sudo -u fundus crontab -e`):
 
 ```
-0 7 * * * cd /opt/fundus/app && .venv/bin/python manage.py send_reminders
+0 7 * * * cd /opt/fundus/app && .venv/bin/python manage.py daily_tasks
 ```
+
+Sicherungen landen in `DATA_DIR/sicherungen` (oder `BACKUP_DIR`). Wiederherstellen in eine leere, migrierte Datenbank mit `.venv/bin/python manage.py restore_backup DATEI.zip`.
 
 ## Windows
 
@@ -65,4 +67,4 @@ uv run python manage.py createadmin --email ihre.adresse@meine-schule.de
 uv run waitress-serve --listen=127.0.0.1:8000 fundus.wsgi:application
 ```
 
-Für den Dauerbetrieb den letzten Befehl als Windows-Dienst einrichten (z. B. mit NSSM) und einen Reverse Proxy mit HTTPS davorschalten. Für die täglichen Erinnerungen in der Aufgabenplanung eine Aufgabe anlegen, die um 7 Uhr `uv run python manage.py send_reminders` in `C:\Fundus` ausführt.
+Für den Dauerbetrieb den letzten Befehl als Windows-Dienst einrichten (z. B. mit NSSM) und einen Reverse Proxy mit HTTPS davorschalten. Für die täglichen Aufgaben (Erinnerungen, Bereinigung, Sicherung) in der Aufgabenplanung eine Aufgabe anlegen, die um 7 Uhr `uv run python manage.py daily_tasks` in `C:\Fundus` ausführt.

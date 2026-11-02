@@ -85,8 +85,34 @@ docker compose up -d
 
 Beim selbst gebauten Image stattdessen `docker compose -f docker-compose.yml -f docker-compose.build.yml up -d --build`.
 
-Datenbankänderungen werden beim Start automatisch übernommen. Machen Sie vorher einen Export (siehe [Admin-Handbuch](admin.md)).
+Datenbankänderungen werden beim Start automatisch übernommen. Legen Sie vorher unter „Einstellungen → Sicherung“ mit „Jetzt sichern“ eine Sicherung an.
+
+## Sicherungen nach außen kopieren
+
+Fundus sichert automatisch ins Daten-Volume (`/data/sicherungen`). Damit eine Sicherung auch einen Ausfall des Servers übersteht, kopieren Sie die Dateien regelmäßig weg, z. B. per Cron auf ein NAS:
+
+```bash
+docker compose cp app:/data/sicherungen/. /mnt/nas/fundus-sicherungen/
+```
+
+Die Dateien enthalten alle Daten einschließlich der Passwort-Prüfwerte. Bewahren Sie sie so geschützt auf wie den Server selbst.
+
+## Sicherung wiederherstellen
+
+Eine Sicherung lässt sich in eine **leere** Datenbank einspielen, z. B. auf einem neuen Server oder beim Umzug von SQLite zu PostgreSQL. Die Fundus-Version muss gleich oder neuer sein als die, mit der gesichert wurde.
+
+1. Fundus wie oben installieren und starten (die Datenbank wird dabei angelegt), aber noch **keinen** Administrator anlegen.
+2. Sicherung in den Container kopieren und einspielen:
+
+```bash
+docker compose cp fundus-sicherung-2026-11-02-070000.zip app:/tmp/
+docker compose exec app python manage.py restore_backup /tmp/fundus-sicherung-2026-11-02-070000.zip
+```
+
+Danach melden sich alle mit ihren bisherigen Passwörtern neu an.
+
+**Bestehende Daten ersetzen** (z. B. nach einem Bedienfehler): an den letzten Befehl `--ersetzen` anhängen. Das löscht alle aktuellen Daten und spielt die Sicherung ein. Vorher sicherheitshalber „Jetzt sichern“.
 
 ## Wo liegen die Daten?
 
-Nur in zwei benannten Volumes: `fundus_fundus-db` (Datenbank) und `fundus_fundus-data` (Bilder, Exporte, bei SQLite auch die Datenbank). Alles andere lässt sich jederzeit neu bauen.
+Nur in zwei benannten Volumes: `fundus_fundus-db` (Datenbank) und `fundus_fundus-data` (Bilder, Exporte, Sicherungen, bei SQLite auch die Datenbank). Alles andere lässt sich jederzeit neu bauen.

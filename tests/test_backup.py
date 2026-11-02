@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.utils import timezone
 
 from fundus.accounts.models import Role, User
-from fundus.catalog.models import Title
+from fundus.catalog.models import SupportFocus, Title
 from fundus.core import backup
 from fundus.core.models import SchoolSettings
 from fundus.loans import services
@@ -72,6 +72,7 @@ def test_restore_into_empty_database_and_replace(settings, tmp_path):
     settings.MEDIA_ROOT = tmp_path / "media"
     teacher = UserFactory(email="lehrerin@schule.de")
     copy = CopyFactory(title=TitleFactory(title="Rechentest"))
+    copy.title.support_focuses.set(SupportFocus.objects.all()[:2])
     services.lend(copy, by=teacher)
     history_rows = Title.history.count()
     path = backup.create_backup()
@@ -79,8 +80,10 @@ def test_restore_into_empty_database_and_replace(settings, tmp_path):
     with pytest.raises(backup.BackupError, match="schon Daten"):
         backup.restore(path)
 
+    cover = settings.MEDIA_ROOT / "covers" / "c.jpg"
     Title.objects.create(title="Danach angelegt", category=copy.title.category)
     backup.restore(path, replace=True)
+    assert not cover.exists()  # keine Bilder in dieser Sicherung
     assert not Title.objects.filter(title="Danach angelegt").exists()
     restored = User.objects.get(email="lehrerin@schule.de")
     assert restored.check_password("geheim-1234")
@@ -109,7 +112,7 @@ def test_settings_show_backup_state_and_backup_now(client):
     assert "Es gibt keine aktuelle Sicherung" in page
     response = client.post(reverse("backup_now"), follow=True)
     assert "Sicherung angelegt: fundus-sicherung-" in response.content.decode()
-    assert "1 Sicherungen vorhanden" in response.content.decode()
+    assert "1 Sicherung vorhanden" in response.content.decode()
 
 
 def test_failed_backup_is_reported(client, monkeypatch):
@@ -121,3 +124,15 @@ def test_failed_backup_is_reported(client, monkeypatch):
     assert not list(backup.existing_backups())
     client.force_login(UserFactory(role=Role.ADMIN))
     assert "Datenträger voll" in client.get(reverse("school_settings")).content.decode()
+
+
+def test_restore_brings_back_files(settings, tmp_path):
+    settings.MEDIA_ROOT = tmp_path / "media"
+    cover = settings.MEDIA_ROOT / "covers" / "c.jpg"
+    cover.parent.mkdir(parents=True)
+    cover.write_bytes(b"bild")
+    UserFactory()
+    path = backup.create_backup()
+    cover.unlink()
+    backup.restore(path, replace=True)
+    assert cover.read_bytes() == b"bild"

@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–4 umgesetzt, Phase 5 in Planung**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–5 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -363,7 +363,7 @@ Hinweise:
 
 ## 10. Phase 5 – Datenschutz und Betrieb
 
-Status: **Entwurf, Fragen beantwortet, wartet auf Freigabe** (2. November 2026)
+Status: **umgesetzt** (2. November 2026)
 
 Ziel laut SPEC: Anonymisierung, Sichtbarkeitsstufen, Modus ohne Namen, automatische Sicherung, Verarbeitungsbeschreibung. Leitgedanke: Personalrat und Datenschutzbeauftragte sollen zustimmen können, ohne dass die Schule etwas programmieren oder selbst formulieren muss.
 
@@ -437,3 +437,19 @@ Ziel laut SPEC: Anonymisierung, Sichtbarkeitsstufen, Modus ohne Namen, automatis
 | Verarbeitungsbeschreibung | Word-Datei (.docx) mit markierten Stellen zum Ergänzen |
 | Löschfrist für Ausleihen | **1 Jahr** nach Abschluss (statt 90 Tage aus Phase 1); die Verleihhistorie ohne Namen bleibt dauerhaft |
 | Sichtbarkeit der Namen | Standard wie bisher: Verwaltung und zuständiges Team; „alle Lehrkräfte“ wählbar |
+
+### Stand nach Phase 5 (2. November 2026)
+
+Alle Schritte umgesetzt; 268 automatische Tests (SQLite und PostgreSQL), CI und Image-Build grün. Im laufenden Container geprüft: Sicherung anlegen, Wiederherstellung einer PostgreSQL-Sicherung in eine leere SQLite-Datenbank (Daten und Änderungsprotokoll vollständig), Verarbeitungsbeschreibung und „Meine Daten“ als Download.
+
+Beim Prüfen gefunden und behoben:
+
+- **Ausleihen in PostgreSQL** schlug nach Schritt 5.3 fehl (Transaktion fehlte, die Tests liefen in einer umgebenden Transaktion). Kurz auf `main`, behoben in `bd097bf`; neuer Test ohne umgebende Transaktion.
+- **Wiederherstellung** legte zusätzliche Protokolleinträge an (Förderschwerpunkte) und übertrug beim Kopieren der Bilder die SELinux-Etiketten des Zwischenordners – auf Servern mit SELinux wären die Bilder danach nicht mehr lesbar gewesen. Jetzt ohne Protokoll beim Einspielen und nur mit Dateiinhalten.
+- Die tägliche Aufgabe lief bei abgeschalteten Erinnerungen jede Minute statt einmal täglich.
+
+Hinweise:
+
+- Der tägliche Lauf heißt jetzt `daily_tasks`; `send_reminders` bleibt als alter Name.
+- Nicht geprüft: Wiederherstellung auf einem frischen Server nach der Anleitung, die Word-Datei in Word selbst (geprüft mit python-docx), weiterhin echter Mailversand und Kamera auf echten Handys.
+
