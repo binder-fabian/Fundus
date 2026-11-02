@@ -307,39 +307,47 @@ Ziel laut SPEC: Anfrage-Workflow mit Übergabe-Scan, Vertretung, Nachbestellkart
 
 ### Schritt 4.1 – Anfragen für freigabepflichtige Titel
 
-- Lehrkräfte stellen statt „Ausleihen“ eine **Anfrage**, optional mit Wunschzeitraum und kurzer Nachricht. Status „angefragt“.
-- Die zuständige Person (bzw. die Vertretung, siehe Frage 2) bekommt eine E-Mail und sieht offene Anfragen auf ihrer Startseite.
+- Lehrkräfte stellen statt „Ausleihen“ eine **Anfrage für den Titel** (nicht für ein bestimmtes Exemplar), optional mit Wunschzeitraum und kurzer Nachricht. Status „angefragt“.
+- Alle anwesenden Mitglieder des zuständigen **Teams** bekommen eine E-Mail und sehen offene Anfragen auf ihrer Startseite; wer zuerst reagiert, erledigt sie.
 - **Genehmigen** oder **Ablehnen** (mit Begründung); die Lehrkraft wird per E-Mail informiert.
 - Lehrkräfte sehen ihre Anfragen unter „Meine Ausleihen“ und können sie zurückziehen.
 - Genehmigte, aber nicht abgeholte Anfragen verfallen nach einer einstellbaren Frist (Vorschlag: 14 Tage).
 
 ### Schritt 4.2 – Übergabe-Scan
 
-- Ausgeliehen ist ein freigabepflichtiges Exemplar **erst, wenn die zuständige Person bei der Übergabe den QR-Code scannt**. Die Exemplarseite zeigt ihr dann die genehmigten Anfragen zu diesem Titel; ein Tipp bucht aus („übergeben von“ wird gespeichert).
+- Ausgeliehen ist ein freigabepflichtiges Exemplar **erst, wenn jemand aus dem zuständigen Team bei der Übergabe den QR-Code eines freien Exemplars scannt**. Die Exemplarseite zeigt dann die genehmigten Anfragen zu diesem Titel; ein Tipp bucht aus („übergeben von“ wird gespeichert).
 - Für freigabepflichtige Titel entfällt damit das direkte Ausbuchen ohne Anfrage nicht ganz: Zuständige und Verwaltung können weiterhin direkt für jemanden ausbuchen (z. B. bei spontaner Übergabe).
 - Verlängern ist nicht möglich, solange eine andere Anfrage vorliegt (schon so umgesetzt).
 
-### Schritt 4.3 – Vertretung
+### Schritt 4.3 – Teams statt „zuständige Person + Vertretung“
 
-- Zuständige Personen können sich in „Mein Konto“ als **abwesend bis …** eintragen. Solange gehen Anfragen an die Vertretung (siehe Frage 2).
-- Übersicht für Verwalter: Titel ohne zuständige Person oder ohne Vertretung.
+- **Teams** als Stammdaten (z. B. „Diagnostik-Team“) mit einer bis beliebig vielen Personen; am Titel wird ein Team gewählt. Eine einzelne Person ist ein Team aus einer Person.
+- Alle Teammitglieder haben die bisherigen Rechte der zuständigen Person (genehmigen, übergeben, zurückbuchen, für andere ausleihen); das Team vertritt sich gegenseitig.
+- Wer sich in „Mein Konto“ als **abwesend bis …** einträgt, bekommt in der Zeit keine Anfragen. Sind alle abwesend, geht die Anfrage an die Verwaltung.
+- Bestehende Einträge (zuständige Person + Vertretung) werden automatisch in Teams übernommen.
+- Übersicht für Verwalter: freigabepflichtige Titel ohne Team.
 
 ### Schritt 4.4 – Verbrauchsmaterial
 
-- Neuer Bereich „Verbrauchsmaterial“: Bezeichnung, Bezug zu einem Titel (z. B. Protokollbögen zum Test), Standort, Bestand und Mindestmenge (siehe Frage 3), Bestellhinweis (Lieferant, Artikelnummer, Packungsgröße).
+- Neuer Bereich „Verbrauchsmaterial“: Bezeichnung, Bezug zu einem Titel (z. B. Protokollbögen zum Test), Standort, Bestellhinweis (Lieferant, Artikelnummer, Packungsgröße).
+- **Bestand zählen wahlweise je Material:** mit Bestand und Mindestmenge (Entnahme buchen) oder nur mit Nachbestellkarte.
 - Entnahme und Auffüllen buchen; der Titel zeigt sein zugehöriges Verbrauchsmaterial.
 
 ### Schritt 4.5 – Nachbestellkarten und Nachbestellhinweise
 
 - **Nachbestellkarte** als PDF (wie die Etiketten): QR-Code mit einer eigenen Kennung (z. B. `NB-0003`), Bezeichnung und Bestellhinweis. Die Karte liegt im Stapel an der Stelle, an der nachbestellt werden muss.
 - Wer die Karte erreicht, **scannt sie** → ein Tipp auf „Nachbestellen“ erzeugt einen Nachbestellhinweis. Ebenso automatisch, wenn der Bestand die Mindestmenge unterschreitet.
-- Hinweise gehen an die konfigurierte Stelle (siehe Frage 4). Das Sekretariat sieht eine Liste offener Hinweise und hakt sie als „bestellt“ und später „geliefert“ ab (geliefert = Bestand auffüllen).
+- Hinweise gehen an alle mit der Rolle **Sekretariat** (Liste in Fundus und E-Mail) und zusätzlich per E-Mail an eine in den Einstellungen hinterlegte Adresse (z. B. sekretariat@schule.de). Das Sekretariat hakt sie als „bestellt“ und später „geliefert“ ab (geliefert = Bestand auffüllen).
 
 ### Schritt 4.6 – Dokumentation und Abnahme
 
-### Offene Fragen zu Phase 4
+### Entscheidungen zu Phase 4 (3. November 2026)
 
-1. Bezieht sich eine Anfrage auf den **Titel** (irgendein freies Exemplar) oder auf ein **bestimmtes Exemplar**?
-2. **Vertretung:** Wann bekommt sie die Anfragen?
-3. **Verbrauchsmaterial:** Soll Fundus den Bestand zählen, oder reichen Nachbestellkarten?
-4. **Nachbestellhinweise:** An wen gehen sie?
+| Frage | Entscheidung |
+| --- | --- |
+| Anfrage bezieht sich auf | den Titel; bei der Übergabe wird ein freies Exemplar gescannt |
+| Zuständigkeit und Vertretung | Teams als Stammdaten; alle Anwesenden bekommen jede Anfrage; sind alle abwesend, die Verwaltung |
+| Bestand beim Verbrauchsmaterial | wahlweise je Material: zählen oder nur Nachbestellkarte |
+| Nachbestellhinweise an | Rolle Sekretariat (Liste + E-Mail) und eine einstellbare E-Mail-Adresse |
+
+Reihenfolge der Umsetzung: 4.3 (Teams) zuerst, weil Anfragen und Übergabe darauf aufbauen; danach 4.1, 4.2, 4.4, 4.5, 4.6.
