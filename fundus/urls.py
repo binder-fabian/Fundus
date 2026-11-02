@@ -14,6 +14,11 @@ urlpatterns = [
     path("einstellungen/", core_views.school_settings, name="school_settings"),
     path("einstellungen/sichern/", core_views.backup_now, name="backup_now"),
     path(
+        "einstellungen/verarbeitungsbeschreibung.docx",
+        core_views.processing_record_download,
+        name="processing_record",
+    ),
+    path(
         "einstellungen/datenschutz-jetzt/",
         core_views.privacy_run_now,
         name="privacy_run_now",

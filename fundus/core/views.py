@@ -2,7 +2,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_not_required
 from django.db import DatabaseError, connection
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
 from django.views.decorators.cache import never_cache
@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.views.static import serve
 
 from fundus.accounts.permissions import require
-from fundus.core import backup, privacy
+from fundus.core import backup, privacy, processing_record
 from fundus.core.daily import describe
 from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
@@ -47,6 +47,12 @@ def school_settings(request):
     if request.method == "POST" and form.is_valid():
         form.save()
         messages.success(request, "Einstellungen gespeichert.")
+        if set(form.changed_data) & processing_record.RELEVANT_FIELDS:
+            messages.info(
+                request,
+                "Sie haben eine datenschutzrelevante Einstellung geändert. Bitte die "
+                "Verarbeitungsbeschreibung neu herunterladen und weitergeben.",
+            )
         return redirect("school_settings")
     groups = [
         ("Schule", [form["school_name"]], ""),
@@ -150,3 +156,14 @@ def backup_now(request):
     else:
         messages.success(request, f"Sicherung angelegt: {path.name}")
     return redirect("school_settings")
+
+
+@require("is_admin")
+def processing_record_download(request):
+    response = HttpResponse(
+        processing_record.processing_record_docx(),
+        content_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+    name = f"fundus-verarbeitungsbeschreibung-{timezone.localdate():%Y-%m-%d}.docx"
+    response["Content-Disposition"] = f'attachment; filename="{name}"'
+    return response
