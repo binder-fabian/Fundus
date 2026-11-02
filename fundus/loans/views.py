@@ -178,11 +178,73 @@ def _safe_local_path(value, default):
 
 def scanner(request):
     """Kamera-Scanner. ?ziel=isbn&zurueck=/pfad/ liefert eine ISBN an ein Formular zurück."""
-    mode = "isbn" if request.GET.get("ziel") == "isbn" else "exemplar"
-    if mode == "isbn":
+    mode = request.GET.get("ziel") if request.GET.get("ziel") in ("isbn", "kiste") else "exemplar"
+    if mode == "kiste":
+        back = reverse("return_box")
+        target = f"{back}?nummer=__CODE__"
+    elif mode == "isbn":
         back = _safe_local_path(request.GET.get("zurueck", ""), reverse("title_create"))
         target = f"{back}{'&' if '?' in back else '?'}isbn=__CODE__"
     else:
         back = reverse("home")
         target = reverse("scan", args=["__CODE__"])
     return render(request, "loans/scanner.html", {"mode": mode, "target": target, "back": back})
+
+
+BOX_SESSION_KEY = "return_box"
+
+
+def _box_log(request, copy, text):
+    log = request.session.get(BOX_SESSION_KEY, [])
+    log.insert(0, {"number": copy.inventory_number, "title": copy.title.title, "text": text})
+    request.session[BOX_SESSION_KEY] = log[:50]
+
+
+@require("can_manage_catalog")
+def return_box(request):
+    """Rückgabekiste: viele Exemplare nacheinander zurückbuchen.
+
+    Handscanner (Formular mit Enter) bucht sofort zurück; aus dem Kamera-Scanner
+    kommt die Nummer per GET und wird mit einem Tipp bestätigt. Bei Testkoffern
+    wird zuerst die Inhaltsliste abgefragt.
+    """
+    number = (request.POST.get("nummer") or request.GET.get("nummer") or "").strip()
+    copy = None
+    check = None
+    if number:
+        copy = Copy.objects.filter(inventory_number__iexact=number).select_related("title").first()
+        if copy is None:
+            messages.error(request, _("Keine Inventarnummer „%(n)s“ gefunden.") % {"n": number})
+        elif not copy.loans.filter(status=Loan.Status.LENT).exists():
+            messages.warning(
+                request, _("%(n)s ist nicht ausgeliehen.") % {"n": copy.inventory_number}
+            )
+            copy = None
+        elif copy.title.contents_items:
+            check = copy  # erst Inhalt prüfen
+        elif request.method == "POST":
+            services.return_copy(copy, by=request.user)
+            _box_log(request, copy, _("zurück"))
+            messages.success(request, _("%(n)s zurückgebucht.") % {"n": copy.inventory_number})
+            return redirect("return_box")
+    if request.method == "POST" and "pruefung" in request.POST and check:
+        complete, missing = contents_check(check.title, request.POST)
+        services.return_copy(check, by=request.user, complete=complete, missing=missing)
+        _box_log(
+            request,
+            check,
+            _("zurück, vollständig")
+            if complete
+            else _("zurück, fehlt: %(m)s") % {"m": ", ".join(missing)},
+        )
+        messages.success(request, _("%(n)s zurückgebucht.") % {"n": check.inventory_number})
+        return redirect("return_box")
+    return render(
+        request,
+        "loans/return_box.html",
+        {
+            "confirm": copy if (copy and not check and request.method == "GET") else None,
+            "check": check,
+            "log": request.session.get(BOX_SESSION_KEY, []),
+        },
+    )

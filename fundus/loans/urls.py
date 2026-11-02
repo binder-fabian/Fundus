@@ -10,4 +10,5 @@ urlpatterns = [
     path("exemplar/<int:pk>/zurueckgeben/", views.give_back, name="give_back"),
     path("ausleihe/<int:pk>/verlaengern/", views.extend, name="extend"),
     path("ausleihen/", views.overview, name="loan_overview"),
+    path("ausleihen/rueckgabekiste/", views.return_box, name="return_box"),
 ]
