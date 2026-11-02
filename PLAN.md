@@ -298,3 +298,48 @@ Schritte 3.1–3.6 umgesetzt; 198 automatische Tests (SQLite und PostgreSQL) gr�
 Nicht geprüft und vor dem Einsatz nötig:
 
 - **Kamera auf echten Handys** (Android und iPhone) über HTTPS – im Entwicklungs-Browser ist die Kamera gesperrt.
+
+## 9. Phase 4 – Freigaben und Verbrauchsmaterial
+
+Status: **Entwurf, wartet auf Freigabe** (3. November 2026)
+
+Ziel laut SPEC: Anfrage-Workflow mit Übergabe-Scan, Vertretung, Nachbestellkarten. Dazu das Verbrauchsmaterial (z. B. Protokollbögen) mit Bestand, Mindestmenge und Nachbestellhinweis an das Sekretariat.
+
+### Schritt 4.1 – Anfragen für freigabepflichtige Titel
+
+- Lehrkräfte stellen statt „Ausleihen“ eine **Anfrage**, optional mit Wunschzeitraum und kurzer Nachricht. Status „angefragt“.
+- Die zuständige Person (bzw. die Vertretung, siehe Frage 2) bekommt eine E-Mail und sieht offene Anfragen auf ihrer Startseite.
+- **Genehmigen** oder **Ablehnen** (mit Begründung); die Lehrkraft wird per E-Mail informiert.
+- Lehrkräfte sehen ihre Anfragen unter „Meine Ausleihen“ und können sie zurückziehen.
+- Genehmigte, aber nicht abgeholte Anfragen verfallen nach einer einstellbaren Frist (Vorschlag: 14 Tage).
+
+### Schritt 4.2 – Übergabe-Scan
+
+- Ausgeliehen ist ein freigabepflichtiges Exemplar **erst, wenn die zuständige Person bei der Übergabe den QR-Code scannt**. Die Exemplarseite zeigt ihr dann die genehmigten Anfragen zu diesem Titel; ein Tipp bucht aus („übergeben von“ wird gespeichert).
+- Für freigabepflichtige Titel entfällt damit das direkte Ausbuchen ohne Anfrage nicht ganz: Zuständige und Verwaltung können weiterhin direkt für jemanden ausbuchen (z. B. bei spontaner Übergabe).
+- Verlängern ist nicht möglich, solange eine andere Anfrage vorliegt (schon so umgesetzt).
+
+### Schritt 4.3 – Vertretung
+
+- Zuständige Personen können sich in „Mein Konto“ als **abwesend bis …** eintragen. Solange gehen Anfragen an die Vertretung (siehe Frage 2).
+- Übersicht für Verwalter: Titel ohne zuständige Person oder ohne Vertretung.
+
+### Schritt 4.4 – Verbrauchsmaterial
+
+- Neuer Bereich „Verbrauchsmaterial“: Bezeichnung, Bezug zu einem Titel (z. B. Protokollbögen zum Test), Standort, Bestand und Mindestmenge (siehe Frage 3), Bestellhinweis (Lieferant, Artikelnummer, Packungsgröße).
+- Entnahme und Auffüllen buchen; der Titel zeigt sein zugehöriges Verbrauchsmaterial.
+
+### Schritt 4.5 – Nachbestellkarten und Nachbestellhinweise
+
+- **Nachbestellkarte** als PDF (wie die Etiketten): QR-Code mit einer eigenen Kennung (z. B. `NB-0003`), Bezeichnung und Bestellhinweis. Die Karte liegt im Stapel an der Stelle, an der nachbestellt werden muss.
+- Wer die Karte erreicht, **scannt sie** → ein Tipp auf „Nachbestellen“ erzeugt einen Nachbestellhinweis. Ebenso automatisch, wenn der Bestand die Mindestmenge unterschreitet.
+- Hinweise gehen an die konfigurierte Stelle (siehe Frage 4). Das Sekretariat sieht eine Liste offener Hinweise und hakt sie als „bestellt“ und später „geliefert“ ab (geliefert = Bestand auffüllen).
+
+### Schritt 4.6 – Dokumentation und Abnahme
+
+### Offene Fragen zu Phase 4
+
+1. Bezieht sich eine Anfrage auf den **Titel** (irgendein freies Exemplar) oder auf ein **bestimmtes Exemplar**?
+2. **Vertretung:** Wann bekommt sie die Anfragen?
+3. **Verbrauchsmaterial:** Soll Fundus den Bestand zählen, oder reichen Nachbestellkarten?
+4. **Nachbestellhinweise:** An wen gehen sie?
