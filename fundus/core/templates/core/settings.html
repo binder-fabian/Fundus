@@ -18,5 +18,8 @@
       <p class="help">Die Fristen werden einmal täglich angewendet. Nach dem Speichern geänderter Fristen können Sie die Bereinigung auch sofort starten.</p>
       <button class="button">Datenschutz-Bereinigung jetzt ausführen</button>
     </form>
+    <form method="post" action="{% url 'backup_now' %}" class="form">{% csrf_token %}
+      <button class="button">Jetzt sichern</button>
+    </form>
   </div>
 {% endblock %}

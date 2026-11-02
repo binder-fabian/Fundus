@@ -1,3 +1,4 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from simple_history.models import HistoricalRecords
@@ -142,6 +143,30 @@ class SchoolSettings(models.Model):
     last_privacy_run = models.DateTimeField(
         _("Datenschutz-Bereinigung zuletzt am"), null=True, blank=True
     )
+
+    class BackupInterval(models.TextChoices):
+        OFF = "off", _("aus")
+        DAILY = "daily", _("täglich")
+        WEEKLY = "weekly", _("wöchentlich")
+        MONTHLY = "monthly", _("monatlich")
+
+    backup_interval = models.CharField(
+        _("Automatische Sicherung"),
+        max_length=10,
+        choices=BackupInterval,
+        default=BackupInterval.DAILY,
+    )
+    backup_keep = models.PositiveSmallIntegerField(
+        _("Anzahl aufbewahrter Sicherungen"),
+        default=14,
+        validators=[MinValueValidator(1)],
+        help_text=_(
+            "Ältere werden automatisch gelöscht. Bis dahin stehen auch Namen darin, "
+            "die in Fundus selbst schon anonymisiert sind."
+        ),
+    )
+    last_backup_at = models.DateTimeField(_("letzte Sicherung"), null=True, blank=True)
+    last_backup_error = models.TextField(_("Fehler bei der letzten Sicherung"), blank=True)
     last_reminder_run = models.DateField(
         _("Erinnerungen zuletzt verschickt am"), null=True, blank=True
     )

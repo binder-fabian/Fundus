@@ -12,6 +12,7 @@ urlpatterns = [
     path("sw.js", pwa.service_worker, name="service_worker"),
     path("offline/", pwa.offline, name="offline"),
     path("einstellungen/", core_views.school_settings, name="school_settings"),
+    path("einstellungen/sichern/", core_views.backup_now, name="backup_now"),
     path(
         "einstellungen/datenschutz-jetzt/",
         core_views.privacy_run_now,

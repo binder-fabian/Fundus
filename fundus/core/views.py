@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 from django.views.static import serve
 
 from fundus.accounts.permissions import require
-from fundus.core import privacy
+from fundus.core import backup, privacy
 from fundus.core.daily import describe
 from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
@@ -95,6 +95,7 @@ def school_settings(request):
             ],
             privacy_note(form.instance),
         ),
+        ("Sicherung", [form["backup_interval"], form["backup_keep"]], backup_note(form.instance)),
         ("Etikettendruck", [form["label_offset_x"], form["label_offset_y"]], ""),
     ]
     return render(request, "core/settings.html", {"form": form, "groups": groups})
@@ -120,4 +121,32 @@ def privacy_note(config):
 def privacy_run_now(request):
     counts = privacy.run()
     messages.success(request, "Bereinigung erledigt. " + describe(counts) + ".")
+    return redirect("school_settings")
+
+
+def backup_note(config):
+    files = backup.existing_backups()
+    text = f"Ablage: {settings.BACKUP_DIR} ({len(files)} Sicherungen vorhanden). "
+    if config.last_backup_at:
+        text += f"Letzte Sicherung: {timezone.localtime(config.last_backup_at):%d.%m.%Y %H:%M}. "
+    if config.last_backup_error:
+        text += f"Achtung: Die letzte Sicherung ist fehlgeschlagen ({config.last_backup_error}). "
+    elif backup.is_overdue(config=config):
+        text += "Achtung: Es gibt keine aktuelle Sicherung. "
+    text += (
+        "Die Dateien enthalten alle Daten einschließlich der Passwort-Prüfwerte. "
+        "Bitte zusätzlich außerhalb des Servers aufbewahren, z. B. auf einem NAS."
+    )
+    return text
+
+
+@require("is_admin")
+@require_POST
+def backup_now(request):
+    try:
+        path = backup.create_backup()
+    except backup.BackupError as error:
+        messages.error(request, f"Sicherung fehlgeschlagen: {error}")
+    else:
+        messages.success(request, f"Sicherung angelegt: {path.name}")
     return redirect("school_settings")

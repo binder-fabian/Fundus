@@ -29,6 +29,8 @@ class SchoolSettingsForm(forms.ModelForm):
             "anonymous_lending",
             "anonymize_after_days",
             "history_names_days",
+            "backup_interval",
+            "backup_keep",
             "label_offset_x",
             "label_offset_y",
         ]

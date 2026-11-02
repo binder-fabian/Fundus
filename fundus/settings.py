@@ -113,6 +113,8 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "fundus" / "static"]
 MEDIA_URL = "media/"
 MEDIA_ROOT = DATA_DIR / "media"
+# Automatische Sicherungen (siehe Einstellungen → Sicherung)
+BACKUP_DIR = Path(env.str("BACKUP_DIR", default=str(DATA_DIR / "sicherungen")))
 STORAGES = {
     "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
     "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
