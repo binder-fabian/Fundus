@@ -258,3 +258,37 @@ Bewusst offen:
 - **Echter Probedruck:** Die Etiketten sind als PDF geprüft, aber noch nicht auf echten Bögen gedruckt und mit dem Handy gescannt. Das sollte vor dem Einsatz einmal je verwendetem Bogenformat passieren.
 - **ISBN per Handykamera** kommt mit dem Scanner in Phase 3.
 - **Google Books** braucht einen eigenen API-Schlüssel; ohne ihn fragt Fundus nur DNB und Open Library.
+
+## 8. Phase 3 – Ausleihe
+
+Status: **in Umsetzung auf dem Zweig `phase-3`, wartet auf Freigabe** (Nacht zum 3. November 2026). Auf ausdrücklichen Wunsch über Nacht umgesetzt; `main` bleibt bis zur Freigabe unverändert.
+
+Ziel laut SPEC: Scanner-PWA, Ausleihen/Zurückgeben, Rückgabekiste-Modus, Testkoffer-Inhaltslisten, E-Mail-Erinnerungen. Leitprinzip: „App öffnen, scannen, fertig“ in unter 10 Sekunden.
+
+### Schritte
+
+- **3.1 Ausleihlogik:** Ausleihen, Zurückgeben, Verlängern als eigene, getestete Funktionen mit Rechteprüfung; Rückgabedatum aus der Ausleihfrist der Kategorie.
+- **3.2 Oberfläche:** Exemplarseite mit der passenden Aktion (ausleihen / zurückgeben / verlängern), Startseite mit großem „Scannen“ und „Meine Ausleihen“, Übersicht für Verwalter (offen, überfällig, nach Lehrkraft, unvollständige Testkoffer).
+- **3.3 Scanner-PWA:** Kamera-Scanner im Browser (QR-Codes der Etiketten und ISBN-Strichcodes), USB-Handscanner und Eintippen überall; installierbar als App (Manifest, Service Worker), Navigationsleiste unten auf dem Handy.
+- **3.4 Rückgabekiste und Inhaltslisten:** Verwalter scannen viele Exemplare nacheinander zurück; bei Testkoffern wird die Inhaltsliste angezeigt und „vollständig / unvollständig“ abgefragt, fehlende Teile landen in der Notiz.
+- **3.5 E-Mail-Erinnerungen:** Erinnerung am Tag vor der Rückgabe, Hinweis bei Überfälligkeit, danach zusätzlich an die Verwalter. Ein zweiter Dienst im selben Image (`scheduler`) verschickt täglich; ohne Container per Cron/Aufgabenplanung.
+- **3.6 Dokumentation und Abnahme.**
+
+### Technik
+
+- Kamera: `barcode-detector` (Ponyfill der BarcodeDetector-Schnittstelle) mit ZXing als WebAssembly, lokal ausgeliefert – funktioniert auch auf iPhones, die keinen eingebauten Barcode-Scanner im Browser haben. Kamera braucht HTTPS (lokal geht `localhost`).
+- Kein neuer Dienst außer dem `scheduler`, der dasselbe Image nutzt.
+
+### Vorläufige Entscheidungen – bitte prüfen
+
+Diese Punkte hätte ich dir vorgelegt; über Nacht habe ich jeweils die vorsichtigere Variante umgesetzt. Alle lassen sich leicht ändern.
+
+| # | Frage | Umgesetzt (vorläufig) |
+| --- | --- | --- |
+| A | Wer sieht, **bei wem** etwas ist? | Verwalter, Administratoren und die zuständige Person sehen Namen. Lehrkräfte sehen nur „ausgeliehen bis …“. Einstellbar wird das in Phase 5. |
+| B | **Freigabepflichtige** Titel vor Phase 4? | Lehrkräfte können sie nicht selbst ausleihen und sehen „Bitte an [zuständige Person] wenden“. Zuständige Person und Verwalter buchen direkt für eine Lehrkraft aus. |
+| C | Wer darf **zurückbuchen**? | Die ausleihende Lehrkraft selbst sowie Verwalter und Administratoren (Rückgabekiste). |
+| D | **Verlängern** | Durch die ausleihende Lehrkraft, beliebig oft; neues Datum = heute + Ausleihfrist der Kategorie. |
+| E | **Erinnerungen** | 1 Tag vor Ablauf an die Lehrkraft, 3 Tage nach Ablauf erneut, 14 Tage nach Ablauf zusätzlich an alle Verwalter; täglich um 7 Uhr. Tage in den Einstellungen änderbar. |
+| F | **Für andere ausleihen** | Verwalter (und zuständige Personen bei ihren Titeln) können für eine andere Lehrkraft ausbuchen; Lehrkräfte nur für sich selbst. |
+| G | **Unvollständige Testkoffer** | Bleiben ausleihbar, zeigen aber deutlich „unvollständig“ mit den fehlenden Teilen. |
