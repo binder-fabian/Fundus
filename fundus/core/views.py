@@ -12,11 +12,6 @@ from fundus.core.forms import SchoolSettingsForm
 from fundus.core.models import SchoolSettings
 
 
-def home(request):
-    # Vorerst ist der Katalog die Startseite; ab Phase 3 kommt hier der Scanner hin.
-    return redirect("title_list")
-
-
 @login_not_required
 @never_cache
 def health(request):

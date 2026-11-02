@@ -535,3 +535,60 @@ pre {
   border-radius: var(--radius);
   overflow-x: auto;
 }
+
+/* Ausleihe */
+.button-big {
+  min-height: 56px;
+  font-size: 1.1rem;
+  width: 100%;
+}
+
+.scanbox {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.action-panel {
+  padding: 16px;
+  margin: 16px 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  display: grid;
+  gap: 12px;
+}
+
+.action-panel form {
+  margin: 0;
+}
+
+.status {
+  font-size: 1.15rem;
+  margin: 0;
+}
+
+.status-ok::before,
+.status-busy::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 8px;
+  background: #2e7d32;
+}
+
+.status-busy::before {
+  background: #c77700;
+}
+
+.card-alert .card-title {
+  color: var(--error);
+}
+
+.badge-alert {
+  background: var(--error-bg);
+  border-color: transparent;
+  color: var(--error);
+  font-weight: 600;
+}

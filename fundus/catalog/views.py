@@ -192,8 +192,14 @@ def copy_detail(request, pk):
     copy = get_object_or_404(
         Copy.objects.select_related("title__category", "location").with_availability(), pk=pk
     )
+    from fundus.loans.views import copy_actions
+
     loans = copy.loans.select_related("borrower")[:20] if request.user.can_manage_catalog else []
-    return render(request, "catalog/copy_detail.html", {"copy": copy, "loans": loans})
+    return render(
+        request,
+        "catalog/copy_detail.html",
+        {"copy": copy, "loans": loans, **copy_actions(request, copy)},
+    )
 
 
 @require("can_manage_catalog")

@@ -16,15 +16,13 @@ def test_health_reports_database_error(client, db):
     assert response.json()["status"] == "error"
 
 
-def test_home_leads_to_catalog_in_german(client, db):
+def test_home_shows_scan_box_and_my_loans_in_german(client, db):
     from tests.factories import UserFactory
 
     client.force_login(UserFactory())
-    response = client.get("/", follow=True)
-    assert response.redirect_chain[-1][0] == "/katalog/"
-    content = response.content.decode()
+    content = client.get("/").content.decode()
     assert '<html lang="de">' in content
-    assert "Katalog" in content
+    assert "Meine Ausleihen" in content and "Inventarnummer eingeben" in content
 
 
 def test_stylesheet_is_found_by_collectstatic():

@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Ausleihen{% endblock %}
+{% block content %}
+  <div class="page-head">
+    <h1>Ausleihen</h1>
+    {% url 'return_box' as box_url %}{% if box_url %}<div class="actions"><a class="button button-primary" href="{{ box_url }}">Rückgabekiste</a></div>{% endif %}
+  </div>
+  <nav class="tabs" aria-label="Ansicht">
+    <a href="?ansicht=offen"{% if view == "offen" %} aria-current="page"{% endif %}>Offen ({{ counts.offen }})</a>
+    <a href="?ansicht=ueberfaellig"{% if view == "ueberfaellig" %} aria-current="page"{% endif %}>Überfällig ({{ counts.ueberfaellig }})</a>
+    <a href="?ansicht=alle"{% if view == "alle" %} aria-current="page"{% endif %}>Verlauf</a>
+  </nav>
+  <form method="get" class="search-row">
+    <input type="hidden" name="ansicht" value="{{ view }}">
+    <label class="sr-only" for="id_q">Suche</label>
+    <input id="id_q" type="search" name="q" value="{{ request.GET.q }}" placeholder="Titel oder Inventarnummer">
+    <label class="sr-only" for="id_lehrkraft">Lehrkraft</label>
+    <select id="id_lehrkraft" name="lehrkraft"><option value="">alle Lehrkräfte</option>{% for t in teachers %}<option value="{{ t.pk }}"{% if teacher.pk == t.pk %} selected{% endif %}>{{ t }}</option>{% endfor %}</select>
+    <button class="button">Filtern</button>
+  </form>
+  {% if page.paginator.count %}
+    <div class="table-wrap">
+      <table class="table">
+        <thead><tr><th>Exemplar</th><th>Titel</th><th>Lehrkraft</th><th>seit</th><th>bis</th>{% if view == "alle" %}<th>zurück</th>{% endif %}</tr></thead>
+        <tbody>
+          {% for loan in page %}
+            <tr{% if loan.is_overdue %} class="row-error"{% endif %}>
+              <td><a href="{% url 'copy_detail' loan.copy_id %}">{{ loan.copy.inventory_number }}</a></td>
+              <td>{{ loan.copy.title.title|truncatechars:50 }}</td>
+              <td>{{ loan.borrower_display }}</td>
+              <td>{{ loan.lent_at|date:"d.m.Y" }}</td>
+              <td>{{ loan.due_date|date:"d.m.Y" }}</td>
+              {% if view == "alle" %}<td>{{ loan.returned_at|date:"d.m.Y"|default:"–" }}</td>{% endif %}
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% include "pagination.html" %}
+  {% else %}
+    <p>Keine Ausleihen in dieser Ansicht.</p>
+  {% endif %}
+
+  <h2>Unvollständige Exemplare ({{ incomplete|length }})</h2>
+  {% if incomplete %}
+    <ul>{% for c in incomplete %}<li><a href="{% url 'copy_detail' c.pk %}">{{ c.inventory_number }}</a> – {{ c.title.title }}</li>{% endfor %}</ul>
+  {% else %}<p class="muted">Keine.</p>{% endif %}
+{% endblock %}

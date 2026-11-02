@@ -13,7 +13,8 @@
     {% if user.is_authenticated %}
       <nav class="mainnav" aria-label="{% translate 'Hauptmenü' %}">
         <a href="{% url 'title_list' %}">{% translate "Katalog" %}</a>
-        {% if user.can_manage_catalog %}<a href="{% url 'masterdata_list' 'kategorien' %}">{% translate "Stammdaten" %}</a>{% endif %}
+        {% if user.can_manage_catalog %}<a href="{% url 'loan_overview' %}">{% translate "Ausleihen" %}</a>
+        <a href="{% url 'masterdata_list' 'kategorien' %}">{% translate "Stammdaten" %}</a>{% endif %}
         {% if user.can_manage_users %}<a href="{% url 'user_list' %}">{% translate "Benutzer" %}</a>{% endif %}
         {% if user.is_admin %}<a href="{% url 'import_upload' %}">{% translate "Import/Export" %}</a>
         <a href="{% url 'school_settings' %}">{% translate "Einstellungen" %}</a>{% endif %}
