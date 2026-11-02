@@ -1,6 +1,6 @@
 # Admin-Handbuch
 
-Stand: Phase 3 (Katalog, Erfassung, Etiketten, Ausleihe mit Scanner). Freigabe-Workflow und Verbrauchsmaterial folgen in Phase 4.
+Stand: Phase 4 (Katalog, Erfassung, Etiketten, Ausleihe mit Scanner, Freigaben, Verbrauchsmaterial). Datenschutz-Einstellungen und automatische Sicherung folgen in Phase 5.
 
 ## Rollen
 
@@ -11,7 +11,7 @@ Stand: Phase 3 (Katalog, Erfassung, Etiketten, Ausleihe mit Scanner). Freigabe-W
 | Lehrkraft | Katalog ansehen und durchsuchen |
 | Sekretariat | wie Lehrkraft; später Nachbestellhinweise |
 
-„Zuständige Person“ ist keine Rolle, sondern wird am einzelnen Titel eingetragen (mit Vertretung). Jede Person hat genau eine Rolle.
+Zuständig für einen Titel ist ein **Team** (siehe unten), keine Rolle. Jede Person hat genau eine Rolle; das Sekretariat bearbeitet zusätzlich die Nachbestellungen.
 
 ## Benutzer
 
@@ -77,6 +77,12 @@ Nicht gefundene ISBNs stehen am Ende in einer Liste zum Nacharbeiten.
 
 Unter „Etiketten“ gibt es ein A4-Plakat mit QR-Code zur Adresse von Fundus (`SITE_URL`) und einer kurzen Anleitung, z. B. für das Lehrerzimmer.
 
+## Teams
+
+Unter „Stammdaten → Teams“ legen Verwalter Teams an, z. B. „Diagnostik-Team“, mit einer bis beliebig vielen Personen. Am Titel wird dann das zuständige Team gewählt. Alle Mitglieder dürfen Anfragen genehmigen, Material übergeben, zurückbuchen und für andere ausleihen; sie vertreten sich gegenseitig.
+
+Wer abwesend ist, trägt unter „Konto“ ein „abwesend bis …“ ein und bekommt in der Zeit keine Anfragen. Sind alle im Team abwesend (oder hat ein Titel kein Team), gehen Anfragen an die Verwaltung. Die Übersicht „Ausleihen“ listet freigabepflichtige Titel ohne Team.
+
 ## Ausleihe
 
 - **Scannen:** Auf dem Handy unten „Scannen“ antippen und den QR-Code des Etiketts vor die Kamera halten. Fundus öffnet das Exemplar mit der passenden Aktion. Am PC geht dasselbe mit dem USB-Handscanner im Feld „Inventarnummer“ auf der Startseite. Die Kamera braucht HTTPS.
@@ -84,7 +90,24 @@ Unter „Etiketten“ gibt es ein A4-Plakat mit QR-Code zur Adresse von Fundus (
 - **Zurückgeben:** Jede angemeldete Person kann zurückbuchen, z. B. wenn ein Exemplar im Lehrerzimmer liegen geblieben ist. Freigabepflichtige Titel bucht nur die zuständige Person (oder Vertretung bzw. Verwaltung) zurück. Bei Titeln mit Inhaltsliste (Testkoffer) wird abgefragt, ob alles da ist; fehlende Teile markieren das Exemplar als unvollständig und stehen in der Notiz.
 - **Verlängern:** durch die ausleihende Lehrkraft, solange keine Anfrage vorliegt.
 - **Wer sieht Namen?** Verwalter, Administratoren und die zuständige Person. Andere Lehrkräfte sehen nur „ausgeliehen bis …“.
-- **Freigabepflichtige Titel** können Lehrkräfte noch nicht selbst ausleihen; sie wenden sich an die zuständige Person, die direkt für sie ausbucht. Der Anfrage-Ablauf folgt in Phase 4.
+- **Freigabepflichtige Titel** fragen Lehrkräfte an (siehe nächster Abschnitt).
+
+## Anfragen für freigabepflichtige Titel
+
+1. Die Lehrkraft tippt auf der Titel- oder Exemplarseite **„Anfragen“** (optional mit Wunschzeitraum und Nachricht).
+2. Alle anwesenden Mitglieder des Teams bekommen eine E-Mail und sehen die Anfrage auf ihrer Startseite. Wer zuerst **genehmigt** oder **ablehnt** (mit Begründung), erledigt sie für alle; die Lehrkraft wird per E-Mail informiert.
+3. **Übergabe:** Die Lehrkraft holt das Material ab. Jemand aus dem Team scannt den QR-Code eines freien Exemplars; dort steht „An … übergeben“. Erst jetzt gilt es als ausgeliehen. Das Rückgabedatum ist der Wunschtermin, sonst die Frist der Kategorie.
+
+Bleibt eine Anfrage 3 Tage liegen, wird das Team erinnert. Genehmigte, aber nicht abgeholte Anfragen verfallen nach 14 Tagen. Beide Werte stehen unter „Einstellungen“. Spontan geht es auch ohne Anfrage: Das Team kann direkt für jemanden ausleihen.
+
+## Verbrauchsmaterial und Nachbestellungen
+
+Unter „Material“ stehen Verbrauchsmaterialien wie Protokollbögen, jeweils mit Kennung (z. B. `NB-0001`), optional mit Bezug zu einem Test, Standort und Bestellhinweis (Lieferant, Artikelnummer).
+
+- **Bestand zählen ist freiwillig:** Mit „Bestand zählen“ werden Entnahmen gebucht; wird die Mindestmenge erreicht, geht automatisch ein Nachbestellhinweis raus. Ohne Zählen genügt die Nachbestellkarte.
+- **Nachbestellkarten** (Material → Nachbestellkarten) sind A6-Karten mit QR-Code, vier je A4-Blatt. Die Karte kommt in den Stapel an die Stelle, ab der nachbestellt werden soll. Wer sie erreicht, scannt sie und tippt „Nachbestellen“.
+- **Hinweise** gehen an alle mit der Rolle „Sekretariat“ und zusätzlich an die Adresse unter „Einstellungen → Verbrauchsmaterial“. Je Material gibt es höchstens einen offenen Hinweis.
+- Das Sekretariat hakt unter „Material → Nachbestellungen“ ab: **bestellt**, dann **geliefert** (mit Menge, füllt den Bestand auf) oder **verwerfen**.
 
 **Übersicht „Ausleihen“** (Verwalter): offene, überfällige und alle Vorgänge, Filter nach Lehrkraft, dazu die Liste unvollständiger Exemplare.
 

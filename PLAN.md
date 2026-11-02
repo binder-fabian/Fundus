@@ -1,6 +1,6 @@
 # Umsetzungsplan
 
-Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–3 umgesetzt**
+Stand: 2. November 2026 · Grundlage: [SPEC.md](SPEC.md) · Status: **Phasen 1–4 umgesetzt**
 
 ## 1. Basis: Fork oder Neubau?
 
@@ -301,7 +301,7 @@ Nicht geprüft und vor dem Einsatz nötig:
 
 ## 9. Phase 4 – Freigaben und Verbrauchsmaterial
 
-Status: **Entwurf, wartet auf Freigabe** (3. November 2026)
+Status: **umgesetzt** (3. November 2026)
 
 Ziel laut SPEC: Anfrage-Workflow mit Übergabe-Scan, Vertretung, Nachbestellkarten. Dazu das Verbrauchsmaterial (z. B. Protokollbögen) mit Bestand, Mindestmenge und Nachbestellhinweis an das Sekretariat.
 
@@ -351,3 +351,12 @@ Ziel laut SPEC: Anfrage-Workflow mit Übergabe-Scan, Vertretung, Nachbestellkart
 | Nachbestellhinweise an | Rolle Sekretariat (Liste + E-Mail) und eine einstellbare E-Mail-Adresse |
 
 Reihenfolge der Umsetzung: 4.3 (Teams) zuerst, weil Anfragen und Übergabe darauf aufbauen; danach 4.1, 4.2, 4.4, 4.5, 4.6.
+
+### Stand nach Phase 4 (3. November 2026)
+
+Alle Schritte umgesetzt; 231 automatische Tests (SQLite und PostgreSQL), CI und Image-Build grün. Migrationen auf bestehenden Daten geprüft (Zuständige → Teams, Ausleihen bekommen ihren Titel). Nachbestellkarten als PDF geprüft.
+
+Hinweise:
+
+- Eine Ausleihe bezieht sich jetzt immer auf einen **Titel**; das Exemplar steht bei Anfragen erst mit der Übergabe fest.
+- Nicht geprüft: echter E-Mail-Versand über den Schul-Mailserver (bisher nur Mailpit) und die Kamera auf echten Handys.

@@ -22,4 +22,6 @@
 
 **Als App aufs Handy.** Im Browser „Zum Startbildschirm hinzufügen“ wählen (iPhone: Teilen-Symbol; Android: Menü ⋮). Dann startet Fundus wie eine App.
 
-**Freigabepflichtige Tests** (z. B. teure Diagnostik) bitte bei der zuständigen Person ausleihen und auch dort zurückgeben; sie bucht für Sie aus und zurück.
+**Freigabepflichtige Tests** (z. B. teure Diagnostik): „Anfragen“ antippen. Das zuständige Team genehmigt, Sie bekommen eine E-Mail und holen den Test dort ab. Zurück geben Sie ihn auch beim Team.
+
+**Protokollbögen & Co. fast leer?** Die Nachbestellkarte im Stapel scannen und „Nachbestellen“ antippen. Das Sekretariat kümmert sich.

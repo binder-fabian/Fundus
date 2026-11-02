@@ -2,7 +2,7 @@
 
 Katalog und Ausleihe für Schulen: Bücher, Diagnostiktests, Fördermaterial und Technik an einem Ort, mit QR-Codes zum Ausleihen per Handy. Selbst gehostet, ohne Cloud-Abhängigkeit, datensparsam.
 
-> **Stand:** Phasen 1–3: Katalog, Suche, Benutzer, Import und Export, ISBN-Abruf, Massenerfassung, Nummernschema, Etiketten mit QR-Code, Ausleihe per Handy-Scanner, Rückgabekiste und E-Mail-Erinnerungen. Freigabe-Workflow und Verbrauchsmaterial folgen in Phase 4.
+> **Stand:** Phasen 1–4: Katalog, Suche, Benutzer, Import und Export, ISBN-Abruf, Massenerfassung, Nummernschema, Etiketten mit QR-Code, Ausleihe per Handy-Scanner, Rückgabekiste, E-Mail-Erinnerungen, Anfragen mit Übergabe-Scan, Teams und Verbrauchsmaterial mit Nachbestellkarten. Datenschutz-Einstellungen und automatische Sicherung folgen in Phase 5.
 
 - Anforderungen: [SPEC.md](SPEC.md)
 - Umsetzungsplan und Entscheidungen: [PLAN.md](PLAN.md)
