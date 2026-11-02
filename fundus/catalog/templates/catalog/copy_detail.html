@@ -53,10 +53,12 @@
           {% if copy.title.contents_items %}<p class="help">Inhalt: {{ copy.title.contents_items|join:", " }}</p>{% endif %}
           {% include "field.html" with field=lend_form.due_date %}
           {% if lend_form.borrower %}{% include "field.html" with field=lend_form.borrower %}{% endif %}
+          {% if lend_form.borrower_label %}{% include "field.html" with field=lend_form.borrower_label %}{% endif %}
           <button class="button button-primary button-big">Ausleihen</button>
         </form>
       {% endif %}
     </section>
+    {% if anonymous %}<datalist id="label-suggestions">{% for l in label_suggestions %}<option value="{{ l }}">{% endfor %}</datalist>{% endif %}
   {% endif %}
 
   <dl class="facts">

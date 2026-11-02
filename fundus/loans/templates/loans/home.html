@@ -14,6 +14,7 @@
   {% endif %}
 
   <h1>Meine Ausleihen</h1>
+  {% if anonymous %}<p class="muted">Ihre Schule erfasst Ausleihen ohne Namen, nur mit Klasse oder Raum. Neue Ausleihen erscheinen deshalb nicht hier, und es gibt keine Erinnerungen per E-Mail.</p>{% endif %}
   {% if loans %}
     <ul class="cards">
       {% for loan in loans %}

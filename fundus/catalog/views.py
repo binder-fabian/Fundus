@@ -72,11 +72,13 @@ def title_detail(request, pk):
         from fundus.loans.services import can_see_borrower
 
         copies = list(copies)
-        if can_see_borrower(request.user, title):
-            open_loans = title.loans.filter(status="lent").select_related("borrower")
-            names = {loan.copy_id: loan.borrower_display for loan in open_loans}
-            for c in copies:
-                c.borrower_name = names.get(c.pk, "")
+        open_loans = title.loans.filter(status="lent").select_related("borrower")
+        if not can_see_borrower(request.user, title):
+            # Klasse/Raum (Modus ohne Namen) ist kein Personenbezug und für alle sichtbar.
+            open_loans = open_loans.filter(borrower__isnull=True)
+        names = {loan.copy_id: loan.borrower_display for loan in open_loans}
+        for c in copies:
+            c.borrower_name = names.get(c.pk, "")
     context = {"title": title, "copies": copies}
     if title.approval_required and title.lendable:
         from fundus.loans import requests as loan_requests

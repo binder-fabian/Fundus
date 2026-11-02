@@ -16,10 +16,21 @@ class LendForm(forms.Form):
         label=_("für"),
     )
 
-    def __init__(self, *args, for_others=False, **kwargs):
+    borrower_label = forms.CharField(
+        label=_("für Klasse oder Raum"),
+        max_length=100,
+        widget=forms.TextInput(
+            attrs={"list": "label-suggestions", "autocomplete": "off", "placeholder": "z. B. 3b"}
+        ),
+        help_text=_("Ausleihen werden ohne Namen erfasst."),
+    )
+
+    def __init__(self, *args, for_others=False, anonymous=False, **kwargs):
         super().__init__(*args, **kwargs)
-        if not for_others:
+        if anonymous or not for_others:
             del self.fields["borrower"]
+        if not anonymous:
+            del self.fields["borrower_label"]
 
     def clean_due_date(self):
         due = self.cleaned_data["due_date"]

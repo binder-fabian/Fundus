@@ -62,6 +62,14 @@ def can_return(user, loan):
     return user.is_authenticated and user.is_active
 
 
+def can_extend(user, loan):
+    """Die ausleihende Person oder die Verwaltung; Ausleihen ohne Namen
+    (nur Klasse/Raum) darf verlängern, wer sie auch zurückbuchen darf."""
+    if loan.borrower_id is None:
+        return can_return(user, loan)
+    return loan.borrower_id == user.pk or user.can_manage_catalog
+
+
 def pending_request(copy):
     """Liegt für den Titel dieses Exemplars eine offene Anfrage vor?"""
     return Loan.objects.filter(title_id=copy.title_id, status__in=Loan.OPEN_REQUEST).exists()
@@ -75,21 +83,39 @@ def default_due_date(copy, today=None):
 
 
 @transaction.atomic
-def lend(copy, by, borrower=None, due_date=None):
+def anonymous_mode():
+    return SchoolSettings.current().anonymous_lending
+
+
+def clean_label(label):
+    label = " ".join((label or "").split())
+    if not label:
+        raise LoanError(_("Bitte Klasse oder Raum angeben."))
+    return label[:100]
+
+
+def lend(copy, by, borrower=None, due_date=None, label=""):
+    """Leiht ein Exemplar aus – für `borrower` (Standard: `by`) oder, im Modus
+    ohne Namen, für eine Klasse bzw. einen Raum (`label`)."""
     copy = (
         Copy.objects.select_for_update(of=("self",))
         .select_related("title__category")
         .get(pk=copy.pk)
     )
     title = copy.title
-    borrower = borrower or by
+    anonymous = anonymous_mode()
+    if anonymous:
+        label = clean_label(label)
+        borrower = None
+    else:
+        borrower = borrower or by
     if not title.lendable:
         raise LoanError(_("Dieser Titel ist nicht zum Ausleihen vorgesehen."))
     if copy.loans.filter(status=Loan.Status.LENT).exists():
         raise LoanError(_("Dieses Exemplar ist bereits ausgeliehen."))
-    if not borrower.is_active:
+    if borrower and not borrower.is_active:
         raise LoanError(_("Dieses Konto ist deaktiviert."))
-    if borrower != by and not can_lend_for_others(by, title):
+    if borrower and borrower != by and not can_lend_for_others(by, title):
         raise LoanError(_("Sie können nur für sich selbst ausleihen."))
     if title.approval_required and not can_lend_for_others(by, title):
         raise LoanError(_("Freigabepflichtig: Bitte an %(p)s wenden.") % {"p": contact_for(title)})
@@ -102,10 +128,13 @@ def lend(copy, by, borrower=None, due_date=None):
     loan = Loan(
         copy=copy,
         borrower=borrower,
+        borrower_label=label if anonymous else "",
         status=Loan.Status.LENT,
         lent_at=timezone.now(),
         due_date=due_date,
-        handed_over_by=by if (by != borrower or title.approval_required) else None,
+        handed_over_by=(
+            by if not anonymous and (by != borrower or title.approval_required) else None
+        ),
     )
     try:
         with transaction.atomic():
@@ -159,7 +188,7 @@ def extend(loan, by, today=None):
     )
     if loan.status != Loan.Status.LENT:
         raise LoanError(_("Nur laufende Ausleihen können verlängert werden."))
-    if loan.borrower_id != by.pk and not by.can_manage_catalog:
+    if not can_extend(by, loan):
         raise LoanError(_("Nur die ausleihende Person kann verlängern."))
     if pending_request(loan.copy):
         raise LoanError(

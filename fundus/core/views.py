@@ -89,6 +89,7 @@ def school_settings(request):
             "Datenschutz",
             [
                 form["borrower_visibility"],
+                form["anonymous_lending"],
                 form["anonymize_after_days"],
                 form["history_names_days"],
             ],

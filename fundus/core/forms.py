@@ -26,6 +26,7 @@ class SchoolSettingsForm(forms.ModelForm):
             "request_pickup_days",
             "reorder_email",
             "borrower_visibility",
+            "anonymous_lending",
             "anonymize_after_days",
             "history_names_days",
             "label_offset_x",

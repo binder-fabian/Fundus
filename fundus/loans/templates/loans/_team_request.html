@@ -7,7 +7,15 @@
   </span>
   <span class="card-meta">
     {% if copy %}
-      <form method="post" action="{% url 'request_hand_over' r.pk copy.pk %}">{% csrf_token %}<button class="button button-primary">An {{ r.borrower.get_short_name }} übergeben</button></form>
+      <form method="post" action="{% url 'request_hand_over' r.pk copy.pk %}" class="handover">{% csrf_token %}
+        {% if anonymous %}
+          <label class="sr-only" for="klasse-{{ r.pk }}">Klasse oder Raum</label>
+          <input id="klasse-{{ r.pk }}" type="text" name="klasse" list="label-suggestions" placeholder="Klasse oder Raum" required autocomplete="off">
+          <button class="button button-primary">Übergeben</button>
+        {% else %}
+          <button class="button button-primary">An {{ r.borrower.get_short_name }} übergeben</button>
+        {% endif %}
+      </form>
     {% elif r.status == "requested" %}
       <form method="post" action="{% url 'request_approve' r.pk %}">{% csrf_token %}<input type="hidden" name="weiter" value="{{ request.get_full_path }}"><button class="button button-small button-primary">Genehmigen</button></form>
     {% endif %}

@@ -21,7 +21,13 @@ from fundus.accounts.models import Role, User
 from fundus.catalog.models import Copy
 from fundus.core.models import SchoolSettings
 from fundus.loans.models import Loan
-from fundus.loans.services import LoanError, can_lend_for_others, default_due_date
+from fundus.loans.services import (
+    LoanError,
+    anonymous_mode,
+    can_lend_for_others,
+    clean_label,
+    default_due_date,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -147,10 +153,13 @@ def withdraw(loan, by):
 
 
 @transaction.atomic
-def hand_over(loan, copy, by, due_date=None):
+def hand_over(loan, copy, by, due_date=None, label=""):
     """Übergabe: Das Team scannt ein freies Exemplar und bucht es für die
     anfragende Person aus. Eine noch nicht genehmigte Anfrage gilt damit
-    als genehmigt."""
+    als genehmigt.
+
+    Im Modus ohne Namen trägt das Team Klasse oder Raum ein; alle Angaben zu
+    Personen werden dabei aus der Ausleihe und ihrem Protokoll entfernt."""
     loan = (
         Loan.objects.select_for_update(of=("self",))
         .select_related("title__category")
@@ -164,6 +173,9 @@ def hand_over(loan, copy, by, due_date=None):
         raise LoanError(_("Dieses Exemplar gehört zu einem anderen Titel."))
     if copy.loans.filter(status=Loan.Status.LENT).exists():
         raise LoanError(_("Dieses Exemplar ist bereits ausgeliehen."))
+    anonymous = anonymous_mode()
+    if anonymous:
+        label = clean_label(label)
 
     today = timezone.localdate()
     if due_date is None:
@@ -179,6 +191,19 @@ def hand_over(loan, copy, by, due_date=None):
     if not loan.approved_by_id:
         loan.approved_by = by
         loan.decided_at = now
+    if anonymous:
+        personal = {
+            "borrower": None,
+            "approved_by": None,
+            "handed_over_by": None,
+            "message": "",
+        }
+        for field, value in personal.items():
+            setattr(loan, field, value)
+        loan.borrower_label = label
+        loan.save()
+        Loan.history.filter(id=loan.pk).update(history_user=None, **personal)
+        return loan
     loan.save()
     return loan
 

@@ -117,6 +117,15 @@ class SchoolSettings(models.Model):
             "Die Übersicht aller Ausleihen bleibt immer der Verwaltung vorbehalten."
         ),
     )
+    anonymous_lending = models.BooleanField(
+        _("Ausleihen ohne Namen (nur Klasse oder Raum)"),
+        default=False,
+        help_text=_(
+            "Z. B. bis zur Zustimmung des Personalrats. Beim Ausleihen wird statt der Person "
+            "Klasse oder Raum erfasst; „Meine Ausleihen“ und Erinnerungen entfallen. "
+            "Anfragen behalten den Namen bis zur Übergabe. Gilt nur für neue Ausleihen."
+        ),
+    )
     anonymize_after_days = models.PositiveSmallIntegerField(
         _("Namen aus abgeschlossenen Ausleihen entfernen nach … Tagen"),
         default=365,

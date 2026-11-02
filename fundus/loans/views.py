@@ -39,6 +39,7 @@ def home(request):
             if request.user.can_handle_orders
             else 0,
             "today": timezone.localdate(),
+            "anonymous": services.anonymous_mode(),
         },
     )
 
@@ -87,10 +88,14 @@ def copy_actions(request, copy):
     user = request.user
     title = copy.title
     loan = copy.loans.filter(status=Loan.Status.LENT).select_related("borrower").first()
+    anonymous = services.anonymous_mode()
     context = {
         "loan": loan,
-        "show_borrower": loan is not None and services.can_see_borrower(user, title),
+        "show_borrower": loan is not None
+        and (not loan.borrower_id or services.can_see_borrower(user, title)),
         "can_lend_for_others": services.can_lend_for_others(user, title),
+        "anonymous": anonymous,
+        "label_suggestions": label_suggestions() if anonymous else [],
     }
     if not title.lendable:
         return context
@@ -107,20 +112,31 @@ def copy_actions(request, copy):
             context["lend_form"] = LendForm(
                 initial={"due_date": services.default_due_date(copy), "borrower": user.pk},
                 for_others=context["can_lend_for_others"],
+                anonymous=context["anonymous"],
             )
     else:
         context["can_return"] = services.can_return(user, loan)
-        context["can_extend"] = (
-            loan.borrower_id == user.pk or user.can_manage_catalog
-        ) and not services.pending_request(copy)
+        context["can_extend"] = services.can_extend(user, loan) and not services.pending_request(
+            copy
+        )
     return context
+
+
+def label_suggestions(limit=30):
+    """Zuletzt verwendete Klassen und Räume als Vorschläge beim Ausleihen."""
+    labels = (
+        Loan.objects.exclude(borrower_label="")
+        .order_by("-created_at")
+        .values_list("borrower_label", flat=True)[:300]
+    )
+    return list(dict.fromkeys(labels))[:limit]
 
 
 @require_POST
 def lend(request, pk):
     copy = get_object_or_404(Copy.objects.select_related("title"), pk=pk)
     for_others = services.can_lend_for_others(request.user, copy.title)
-    form = LendForm(request.POST, for_others=for_others)
+    form = LendForm(request.POST, for_others=for_others, anonymous=services.anonymous_mode())
     if not form.is_valid():
         for errors in form.errors.values():
             messages.error(request, " ".join(errors))
@@ -128,12 +144,21 @@ def lend(request, pk):
     borrower = form.cleaned_data.get("borrower") or request.user
     try:
         loan = services.lend(
-            copy, by=request.user, borrower=borrower, due_date=form.cleaned_data["due_date"]
+            copy,
+            by=request.user,
+            borrower=borrower,
+            due_date=form.cleaned_data["due_date"],
+            label=form.cleaned_data.get("borrower_label", ""),
         )
     except services.LoanError as error:
         messages.error(request, str(error))
     else:
-        who = "" if borrower == request.user else _(" für %(p)s") % {"p": borrower}
+        if loan.borrower_label:
+            who = _(" für %(p)s") % {"p": loan.borrower_label}
+        elif borrower == request.user:
+            who = ""
+        else:
+            who = _(" für %(p)s") % {"p": borrower}
         messages.success(
             request,
             _("Ausgeliehen%(who)s bis %(d)s.")
@@ -389,7 +414,7 @@ def hand_over(request, pk, copy_pk):
     loan = get_object_or_404(Loan, pk=pk)
     copy = get_object_or_404(Copy, pk=copy_pk)
     try:
-        loan = requests.hand_over(loan, copy, by=request.user)
+        loan = requests.hand_over(loan, copy, by=request.user, label=request.POST.get("klasse", ""))
     except services.LoanError as error:
         messages.error(request, str(error))
     else:
@@ -398,7 +423,7 @@ def hand_over(request, pk, copy_pk):
             _("%(n)s an %(p)s übergeben, bis %(d)s.")
             % {
                 "n": copy.inventory_number,
-                "p": loan.borrower,
+                "p": loan.borrower_display,
                 "d": loan.due_date.strftime("%d.%m.%Y"),
             },
         )

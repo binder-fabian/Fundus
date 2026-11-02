@@ -715,6 +715,16 @@ pre {
   }
 }
 
+.handover {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.handover input {
+  flex: 1 1 8em;
+}
+
 details.reject summary {
   list-style: none;
 }

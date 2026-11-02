@@ -164,3 +164,80 @@ def test_team_sees_names_on_title_page_by_default(client):
     services.lend(copy, by=UserFactory(first_name="Bea", last_name="Borg"))
     client.force_login(member)
     assert "· Bea Borg" in client.get(reverse("title_detail", args=[title.pk])).content.decode()
+
+
+@pytest.fixture
+def anonymous_mode():
+    config = SchoolSettings.current()
+    config.anonymous_lending = True
+    config.save()
+    return config
+
+
+def test_anonymous_mode_lends_to_class_without_name(client, anonymous_mode):
+    teacher = UserFactory()
+    copy = CopyFactory()
+    client.force_login(teacher)
+    page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
+    assert "für Klasse oder Raum" in page and 'id="label-suggestions"' in page
+
+    response = client.post(
+        reverse("lend", args=[copy.pk]),
+        {"due_date": (timezone.localdate() + 7 * DAY).isoformat(), "borrower_label": " 3b "},
+        follow=True,
+    )
+    assert "Ausgeliehen für 3b" in response.content.decode()
+    loan = Loan.objects.get(copy=copy)
+    assert loan.borrower is None and loan.borrower_label == "3b" and loan.handed_over_by is None
+    assert (
+        "Neue Ausleihen erscheinen deshalb nicht hier"
+        in client.get(reverse("home")).content.decode()
+    )
+
+    other = UserFactory()
+    client.force_login(other)
+    page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
+    assert "bei 3b" in page and "Verlängern" in page
+    assert "· 3b" in client.get(reverse("title_detail", args=[copy.title_id])).content.decode()
+
+
+def test_anonymous_mode_requires_label(anonymous_mode):
+    with pytest.raises(services.LoanError):
+        services.lend(CopyFactory(), by=UserFactory(), label="  ")
+
+
+def test_anonymous_mode_hand_over_removes_names(client, anonymous_mode):
+    teacher, member = UserFactory(), UserFactory()
+    title = TitleFactory(approval_required=True, team=team_of(member))
+    copy = CopyFactory(title=title)
+    loan = requests.request_title(title, teacher, message="Für die 3b")
+    requests.approve(loan, member)
+
+    client.force_login(member)
+    page = client.get(reverse("copy_detail", args=[copy.pk])).content.decode()
+    assert 'name="klasse"' in page
+    client.post(reverse("request_hand_over", args=[loan.pk, copy.pk]), {"klasse": "3b"})
+
+    loan.refresh_from_db()
+    assert loan.status == Loan.Status.LENT and loan.borrower_label == "3b"
+    assert (loan.borrower, loan.approved_by, loan.handed_over_by, loan.message) == (
+        None,
+        None,
+        None,
+        "",
+    )
+    assert not loan.history.filter(borrower__isnull=False).exists()
+    assert not loan.history.exclude(message="").exists()
+    assert not loan.history.filter(history_user__isnull=False).exists()
+
+
+def test_existing_named_loans_stay_when_mode_switched_on(anonymous_mode):
+    anonymous_mode.anonymous_lending = False
+    anonymous_mode.save()
+    teacher = UserFactory()
+    loan = services.lend(CopyFactory(), by=teacher)
+    anonymous_mode.anonymous_lending = True
+    anonymous_mode.save()
+    loan.refresh_from_db()
+    assert loan.borrower == teacher
+    assert services.can_extend(teacher, loan)
