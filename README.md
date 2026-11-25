@@ -13,6 +13,7 @@ Katalog und Ausleihe für Schulen: Bücher, Diagnostiktests, Fördermaterial und
 - [Installation ohne Container](docs/native-install.md) unter Linux und Windows (Entwurf)
 - [Admin-Handbuch](docs/admin.md): Rollen, Benutzer, Katalog, Ausleihe, Reservierung, Statistik, Datenschutz, Anmeldung mit Schulkonto, Import, Export und Sicherung
 - [Kurzanleitung für Lehrkräfte](docs/kurzanleitung-lehrkraefte.md) (1 Seite)
+- [Funktionsumfang](docs/funktionsumfang.md): alle Funktionen und Regeln, unabhängig von der Technik beschrieben
 
 ## Schnellstart mit Docker oder Podman
 
